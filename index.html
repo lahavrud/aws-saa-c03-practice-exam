@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS SAA-C03 Practice Exam</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AWS SAA-C03 Practice Exam</h1>
+            <div id="timer" class="timer hidden"></div>
+        </header>
+
+        <!-- Test Selection Screen -->
+        <div id="test-selection" class="screen">
+            <div class="dashboard-header">
+                <h1>AWS SAA-C03 Practice Exam</h1>
+                <p class="dashboard-subtitle">Test your knowledge with comprehensive practice questions</p>
+            </div>
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-number">130</div>
+                    <div class="stat-label">Total Questions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">2</div>
+                    <div class="stat-label">Practice Tests</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Domains</div>
+                </div>
+            </div>
+            <h2>Select a Test</h2>
+            <div class="test-buttons">
+                <button class="test-btn" onclick="selectTest(1)">
+                    <div class="test-btn-header">
+                        <h3>Test 1</h3>
+                        <span class="test-count">65 Questions</span>
+                    </div>
+                    <p>Comprehensive practice exam covering all domains</p>
+                </button>
+                <button class="test-btn" onclick="selectTest(2)">
+                    <div class="test-btn-header">
+                        <h3>Test 2</h3>
+                        <span class="test-count">65 Questions</span>
+                    </div>
+                    <p>Additional practice questions for mastery</p>
+                </button>
+                <button class="test-btn" onclick="goToDomainReview()">
+                    <div class="test-btn-header">
+                        <h3>Review by Domain</h3>
+                        <span class="test-count">All Questions</span>
+                    </div>
+                    <p>Practice questions from a specific domain across both tests</p>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mode Selection Screen -->
+        <div id="mode-selection" class="screen hidden">
+            <h2>Select Mode</h2>
+            <div class="mode-buttons">
+                <button class="mode-btn" onclick="selectMode('review')">
+                    <h3>Review Mode</h3>
+                    <p>Get immediate feedback after each answer with detailed explanations</p>
+                </button>
+                <button class="mode-btn" onclick="selectMode('test')">
+                    <h3>Test Mode</h3>
+                    <p>Timed exam simulation (130 minutes)</p>
+                </button>
+                <button class="mode-btn" onclick="selectMode('review-domain')">
+                    <h3>Review by Domain</h3>
+                    <p>Practice all questions from a specific domain (across both tests)</p>
+                </button>
+            </div>
+            <button class="back-btn" onclick="goBackToTestSelection()">← Back to Tests</button>
+        </div>
+
+        <!-- Domain Selection Screen -->
+        <div id="domain-selection" class="screen hidden">
+            <h2>Select Domain to Review</h2>
+            <div class="domain-buttons">
+                <button class="domain-btn" onclick="selectDomainForReview('Design Secure Architectures')">
+                    <h3>Design Secure Architectures</h3>
+                    <p>Security, IAM, encryption, compliance</p>
+                </button>
+                <button class="domain-btn" onclick="selectDomainForReview('Design Resilient Architectures')">
+                    <h3>Design Resilient Architectures</h3>
+                    <p>Availability, backups, disaster recovery</p>
+                </button>
+                <button class="domain-btn" onclick="selectDomainForReview('Design High-Performing Architectures')">
+                    <h3>Design High-Performing Architectures</h3>
+                    <p>Performance, scaling, caching, latency</p>
+                </button>
+                <button class="domain-btn" onclick="selectDomainForReview('Design Cost-Optimized Architectures')">
+                    <h3>Design Cost-Optimized Architectures</h3>
+                    <p>Cost optimization, pricing, savings</p>
+                </button>
+            </div>
+            <button class="back-btn" onclick="goBackToModeSelection()">← Back to Modes</button>
+        </div>
+
+        <!-- Question Screen -->
+        <div id="question-screen" class="screen hidden">
+            <!-- Question Navigation Bar -->
+            <div class="question-navbar" id="question-navbar">
+                <div class="navbar-header">
+                    <span>Questions</span>
+                    <button class="navbar-toggle" id="navbar-toggle" onclick="toggleNavbar()">☰</button>
+                </div>
+                <div class="question-grid" id="question-grid"></div>
+            </div>
+            
+            <div class="progress-bar">
+                <div id="progress" class="progress-fill"></div>
+            </div>
+            <div class="question-header">
+                <div class="question-title">
+                    <span id="question-number">Question 1</span>
+                    <span id="question-count">of 65</span>
+                    <span id="question-domain" class="domain-badge"></span>
+                </div>
+                <div class="question-actions">
+                    <button class="mark-btn" id="mark-btn" onclick="toggleMarkQuestion()" title="Mark for review">
+                        <span id="mark-icon">☆</span> Mark
+                    </button>
+                    <button class="dashboard-btn" onclick="showDashboardDialog()" title="Return to dashboard">
+                        🏠 Dashboard
+                    </button>
+                    <span class="keyboard-hint">(← → to navigate)</span>
+                </div>
+            </div>
+            
+            <div class="stats-bar">
+                <span class="stat-item">Answered: <strong id="answered-count">0</strong></span>
+                <span class="stat-item">Remaining: <strong id="remaining-count">65</strong></span>
+                <span class="stat-item">Marked: <strong id="marked-count">0</strong></span>
+            </div>
+            
+            <div class="question-content">
+                <p id="question-text"></p>
+                <div id="options" class="options"></div>
+            </div>
+
+            <div class="explanation hidden" id="explanation">
+                <h3>Explanation</h3>
+                <div id="explanation-content">
+                    <div id="correct-explanation" class="explanation-section"></div>
+                    <div id="incorrect-explanation" class="explanation-section"></div>
+                </div>
+            </div>
+
+            <div class="navigation">
+                <button id="prev-btn" class="nav-btn" onclick="previousQuestion()">Previous</button>
+                <button id="submit-btn" class="nav-btn primary" onclick="submitAnswer()">Submit Answer</button>
+                <button id="next-btn" class="nav-btn primary hidden" onclick="nextQuestion()">Next Question</button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="screen hidden">
+            <h2>Test Results</h2>
+            <div class="score-summary">
+                <div class="score-circle">
+                    <div class="score-value" id="total-score">0%</div>
+                    <div class="score-label">Overall Score</div>
+                </div>
+                <div class="score-details">
+                    <div class="score-stat">
+                        <span class="stat-label">Correct:</span>
+                        <span class="stat-value" id="correct-count">0</span>
+                    </div>
+                    <div class="score-stat">
+                        <span class="stat-label">Incorrect:</span>
+                        <span class="stat-value" id="incorrect-count">0</span>
+                    </div>
+                    <div class="score-stat">
+                        <span class="stat-label">Unanswered:</span>
+                        <span class="stat-value" id="unanswered-count">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="domain-scores">
+                <h3>Score by Domain</h3>
+                <div id="domain-breakdown"></div>
+            </div>
+
+            <div class="review-section">
+                <h3>Review Answers</h3>
+                <div id="review-questions"></div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn primary" onclick="restartTest()">Take Another Test</button>
+                <button class="action-btn" onclick="reviewAnswers()">Review All Answers</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Dialog -->
+        <div id="dashboard-dialog" class="modal hidden">
+            <div class="modal-content">
+                <h3>Return to Dashboard?</h3>
+                <p>Your progress will be saved. You can resume later.</p>
+                <div class="modal-buttons">
+                    <button class="modal-btn primary" onclick="saveAndReturnToDashboard()">Save & Return</button>
+                    <button class="modal-btn" onclick="returnToDashboardWithoutSaving()">Return Without Saving</button>
+                    <button class="modal-btn" onclick="closeDashboardDialog()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="question-loader.js"></script>
+    <script src="questions.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
