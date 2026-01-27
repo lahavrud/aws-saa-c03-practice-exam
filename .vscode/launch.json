@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Local Server",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/start-server.sh",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Start Local Server"
+        }
+    ]
+}

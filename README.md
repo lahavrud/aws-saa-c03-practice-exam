@@ -47,6 +47,12 @@ AWS-SAA-C03/
     └── ARCHITECTURE.md     # Architecture documentation
 ```
 
+## 🔐 Authentication
+
+The app uses **Google Sign-In** for authentication. Your progress is automatically synced across all browsers and devices.
+
+**Setup**: See [docs/FIREBASE_SETUP_COMPLETE.md](docs/FIREBASE_SETUP_COMPLETE.md)
+
 ## 🛠️ Setup
 
 ### Prerequisites

@@ -13,174 +13,108 @@ let selectedSource = null; // 'stephane', 'dojo', or 'sergey'
 let currentTestDisplayNumber = null; // Display number (1, 2, 3...) for current test
 let currentUser = null; // Current user object
 let currentUserName = null; // Current user name (for localStorage keys)
+let currentUserEmail = null; // Current user email (for Google Sign-In)
+// Make globally accessible for firebase-db.js
+window.currentUserName = currentUserName;
+window.currentUserEmail = currentUserEmail;
+
+// Set current user (called from firebase-db.js)
+window.setCurrentUser = function(userData, email) {
+    console.log('setCurrentUser called with:', { email, userData });
+    
+    currentUser = userData;
+    currentUserEmail = email;
+    currentUserName = userData.name || userData.displayName || email.split('@')[0];
+    window.currentUserName = currentUserName;
+    window.currentUserEmail = currentUserEmail;
+    
+    // Ensure stats exist
+    if (!currentUser.stats) {
+        currentUser.stats = {
+            totalQuestionsAnswered: 0,
+            totalCorrectAnswers: 0,
+            testsCompleted: 0,
+            domainsPracticed: new Set(),
+            questionsAnswered: new Set(),
+            lastActivity: new Date().toISOString()
+        };
+    }
+    
+    // Show main screen
+    document.querySelectorAll('.screen').forEach(screen => screen.classList.add('hidden'));
+    const mainSelection = document.getElementById('main-selection');
+    if (mainSelection) {
+        mainSelection.classList.remove('hidden');
+        console.log('✓ Main screen shown');
+    } else {
+        console.error('main-selection element not found');
+    }
+    
+    updateDashboardStats();
+};
 let previousAnswers = {}; // Track previous answers to detect changes
 const TEST_DURATION = 130 * 60 * 1000; // 130 minutes in milliseconds
 
+// Legacy user creation removed - now using Google Sign-In
+// Keeping getAllUsers/getUserData/getUserKey for backward compatibility with firebase-db.js
+
 // User System - Multi-User Support
 function getAllUsers() {
+    // Try Firestore first, fallback to localStorage
+    // Note: Firestore sync happens asynchronously, so we check localStorage first
     const usersJson = localStorage.getItem('saa-c03-users');
     return usersJson ? JSON.parse(usersJson) : [];
 }
+// Make globally accessible for firebase-db.js
+window.getAllUsers = getAllUsers;
 
 function saveUsersList(users) {
+    // Save to localStorage (always, as backup)
     localStorage.setItem('saa-c03-users', JSON.stringify(users));
+    
+    // Only sync NEW users to Firestore (when explicitly creating a user)
+    // Don't auto-sync existing localStorage users to keep Firestore clean
+    // This is handled by addUserToFirestoreList() when creating new users
 }
+// Make globally accessible for firebase-db.js
+window.saveUsersList = saveUsersList;
 
 function getUserKey(userName) {
     // Create a safe key from username (remove special chars, lowercase)
     return userName.toLowerCase().replace(/[^a-z0-9]/g, '-');
 }
+// Make globally accessible for firebase-db.js
+window.getUserKey = getUserKey;
 
+// Legacy user system removed - now using Google Sign-In
+// Keeping helper functions for backward compatibility
 function initUserSystem() {
-    // Show user selection screen first
-    showUserSelection();
+    // No-op - user system now handled by Google Sign-In
+    if (typeof isFirebaseInitialized === 'function' && isFirebaseInitialized()) {
+        console.log('Firebase initialized - using Google Sign-In');
+    }
 }
 
-function showUserSelection() {
-    // Hide all screens
-    document.querySelectorAll('.screen').forEach(screen => screen.classList.add('hidden'));
-    
-    // Show user selection screen
-    document.getElementById('user-selection').classList.remove('hidden');
-    
-    // Load and display users
-    loadUsersList();
-}
-
-function loadUsersList() {
-    const users = getAllUsers();
-    const usersList = document.getElementById('users-list');
-    usersList.innerHTML = '';
-    
-    if (users.length === 0) {
-        usersList.innerHTML = '<p class="no-users">No users yet. Create one below!</p>';
-        return;
-    }
-    
-    users.forEach(userName => {
-        const userDiv = document.createElement('div');
-        userDiv.className = 'user-item';
-        
-        // Get user stats for display
-        const userKey = getUserKey(userName);
-        const userData = getUserData(userName);
-        const stats = userData ? userData.stats : null;
-        const questionsAnswered = stats ? stats.totalQuestionsAnswered : 0;
-        const accuracy = stats && stats.totalQuestionsAnswered > 0
-            ? Math.round((stats.totalCorrectAnswers / stats.totalQuestionsAnswered) * 100)
-            : 0;
-        
-        userDiv.innerHTML = `
-            <div class="user-item-content">
-                <div class="user-item-name">${userName}</div>
-                <div class="user-item-stats">
-                    <span>${questionsAnswered} questions</span>
-                    <span>${accuracy}% accuracy</span>
-                </div>
-            </div>
-            <button class="user-select-btn" onclick="selectUser('${userName}')">Select</button>
-        `;
-        
-        usersList.appendChild(userDiv);
-    });
-}
-
-function selectUser(userName) {
-    currentUserName = userName;
-    const userKey = getUserKey(userName);
-    const savedUser = localStorage.getItem(`saa-c03-user-${userKey}`);
-    
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-    } else {
-        // Create new user data
-        currentUser = {
-            name: userName,
-            createdAt: new Date().toISOString(),
-            stats: {
-                totalQuestionsAnswered: 0,
-                totalCorrectAnswers: 0,
-                testsCompleted: 0,
-                domainsPracticed: new Set(),
-                questionsAnswered: new Set(),
-                lastActivity: new Date().toISOString()
-            }
-        };
-        saveUser();
-    }
-    
-    // Convert Sets from storage
-    if (currentUser.stats.domainsPracticed && !Array.isArray(currentUser.stats.domainsPracticed)) {
-        currentUser.stats.domainsPracticed = Array.from(currentUser.stats.domainsPracticed);
-    }
-    if (currentUser.stats.questionsAnswered && !Array.isArray(currentUser.stats.questionsAnswered)) {
-        currentUser.stats.questionsAnswered = Array.from(currentUser.stats.questionsAnswered);
-    }
-    
-    // Convert back to Sets for runtime use
-    if (Array.isArray(currentUser.stats.domainsPracticed)) {
-        currentUser.stats.domainsPracticed = new Set(currentUser.stats.domainsPracticed);
-    }
-    if (Array.isArray(currentUser.stats.questionsAnswered)) {
-        currentUser.stats.questionsAnswered = new Set(currentUser.stats.questionsAnswered);
-    }
-    
-    // Hide user selection, show main selection
-    document.getElementById('user-selection').classList.add('hidden');
-    document.getElementById('main-selection').classList.remove('hidden');
-    
-    updateDashboardStats();
-}
-
-function createNewUser() {
-    const nameInput = document.getElementById('new-user-name');
-    if (!nameInput) {
-        console.error('createNewUser: new-user-name input not found');
-        return;
-    }
-    
-    const userName = nameInput.value.trim();
-    
-    if (!userName) {
-        alert('Please enter a name');
-        return;
-    }
-    
-    if (userName.length > 50) {
-        alert('Name must be 50 characters or less');
-        return;
-    }
-    
-    // Check if user already exists
-    const users = getAllUsers();
-    if (users.includes(userName)) {
-        alert('User already exists! Please select them from the list.');
-        return;
-    }
-    
-    // Add to users list
-    users.push(userName);
-    saveUsersList(users);
-    
-    // Clear input
-    nameInput.value = '';
-    
-    // Select the new user
-    selectUser(userName);
-}
-
-// Make function globally accessible for inline handlers (fallback)
-window.createNewUser = createNewUser;
+// createNewUser is already defined at the top of the file and assigned to window
+// This duplicate definition is removed to avoid conflicts
 
 function getUserData(userName) {
     const userKey = getUserKey(userName);
     const savedUser = localStorage.getItem(`saa-c03-user-${userKey}`);
     return savedUser ? JSON.parse(savedUser) : null;
 }
+// Make globally accessible for firebase-db.js
+window.getUserData = getUserData;
 
+// Legacy function - replaced with signOut for Google Sign-In
 function switchUser() {
-    closeUserSettings();
-    showUserSelection();
+    // For Google Sign-In, sign out instead
+    if (typeof signOut === 'function') {
+        signOut();
+    } else {
+        closeUserSettings();
+        showUserSelection();
+    }
 }
 
 function saveUser() {
@@ -197,7 +131,14 @@ function saveUser() {
     };
     
     const userKey = getUserKey(currentUserName);
+    
+    // Save to localStorage (always, as backup)
     localStorage.setItem(`saa-c03-user-${userKey}`, JSON.stringify(userToSave));
+    
+    // Save to Firestore if available (for cross-browser sync)
+    if (typeof saveUserToFirestore === 'function' && isFirebaseAvailable()) {
+        saveUserToFirestore(userToSave, currentUserName);
+    }
 }
 
 function recalculateUserStats(includeCurrentSession = true) {
@@ -416,8 +357,8 @@ function updateDashboardStats() {
     
     // Update user name in header if element exists
     const userNameElement = document.getElementById('user-name');
-    if (userNameElement) {
-        userNameElement.textContent = currentUser.name;
+    if (userNameElement && currentUser) {
+        userNameElement.textContent = currentUser.name || currentUser.displayName || currentUserEmail?.split('@')[0] || 'Student';
     }
 }
 
@@ -514,6 +455,180 @@ function resetUserData() {
     }
 }
 
+// Export/Import Functions for Cross-Browser Sync
+function exportUserData() {
+    try {
+        // Collect all user data
+        const exportData = {
+            version: '1.0',
+            exportDate: new Date().toISOString(),
+            users: [],
+            userData: {},
+            progress: {}
+        };
+        
+        // Export users list
+        const users = getAllUsers();
+        exportData.users = users;
+        
+        // Export each user's data and progress
+        users.forEach(userName => {
+            const userKey = getUserKey(userName);
+            
+            // Export user stats
+            const userData = getUserData(userName);
+            if (userData) {
+                exportData.userData[userName] = {
+                    ...userData,
+                    stats: {
+                        ...userData.stats,
+                        domainsPracticed: Array.from(userData.stats.domainsPracticed || []),
+                        questionsAnswered: Array.from(userData.stats.questionsAnswered || [])
+                    }
+                };
+            }
+            
+            // Export all progress for this user
+            exportData.progress[userName] = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (
+                    key.startsWith(`saa-c03-progress-${userKey}-test`) ||
+                    key.startsWith(`saa-c03-progress-${userKey}-domain-`) ||
+                    key === `saa-c03-current-progress-${userKey}`
+                )) {
+                    const value = localStorage.getItem(key);
+                    if (value) {
+                        exportData.progress[userName][key] = value;
+                    }
+                }
+            }
+        });
+        
+        // Create download
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `aws-saa-c03-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        alert('User data exported successfully! Save this file to sync across browsers.');
+    } catch (error) {
+        console.error('Error exporting user data:', error);
+        alert('Error exporting user data: ' + error.message);
+    }
+}
+
+function importUserData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importData = JSON.parse(e.target.result);
+                
+                if (!importData.version || !importData.users || !importData.userData) {
+                    throw new Error('Invalid backup file format');
+                }
+                
+                // Confirm import
+                const userCount = importData.users.length;
+                if (!confirm(`This will import ${userCount} user(s) and their progress. Existing data will be merged. Continue?`)) {
+                    return;
+                }
+                
+                // Import users list (merge with existing)
+                const existingUsers = getAllUsers();
+                const newUsers = importData.users.filter(u => !existingUsers.includes(u));
+                if (newUsers.length > 0) {
+                    existingUsers.push(...newUsers);
+                    saveUsersList(existingUsers);
+                }
+                
+                // Import user data
+                Object.keys(importData.userData).forEach(userName => {
+                    const userData = importData.userData[userName];
+                    const userKey = getUserKey(userName);
+                    
+                    // Convert arrays back to Sets
+                    if (userData.stats) {
+                        if (Array.isArray(userData.stats.domainsPracticed)) {
+                            userData.stats.domainsPracticed = new Set(userData.stats.domainsPracticed);
+                        }
+                        if (Array.isArray(userData.stats.questionsAnswered)) {
+                            userData.stats.questionsAnswered = new Set(userData.stats.questionsAnswered);
+                        }
+                    }
+                    
+                    // Save user data
+                    localStorage.setItem(`saa-c03-user-${userKey}`, JSON.stringify({
+                        ...userData,
+                        stats: {
+                            ...userData.stats,
+                            domainsPracticed: Array.from(userData.stats.domainsPracticed || []),
+                            questionsAnswered: Array.from(userData.stats.questionsAnswered || [])
+                        }
+                    }));
+                });
+                
+                // Import progress
+                Object.keys(importData.progress).forEach(userName => {
+                    const userProgress = importData.progress[userName];
+                    Object.keys(userProgress).forEach(key => {
+                        localStorage.setItem(key, userProgress[key]);
+                    });
+                });
+                
+                alert(`Successfully imported ${userCount} user(s)! Please refresh the page to see your data.`);
+                
+                // Reload user list if on user selection screen
+                if (document.getElementById('user-selection') && !document.getElementById('user-selection').classList.contains('hidden')) {
+                    loadUsersList();
+                }
+                
+                // Update current user if they were imported
+                if (currentUserName && importData.userData[currentUserName]) {
+                    const userKey = getUserKey(currentUserName);
+                    const savedUser = localStorage.getItem(`saa-c03-user-${userKey}`);
+                    if (savedUser) {
+                        currentUser = JSON.parse(savedUser);
+                        // Convert Sets
+                        if (Array.isArray(currentUser.stats.domainsPracticed)) {
+                            currentUser.stats.domainsPracticed = new Set(currentUser.stats.domainsPracticed);
+                        }
+                        if (Array.isArray(currentUser.stats.questionsAnswered)) {
+                            currentUser.stats.questionsAnswered = new Set(currentUser.stats.questionsAnswered);
+                        }
+                        updateDashboardStats();
+                    }
+                }
+            } catch (error) {
+                console.error('Error importing user data:', error);
+                alert('Error importing user data: ' + error.message);
+            }
+        };
+        
+        reader.readAsText(file);
+    };
+    
+    input.click();
+}
+
+// Make export/import functions globally accessible
+window.exportUserData = exportUserData;
+window.importUserData = importUserData;
+
 // SAA-C03 Domains
 const DOMAINS = [
     "Design Secure Architectures",
@@ -524,24 +639,24 @@ const DOMAINS = [
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async function() {
-    // Initialize user system first
-    initUserSystem();
+    // Wait a bit for Firebase to initialize (if available)
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Set up create user button event listener
-    const createUserBtn = document.getElementById('create-user-btn');
-    if (createUserBtn) {
-        createUserBtn.addEventListener('click', createNewUser);
-    }
-    
-    // Set up create user input enter key handler
-    const newUserNameInput = document.getElementById('new-user-name');
-    if (newUserNameInput) {
-        newUserNameInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                createNewUser();
+    // Set up Google Sign-In button
+    const googleSignInBtn = document.getElementById('google-sign-in-btn');
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener('click', function() {
+            if (typeof signInWithGoogle === 'function') {
+                signInWithGoogle();
+            } else {
+                console.error('signInWithGoogle function not available');
             }
         });
+        console.log('Google Sign-In button event listener attached');
     }
+    
+    // Initialize user system (now handled by Google Sign-In)
+    initUserSystem();
     
     // Try to load questions from JSON files first (preferred method)
     if (typeof autoLoadQuestions !== 'undefined') {
@@ -1576,15 +1691,22 @@ function saveAndReturnToDashboard() {
             timestamp: new Date().toISOString()
         };
         
-        // Save progress with test-specific key (user-specific)
-        if (currentUserName) {
-            const userKey = getUserKey(currentUserName);
+        // Save progress with test-specific key (user-specific by email)
+        if (currentUserEmail) {
+            const userKey = currentUserEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
             const progressKey = `saa-c03-progress-${userKey}-test${currentTest}`;
+            
+            // Save to localStorage (always, as backup)
             localStorage.setItem(progressKey, JSON.stringify(progress));
             savedProgress = progress;
             
             // Also save a reference to the current test progress
             localStorage.setItem(`saa-c03-current-progress-${userKey}`, progressKey);
+            
+            // Save to Firestore if available (optimized: debounced batch write)
+            if (typeof saveProgressToFirestore === 'function' && isFirebaseAvailable()) {
+                saveProgressToFirestore(progress, progressKey, currentUserEmail);
+            }
         }
     } else if (selectedDomain) {
         // Save domain review progress
@@ -1599,12 +1721,19 @@ function saveAndReturnToDashboard() {
             timestamp: new Date().toISOString()
         };
         
-        if (currentUserName) {
-            const userKey = getUserKey(currentUserName);
+        if (currentUserEmail) {
+            const userKey = currentUserEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
             const progressKey = `saa-c03-progress-${userKey}-domain-${selectedDomain.replace(/\s+/g, '-')}`;
+            
+            // Save to localStorage (always, as backup)
             localStorage.setItem(progressKey, JSON.stringify(progress));
             savedProgress = progress;
             localStorage.setItem(`saa-c03-current-progress-${userKey}`, progressKey);
+            
+            // Save to Firestore if available (optimized: debounced batch write)
+            if (typeof saveProgressToFirestore === 'function' && isFirebaseAvailable()) {
+                saveProgressToFirestore(progress, progressKey, currentUserEmail);
+            }
         }
     }
     
@@ -1758,8 +1887,8 @@ function getSavedProgressForTest(testNumber) {
 }
 
 function clearSavedProgressForTest(testNumber) {
-    if (!currentUserName) return;
-    const userKey = getUserKey(currentUserName);
+    if (!currentUserEmail) return;
+    const userKey = currentUserEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
     const progressKey = `saa-c03-progress-${userKey}-test${testNumber}`;
     localStorage.removeItem(progressKey);
     
@@ -1776,8 +1905,8 @@ function clearSavedProgressForTest(testNumber) {
 }
 
 function loadSavedProgress(testNumber) {
-    if (!currentUserName) return false;
-    const userKey = getUserKey(currentUserName);
+    if (!currentUserEmail) return false;
+    const userKey = currentUserEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
     
     // Load progress for specific test or current progress
     let progressKey;

@@ -1142,6 +1142,68 @@ h2 {
     flex: 1;
 }
 
+/* Sign-In Screen */
+.sign-in-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.sign-in-card {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    border: 2px solid #e8ddd4;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(139, 111, 71, 0.1);
+}
+
+.sign-in-card h2 {
+    color: #6b5638;
+    margin-bottom: 10px;
+    font-size: 1.8em;
+}
+
+.sign-in-card > p {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 1.1em;
+}
+
+.google-sign-in-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    background: white;
+    color: #333;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 300px;
+}
+
+.google-sign-in-btn:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    background: #f8f9fa;
+}
+
+.google-sign-in-btn:active {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.sign-in-note {
+    margin-top: 20px;
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+}
+
 .user-switch-section {
     margin-top: 20px;
     padding-top: 20px;
@@ -1153,6 +1215,37 @@ h2 {
     margin-bottom: 10px;
     font-size: 1.1em;
     color: #333;
+}
+
+.user-sync-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e8ddd4;
+}
+
+.user-sync-section h4 {
+    color: #6b5638;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.sync-description {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.sync-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.sync-buttons .modal-btn {
+    flex: 1;
+    min-width: 140px;
 }
 
 .user-stats-info span {

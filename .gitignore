@@ -44,3 +44,6 @@ sergey tests/**/*.vce
 sergey tests/**/Zone.Identifier
 aws exams.zip
 *.zip
+
+# Firebase config (contains sensitive keys)
+firebase-config.js

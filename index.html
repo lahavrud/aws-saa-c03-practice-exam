@@ -13,29 +13,31 @@
             <div id="timer" class="timer hidden"></div>
         </header>
 
-        <!-- User Selection Screen -->
-        <div id="user-selection" class="screen">
+        <!-- Sign-In Screen (shown by default when not authenticated) -->
+        <div id="sign-in-screen" class="screen hidden">
             <div class="dashboard-header">
                 <h1>AWS SAA-C03 Practice Exam</h1>
-                <p class="dashboard-subtitle">Select or create a user profile</p>
+                <p class="dashboard-subtitle">Sign in with your Google account to continue</p>
             </div>
-            <div class="user-selection-container">
-                <h2>Select User</h2>
-                <div id="users-list" class="users-list">
-                    <!-- Users will be dynamically loaded here -->
-                </div>
-                <div class="user-selection-divider">
-                    <span>OR</span>
-                </div>
-                <div class="create-user-form">
-                    <h3>Create New User</h3>
-                    <div class="form-group">
-                        <input type="text" id="new-user-name" placeholder="Enter your name" maxlength="50" />
-                        <button class="modal-btn primary" id="create-user-btn">Create User</button>
-                    </div>
+            <div class="sign-in-container">
+                <div class="sign-in-card">
+                    <h2>Welcome!</h2>
+                    <p>Sign in with Google to access your practice exam progress.</p>
+                    <button id="google-sign-in-btn" class="google-sign-in-btn">
+                        <svg width="18" height="18" viewBox="0 0 18 18" style="margin-right: 8px;">
+                            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.96-2.184l-2.908-2.258c-.806.54-1.837.86-3.052.86-2.347 0-4.33-1.585-5.04-3.716H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                            <path fill="#FBBC05" d="M3.96 10.702c-.18-.54-.282-1.117-.282-1.702s.102-1.162.282-1.702V4.966H.957C.348 6.175 0 7.55 0 9s.348 2.825.957 4.034l3.003-2.332z"/>
+                            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.966L3.96 7.298C4.67 5.167 6.653 3.58 9 3.58z"/>
+                        </svg>
+                        Sign in with Google
+                    </button>
+                    <p class="sign-in-note">Your progress will be saved and synced across all your devices.</p>
                 </div>
             </div>
         </div>
+
+        <!-- User Selection Screen (Legacy - Removed, using Google Sign-In) -->
 
         <!-- Main Selection Screen -->
         <div id="main-selection" class="screen hidden">
@@ -268,7 +270,15 @@
                     </div>
                     <div class="user-switch-section">
                         <h4>Switch User</h4>
-                        <button class="modal-btn" onclick="switchUser()">Switch to Another User</button>
+                        <button class="modal-btn" onclick="signOut()">Sign Out</button>
+                    </div>
+                    <div class="user-sync-section">
+                        <h4>Sync Across Browsers</h4>
+                        <p class="sync-description">Export your data to sync across different browsers or devices</p>
+                        <div class="sync-buttons">
+                            <button class="modal-btn" onclick="exportUserData()">📥 Export Data</button>
+                            <button class="modal-btn" onclick="importUserData()">📤 Import Data</button>
+                        </div>
                     </div>
                     <div class="modal-buttons">
                         <button class="modal-btn primary" onclick="saveUserSettings()">Save</button>
@@ -280,8 +290,18 @@
         </div>
     </div>
 
+    <!-- Firebase SDK (loaded from CDN - no download needed) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <!-- Firebase Config (gitignored for security) -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Application Scripts -->
     <script src="question-loader.js"></script>
     <script src="questions.js"></script>
+    <script src="firebase-db.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
