@@ -195,16 +195,19 @@ const QuestionHandler = (function() {
             const currentAnswer = userAnswers[questionKey] || [];
             const answerChanged = JSON.stringify(previousAnswer.sort()) !== JSON.stringify(currentAnswer.sort());
             
-            // Update visual selection
-            const options = document.querySelectorAll('.option');
-            options.forEach(opt => {
-                const input = opt.querySelector('input');
-                if (input && input.checked) {
-                    opt.classList.add('selected');
-                } else {
-                    opt.classList.remove('selected');
-                }
-            });
+            // Update visual selection - only for current question's options
+            const optionsContainer = document.getElementById('options');
+            if (optionsContainer) {
+                const options = optionsContainer.querySelectorAll('.option');
+                options.forEach(opt => {
+                    const input = opt.querySelector('input');
+                    if (input && input.checked) {
+                        opt.classList.add('selected');
+                    } else {
+                        opt.classList.remove('selected');
+                    }
+                });
+            }
             
             // Update navbar and stats
             QuestionHandler.updateQuestionNavbar();
@@ -487,7 +490,13 @@ const QuestionHandler = (function() {
             const allQuestions = [];
             for (const testKey in questions) {
                 if (questions.hasOwnProperty(testKey) && testKey.startsWith('test')) {
-                    allQuestions.push(...questions[testKey]);
+                    // Make question IDs unique by prefixing with test key to avoid collisions
+                    const testQuestions = questions[testKey].map(q => ({
+                        ...q,
+                        originalId: q.id, // Keep original ID for reference
+                        id: `${testKey}-${q.id}` // Make unique across tests (e.g., "test1-1", "test2-1")
+                    }));
+                    allQuestions.push(...testQuestions);
                 }
             }
             
