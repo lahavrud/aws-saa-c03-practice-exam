@@ -1,0 +1,2131 @@
+[
+  {
+    "id": 1,
+    "text": "An Internet of Things (IoT) company would like to have a streaming system that performs real-time analytics on the ingested IoT data. Once the analytics is done, the company would like to send notifications back to the mobile applications of the IoT device owners. As a solutions architect, which of the following AWS technologies would you recommend to send these notifications to the mobile applications?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Amazon Simple Queue Service (Amazon SQS) with Amazon Simple Notification Service (Amazon SNS)",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Amazon Kinesis with Amazon Simple Email Service (Amazon SES)",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Amazon Kinesis with Amazon Simple Notification Service (Amazon SNS)",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Amazon Kinesis with Amazon Simple Queue Service (Amazon SQS)",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      2
+    ],
+    "explanation": "**Why option 2 is correct:**\nAmazon Kinesis Data Streams is specifically designed for real-time streaming data ingestion and processing, making it ideal for IoT applications that need to process high-volume data streams in real-time. Kinesis can handle millions of records per second and provides built-in capabilities for real-time analytics through Kinesis Data Analytics or integration with Lambda functions. Once the analytics processing is complete, Amazon SNS is the perfect service for delivering push notifications to mobile applications. SNS supports native mobile push notification protocols including APNS (Apple Push Notification Service) for iOS devices and FCM (Firebase Cloud Messaging) for Android devices. Unlike pull-based services, SNS uses a push model where AWS directly delivers messages to mobile apps, eliminating the need for apps to continuously poll for updates. This push-based approach is more efficient, reduces latency, and conserves mobile device battery life. The combination of Kinesis for real-time streaming analytics and SNS for mobile push notifications creates a complete, scalable, and efficient solution that meets all the requirements: real-time data processing, analytics, and mobile notification delivery.\n\n**Why option 0 is incorrect:**\nWhile Amazon SQS can work with SNS, SQS is fundamentally a message queuing service designed for decoupling applications and handling discrete messages, not continuous data streams. SQS uses a pull-based model where consumers must poll the queue to retrieve messages, which introduces latency and doesn't provide the real-time streaming capabilities needed for IoT data processing. For the real-time analytics requirement, Kinesis Data Streams is purpose-built with features like data retention, multiple consumers reading the same stream, and real-time processing capabilities that SQS lacks. Using SQS in this scenario would add unnecessary complexity and latency to the data processing pipeline, making it less suitable than Kinesis for real-time streaming analytics.\n\n**Why option 1 is incorrect:**\nAmazon SES (Simple Email Service) is specifically designed for sending email notifications, not push notifications to mobile applications. The requirement explicitly asks for notifications to be sent to mobile apps, which requires a service that supports mobile push notification protocols like APNS or FCM. SES only sends emails through SMTP and cannot deliver push notifications directly to mobile devices. Even though Kinesis is correctly chosen for the streaming analytics part, pairing it with SES fails to meet the mobile notification requirement. SNS is the appropriate service for mobile push notifications, as it supports the native push protocols that mobile applications use.\n\n**Why option 3 is incorrect:**\nAmazon SQS is a pull-based message queuing service where consumers must actively poll the queue to retrieve messages. For mobile applications, this means the app would need to continuously check SQS for new messages, which is highly inefficient. This polling approach increases latency (messages aren't delivered immediately), wastes network bandwidth, and significantly drains mobile device battery life. Additionally, SQS doesn't provide the real-time streaming data processing capabilities that Kinesis offers for the analytics requirement. SNS, on the other hand, uses a true push model where AWS delivers messages directly to mobile apps without requiring polling, making it the correct choice for mobile notifications.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 2,
+    "text": "A media agency stores its re-creatable assets on Amazon Simple Storage Service (Amazon S3) buckets. The assets are accessed by a large number of users for the first few days and the frequency of access falls down drastically after a week. Although the assets would be accessed occasionally after the first week, but they must continue to be immediately accessible when required. The cost of maintaining all the assets on Amazon S3 storage is turning out to be very expensive and the agency is looking at reducing costs as much as possible. As an AWS Certified Solutions Architect – Associate, can you suggest a way to lower the storage costs while fulfilling the business requirements?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Configure a lifecycle policy to transition the objects to Amazon S3 One Zone-Infrequent Access (S3 One Zone-IA) after 7 days",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Configure a lifecycle policy to transition the objects to Amazon S3 Standard-Infrequent Access (S3 Standard-IA) after 7 days",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Configure a lifecycle policy to transition the objects to Amazon S3 One Zone-Infrequent Access (S3 One Zone-IA) after 30 days",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Configure a lifecycle policy to transition the objects to Amazon S3 Standard-Infrequent Access (S3 Standard-IA) after 30 days",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      2
+    ],
+    "explanation": "**Why option 2 is correct:**\nS3 One Zone-IA stores data in a single Availability Zone, providing 99.5% availability at approximately 20% lower cost than S3 Standard-IA. Since the assets are re-creatable (can be regenerated if lost), the reduced durability of One Zone-IA is acceptable. The 30-day transition period ensures assets remain in Standard storage during the first week of high access, then transition to cheaper storage after access frequency drops. This balances cost optimization with the requirement for immediate accessibility.\n\n**Why option 0 is incorrect:**\nTransitioning to S3 One Zone-IA after 7 days is too early. The scenario states assets are accessed frequently for the first few days, and transitioning too early could impact performance or increase costs if assets are still being accessed frequently. The 30-day period ensures the high-access period has passed before transitioning to cheaper storage.\n\n**Why option 1 is incorrect:**\nS3 Standard-IA stores data across multiple Availability Zones providing 99.999999999% durability (11 9's), which is overkill for re-creatable assets. It's also more expensive than One Zone-IA. Additionally, the 7-day transition is too early, potentially impacting performance during high-access periods when assets are still being frequently accessed.\n\n**Why option 3 is incorrect:**\nWhile the 30-day timing is correct, S3 Standard-IA is more expensive than One Zone-IA. For re-creatable assets that don't require maximum durability, One Zone-IA provides the best cost optimization while maintaining immediate accessibility. Standard-IA's multi-AZ durability is unnecessary for data that can be regenerated.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 3,
+    "text": "The engineering team at an e-commerce company is working on cost optimizations for Amazon Elastic Compute Cloud (Amazon EC2) instances. The team wants to manage the workload using a mix of on-demand and spot instances across multiple instance types. They would like to create an Auto Scaling group with a mix of these instances. Which of the following options would allow the engineering team to provision the instances for this use-case?",
+    "options": [
+      {
+        "id": 0,
+        "text": "You can only use a launch template to provision capacity across multiple instance types using both On-Demand Instances and Spot Instances to achieve the desired scale, performance, and cost",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "You can neither use a launch configuration nor a launch template to provision capacity across multiple instance types using both On-Demand Instances and Spot Instances to achieve the desired scale, performance, and cost",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "You can use a launch configuration or a launch template to provision capacity across multiple instance types using both On-Demand Instances and Spot Instances to achieve the desired scale, performance, and cost",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "You can only use a launch configuration to provision capacity across multiple instance types using both On-Demand Instances and Spot Instances to achieve the desired scale, performance, and cost",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0
+    ],
+    "explanation": "**Why option 0 is correct:**\nLaunch templates are the modern, recommended way to configure Auto Scaling groups. They support mixed instance types and mixed purchasing options (On-Demand and Spot Instances) through the Mixed Instances Policy feature. This allows you to specify multiple instance types and purchasing strategies, enabling cost optimization while maintaining performance. Launch templates also support versioning and can be updated without recreating the Auto Scaling group.\n\n**Why option 1 is incorrect:**\nThis is incorrect because launch templates DO support mixed instance types with Spot Instances through Mixed Instances Policy. This feature was specifically designed for this use case and allows you to provision capacity across multiple instance types using both On-Demand and Spot Instances.\n\n**Why option 2 is incorrect:**\nLaunch configurations are legacy and do NOT support mixed instance types or Spot Instances. They only support a single instance type and On-Demand instances. This option is incorrect because it suggests launch configurations can do something they cannot. Only launch templates support the Mixed Instances Policy feature.\n\n**Why option 3 is incorrect:**\nLaunch configurations cannot support mixed instance types or Spot Instances. They are limited to a single instance type and On-Demand purchasing only. This is a fundamental limitation of launch configurations. Only launch templates support mixed instance types and purchasing options.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 4,
+    "text": "A company has noticed that its application performance has deteriorated after a new Auto Scaling group was deployed a few days back. Upon investigation, the team found out that the Launch Configuration selected for the Auto Scaling group is using the incorrect instance type that is not optimized to handle the application workflow. As a solutions architect, what would you recommend to provide a long term resolution for this issue?",
+    "options": [
+      {
+        "id": 0,
+        "text": "No need to modify the launch configuration. Just modify the Auto Scaling group to use the correct instance type",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Create a new launch configuration to use the correct instance type. Modify the Auto Scaling group to use this new launch configuration. Delete the old launch configuration as it is no longer needed",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "No need to modify the launch configuration. Just modify the Auto Scaling group to use more number of existing instance types. More instances may offset the loss of performance",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Modify the launch configuration to use the correct instance type and continue to use the existing Auto Scaling group",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nLaunch configurations are immutable - they cannot be modified once created. To fix an incorrect instance type, you must create a new launch configuration with the correct instance type, then update the Auto Scaling group to use the new launch configuration. The old launch configuration can be deleted once the Auto Scaling group is updated. New instances launched by the Auto Scaling group will use the correct instance type from the new launch configuration. Existing instances will continue running with the old instance type until they are terminated and replaced.\n\n**Why option 0 is incorrect:**\nAuto Scaling groups don't have a direct instance type setting - they get this from the launch configuration. You cannot change the instance type without changing the launch configuration. The Auto Scaling group references a launch configuration, which defines the instance type. Simply modifying the Auto Scaling group won't change the instance type.\n\n**Why option 2 is incorrect:**\nAdding more instances of the wrong type doesn't solve the performance problem. The issue is that the instance type itself is incorrect and not optimized for the application workflow, not the quantity. More instances of the wrong type won't improve performance - you need the correct instance type that matches the application's requirements.\n\n**Why option 3 is incorrect:**\nLaunch configurations are immutable and cannot be modified after creation. This is a fundamental characteristic of launch configurations. You must create a new launch configuration with the correct instance type rather than trying to modify an existing one.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 5,
+    "text": "An e-commerce company has copied 1 petabyte of data from its on-premises data center to an Amazon S3 bucket in theus-west-1Region using an AWS Direct Connect link. The company now wants to set up a one-time copy of the data to another Amazon S3 bucket in theus-east-1Region. The on-premises data center does not allow the use of AWS Snowball. As a Solutions Architect, which of the following options can be used to accomplish this goal? (Select two)",
+    "options": [
+      {
+        "id": 0,
+        "text": "Copy data from the source bucket to the destination bucket using the aws S3 sync command",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Set up Amazon S3 Transfer Acceleration (Amazon S3TA) to copy objects across Amazon S3 buckets in different Regions using S3 console",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Set up Amazon S3 batch replication to copy objects across Amazon S3 buckets in another Region using S3 console and then delete the replication configuration",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Use AWS Snowball Edge device to copy the data from one Region to another Region",
+        "correct": false
+      },
+      {
+        "id": 4,
+        "text": "Copy data from the source Amazon S3 bucket to a target Amazon S3 bucket using the S3 console",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0,
+      2
+    ],
+    "explanation": "**Why option 0 is correct:**\nAWS CLI aws s3 sync command efficiently copies objects between S3 buckets, including cross-region transfers. It's ideal for one-time bulk transfers and handles large datasets (like 1 petabyte) efficiently with parallel transfers and retry logic. The sync command automatically handles differences between buckets and can resume interrupted transfers. It's a straightforward solution for one-time copies and can be run from any machine with AWS CLI access.\n\n**Why option 2 is correct:**\nS3 batch replication can copy existing objects (not just new ones) when configured with batch replication. After setting up replication and allowing it to copy existing objects, you can delete the replication configuration once the one-time copy is complete. This provides a managed, console-based solution that handles the transfer automatically without requiring command-line tools or manual intervention.\n\n**Why option 1 is incorrect:**\nS3 Transfer Acceleration optimizes transfers from clients (like on-premises) to S3 using CloudFront edge locations. It does NOT help with bucket-to-bucket transfers within AWS. For bucket-to-bucket transfers, you should use sync or replication. Transfer Acceleration is designed for client-to-S3 transfers, not S3-to-S3 transfers.\n\n**Why option 3 is incorrect:**\nSnowball is for transferring data from on-premises to AWS, not for S3 bucket-to-bucket transfers within AWS. The data is already in S3, so Snowball is not applicable. Snowball is used when you need to physically ship data from on-premises locations, not for cloud-to-cloud transfers between S3 buckets.\n\n**Why option 4 is incorrect:**\nWhile you can copy individual objects in the S3 console, copying 1 petabyte through the console UI is not practical. The console is designed for small-scale operations, not bulk transfers. This would require thousands of manual operations and is not feasible for such a large dataset.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 6,
+    "text": "A cybersecurity company uses a fleet of Amazon EC2 instances to run a proprietary application. The infrastructure maintenance group at the company wants to be notified via an email whenever the CPU utilization for any of the Amazon EC2 instances breaches a certain threshold. Which of the following services would you use for building a solution with the LEAST amount of development effort? (Select two)",
+    "options": [
+      {
+        "id": 0,
+        "text": "AWS Lambda",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "AWS Step Functions",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Amazon Simple Notification Service (Amazon SNS)",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Amazon Simple Queue Service (Amazon SQS)",
+        "correct": false
+      },
+      {
+        "id": 4,
+        "text": "Amazon CloudWatch",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      2,
+      4
+    ],
+    "explanation": "**Why option 2 is correct:**\nSNS can receive messages from CloudWatch alarms and send email notifications to subscribers. This requires minimal setup - just create an SNS topic, subscribe email addresses, and configure the CloudWatch alarm to publish to the topic. No Lambda functions or custom code needed.\n**Why other options are incorrect:**\n\n**Why option 4 is correct:**\n- Amazon CloudWatch: CloudWatch automatically monitors EC2 instance metrics including CPU utilization. You can create CloudWatch alarms that trigger when CPU utilization breaches a threshold. CloudWatch alarms can directly publish to SNS topics, requiring no custom code. This is a native AWS service integration.\n- Amazon SNS: SNS can receive messages from CloudWatch alarms and send email notifications to subscribers. This requires minimal setup - just create an SNS topic, subscribe email addresses, and configure the CloudWatch alarm to publish to the topic. No Lambda functions or custom code needed.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nWhile Lambda can be used to process CloudWatch events and send emails, it requires writing custom code, which increases development effort. CloudWatch alarms with SNS provide a no-code solution. Lambda adds unnecessary complexity for simple monitoring and email notifications.\n\n**Why option 1 is incorrect:**\nStep Functions orchestrate multiple AWS services but adds unnecessary complexity for simple monitoring and email notifications. CloudWatch + SNS is simpler and requires less development effort. Step Functions are for complex workflows, not simple alerting.\n\n**Why option 3 is incorrect:**\nSQS is a message queue service and doesn't directly send email notifications. While it could be part of a more complex solution (SQS -> Lambda -> SES), it's not needed here and adds unnecessary complexity. SQS requires a consumer to process messages.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 7,
+    "text": "A media company wants a low-latency way to distribute live sports results which are delivered via a proprietary application using UDP protocol. As a solutions architect, which of the following solutions would you recommend such that it offers the BEST performance for this use case?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use Auto Scaling group to provide a low latency way to distribute live sports results",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use Elastic Load Balancing (ELB) to provide a low latency way to distribute live sports results",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Use Amazon CloudFront to provide a low latency way to distribute live sports results",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use AWS Global Accelerator to provide a low latency way to distribute live sports results",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      3
+    ],
+    "explanation": "**Why option 3 is correct:**\n**\n\n**Why option 0 is incorrect:**\nAuto Scaling groups manage EC2 instance capacity but don't provide low-latency routing. They don't optimize network paths or provide global distribution. Auto Scaling is about instance management, not network optimization.\n\n**Why option 1 is incorrect:**\nELB distributes traffic across instances within a region but doesn't optimize for global latency. It doesn't use AWS's global network infrastructure or provide static IP addresses. ELB is regional, not global.\n\n**Why option 2 is incorrect:**\nCloudFront is a Content Delivery Network (CDN) optimized for HTTP/HTTPS traffic and static content caching. It's not designed for UDP protocol traffic or real-time data distribution. CloudFront caches content at edge locations, which isn't suitable for live, real-time sports results.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 8,
+    "text": "A company has hired you as an AWS Certified Solutions Architect – Associate to help with redesigning a real-time data processor. The company wants to build custom applications that process and analyze the streaming data for its specialized needs. Which solution will you recommend to address this use-case?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use Amazon Kinesis Data Streams to process the data streams as well as decouple the producers and consumers for the real-time data processor",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Use Amazon Kinesis Data Firehose to process the data streams as well as decouple the producers and consumers for the real-time data processor",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Use Amazon Simple Queue Service (Amazon SQS) to process the data streams as well as decouple the producers and consumers for the real-time data processor",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use Amazon Simple Notification Service (Amazon SNS) to process the data streams as well as decouple the producers and consumers for the real-time data processor",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0
+    ],
+    "explanation": "**Why option 0 is correct:**\n**\n\n**Why option 1 is incorrect:**\nSNS is a pub/sub messaging service for notifications and fan-out scenarios. It doesn't support custom data processing or real-time analytics. SNS delivers messages to subscribers but doesn't provide the streaming data processing capabilities needed here.\n\n**Why option 2 is incorrect:**\n- Use Amazon Kinesis Data Firehose: Kinesis Data Firehose is designed for loading streaming data into destinations like S3, Redshift, or Elasticsearch. It doesn't support custom processing applications - it's a fully managed service that automatically delivers data to destinations. For custom processing and analysis, you need Kinesis Data Streams.\n- Use Amazon Simple Queue Service (Amazon SQS): SQS is a message queuing service for decoupling applications, but it's not designed for real-time streaming data processing. It's pull-based (consumers poll for messages) and doesn't provide the real-time processing capabilities or data retention features of Kinesis. SQS is better for discrete messages, not continuous streams.\n- Use Amazon Simple Notification Service (Amazon SNS): SNS is a pub/sub messaging service for notifications and fan-out scenarios. It doesn't support custom data processing or real-time analytics. SNS delivers messages to subscribers but doesn't provide the streaming data processing capabilities needed here.\n\n**Why option 3 is incorrect:**\n- Use Amazon Kinesis Data Firehose: Kinesis Data Firehose is designed for loading streaming data into destinations like S3, Redshift, or Elasticsearch. It doesn't support custom processing applications - it's a fully managed service that automatically delivers data to destinations. For custom processing and analysis, you need Kinesis Data Streams.\n- Use Amazon Simple Queue Service (Amazon SQS): SQS is a message queuing service for decoupling applications, but it's not designed for real-time streaming data processing. It's pull-based (consumers poll for messages) and doesn't provide the real-time processing capabilities or data retention features of Kinesis. SQS is better for discrete messages, not continuous streams.\n- Use Amazon Simple Notification Service (Amazon SNS): SNS is a pub/sub messaging service for notifications and fan-out scenarios. It doesn't support custom data processing or real-time analytics. SNS delivers messages to subscribers but doesn't provide the streaming data processing capabilities needed here.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 9,
+    "text": "An IT company wants to review its security best-practices after an incident was reported where a new developer on the team was assigned full access to Amazon DynamoDB. The developer accidentally deleted a couple of tables from the production environment while building out a new feature. Which is the MOST effective way to address this issue so that such incidents do not recur?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Remove full database access for all IAM users in the organization",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use permissions boundary to control the maximum permissions employees can grant to the IAM principals",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "The CTO should review the permissions for each new developer's IAM user so that such incidents don't recur",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Only root user should have full database access in the organization",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\n**\n\n**Why option 0 is incorrect:**\nThis is impractical and would severely limit productivity. Developers need database access to work. The root user should never be used for day-to-day operations. This would create operational bottlenecks.\n\n**Why option 2 is incorrect:**\nWhile this adds oversight, it's not scalable and relies on manual processes that can be error-prone. It doesn't provide a technical safeguard against accidental deletions. This is a process solution, not an architectural one.\n\n**Why option 3 is incorrect:**\n- Remove full database access for all IAM users in the organization: This is too restrictive and would prevent legitimate work. Developers need database access to build features. The solution should prevent accidental deletions, not remove all access. This would break normal operations.\n- The CTO should review the permissions for each new developer's IAM user: While this adds oversight, it's not scalable and relies on manual processes that can be error-prone. It doesn't provide a technical safeguard against accidental deletions. This is a process solution, not an architectural one.\n- Only root user should have full database access in the organization: This is impractical and would severely limit productivity. Developers need database access to work. The root user should never be used for day-to-day operations. This would create operational bottlenecks.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 10,
+    "text": "A company has grown from a small startup to an enterprise employing over 1000 people. As the team size has grown, the company has recently observed some strange behavior, with Amazon S3 buckets settings being changed regularly. How can you figure out what's happening without restricting the rights of the users?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use AWS CloudTrail to analyze API calls",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Implement an IAM policy to forbid users to change Amazon S3 bucket settings",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Implement a bucket policy requiring AWS Multi-Factor Authentication (AWS MFA) for all operations",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use Amazon S3 access logs to analyze user access using Athena",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0
+    ],
+    "explanation": "**Why option 0 is correct:**\n**\n\n**Why option 1 is incorrect:**\nThis adds security but doesn't help identify who is making changes or why. It also doesn't address the investigation requirement. MFA prevents unauthorized access but doesn't provide audit trails for authorized users.\n\n**Why option 2 is incorrect:**\n- Implement an IAM policy to forbid users to change Amazon S3 bucket settings: This restricts user rights, which the question explicitly asks to avoid. The requirement is to figure out what's happening without restricting rights. This would prevent investigation by blocking the activity entirely.\n- Implement a bucket policy requiring AWS Multi-Factor Authentication (AWS MFA) for all operations: This adds security but doesn't help identify who is making changes or why. It also doesn't address the investigation requirement. MFA prevents unauthorized access but doesn't provide audit trails for authorized users.\n- Use Amazon S3 access logs to analyze user access using Athena: S3 access logs (server access logs) track object-level access (GET, PUT, DELETE operations on objects), but they don't track bucket-level configuration changes like bucket policies, versioning settings, or lifecycle policies. CloudTrail is needed for API-level auditing of bucket configuration changes.\n\n**Why option 3 is incorrect:**\nS3 access logs (server access logs) track object-level access (GET, PUT, DELETE operations on objects), but they don't track bucket-level configuration changes like bucket policies, versioning settings, or lifecycle policies. CloudTrail is needed for API-level auditing of bucket configuration changes.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 11,
+    "text": "A weather forecast agency collects key weather metrics across multiple cities in the US and sends this data in the form of key-value pairs to AWS Cloud at a one-minute frequency. As a solutions architect, which of the following AWS services would you use to build a solution for processing and then reliably storing this data with high availability? (Select two)",
+    "options": [
+      {
+        "id": 0,
+        "text": "Amazon Redshift",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Amazon RDS",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Amazon DynamoDB",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Amazon ElastiCache",
+        "correct": false
+      },
+      {
+        "id": 4,
+        "text": "AWS Lambda",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      2,
+      4
+    ],
+    "explanation": "**Why option 2 is correct:**\nDynamoDB is a NoSQL database that stores data as key-value pairs, which matches the data format described (key-value pairs). It provides high availability with automatic multi-AZ replication and can handle high-throughput writes (one-minute frequency is easily manageable). DynamoDB is serverless, scales automatically, and provides 99.999% availability SLA. It's ideal for time-series data like weather metrics.\n\n**Why option 4 is correct:**\nLambda can process the incoming weather data, transform it if needed, and write it to DynamoDB. It can be triggered by various sources (API Gateway, Kinesis, SQS, etc.) and provides serverless, event-driven processing. Lambda automatically scales to handle the incoming data frequency and integrates seamlessly with DynamoDB.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nElastiCache is an in-memory caching service (Redis or Memcached) designed for temporary data storage, not persistent storage. Data in ElastiCache can be lost if the cache is cleared or nodes fail. The requirement is for reliable storage with high availability, which requires persistent storage like DynamoDB.\n\n**Why option 1 is incorrect:**\n- Amazon Redshift: Redshift is a data warehouse designed for analytical queries on large datasets, not for high-frequency writes of key-value pairs. It's optimized for complex SQL queries, not simple key-value storage. Redshift would be overkill and not optimized for this use case.\n- Amazon RDS: RDS is a relational database service that requires schema definition and is optimized for relational data, not key-value pairs. While it could work, DynamoDB is better suited for key-value data and provides better scalability and availability for this use case. RDS requires more management overhead.\n- Amazon ElastiCache: ElastiCache is an in-memory caching service (Redis or Memcached) designed for temporary data storage, not persistent storage. Data in ElastiCache can be lost if the cache is cleared or nodes fail. The requirement is for reliable storage with high availability, which requires persistent storage like DynamoDB.\n\n**Why option 3 is incorrect:**\n- Amazon Redshift: Redshift is a data warehouse designed for analytical queries on large datasets, not for high-frequency writes of key-value pairs. It's optimized for complex SQL queries, not simple key-value storage. Redshift would be overkill and not optimized for this use case.\n- Amazon RDS: RDS is a relational database service that requires schema definition and is optimized for relational data, not key-value pairs. While it could work, DynamoDB is better suited for key-value data and provides better scalability and availability for this use case. RDS requires more management overhead.\n- Amazon ElastiCache: ElastiCache is an in-memory caching service (Redis or Memcached) designed for temporary data storage, not persistent storage. Data in ElastiCache can be lost if the cache is cleared or nodes fail. The requirement is for reliable storage with high availability, which requires persistent storage like DynamoDB.",
+    "domain": "Design Resilient Architectures"
+  },
+  {
+    "id": 12,
+    "text": "A retail company wants to rollout and test a blue-green deployment for its global application in the next 48 hours. Most of the customers use mobile phones which are prone to Domain Name System (DNS) caching. The company has only two days left for the annual Thanksgiving sale to commence. As a Solutions Architect, which of the following options would you recommend to test the deployment on as many users as possible in the given time frame?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use Amazon Route 53 weighted routing to spread traffic across different deployments",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use AWS CodeDeploy deployment options to choose the right deployment",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Use AWS Global Accelerator to distribute a portion of traffic to a particular deployment",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Use Elastic Load Balancing (ELB) to distribute traffic across deployments",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      2
+    ],
+    "explanation": "**Why option 2 is correct:**\n**\n\n**Why option 0 is incorrect:**\nRoute 53 uses DNS-based routing, which is subject to DNS caching on mobile devices. Mobile phones cache DNS records, so users might not see the new deployment even after DNS changes propagate. This doesn't solve the DNS caching problem mentioned in the scenario.\n\n**Why option 1 is incorrect:**\nCodeDeploy manages application deployments but doesn't control traffic routing or distribution. It deploys code to instances but doesn't help with routing traffic between blue and green environments for testing. CodeDeploy is about deployment, not traffic management.\n\n**Why option 3 is incorrect:**\nELB distributes traffic within a region but doesn't provide traffic dials or weighted routing between different deployments. ELB also doesn't solve the DNS caching issue. ELB is regional and doesn't provide the global traffic management needed.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 13,
+    "text": "A healthcare startup needs to enforce compliance and regulatory guidelines for objects stored in Amazon S3. One of the key requirements is to provide adequate protection against accidental deletion of objects. As a solutions architect, what are your recommendations to address these guidelines? (Select two) ?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Change the configuration on Amazon S3 console so that the user needs to provide additional confirmation while deleting any Amazon S3 object",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Create an event trigger on deleting any Amazon S3 object. The event invokes an Amazon Simple Notification Service (Amazon SNS) notification via email to the IT manager",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Establish a process to get managerial approval for deleting Amazon S3 objects",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Enable versioning on the Amazon S3 bucket",
+        "correct": true
+      },
+      {
+        "id": 4,
+        "text": "Enable multi-factor authentication (MFA) delete on the Amazon S3 bucket",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      3,
+      4
+    ],
+    "explanation": "**Why option 3 is correct:**\nMFA delete requires multi-factor authentication before objects can be permanently deleted. This adds an extra layer of protection against accidental deletions. Even if someone has delete permissions, they need MFA to permanently delete versioned objects, providing compliance-grade protection.\n**Why other options are incorrect:**\n\n**Why option 4 is correct:**\n- Enable versioning: S3 versioning keeps multiple versions of objects, so if an object is deleted, you can restore a previous version. This provides protection against accidental deletion by allowing recovery of deleted objects. Versioning is a fundamental S3 feature for data protection and compliance.\n- Enable MFA delete: MFA delete requires multi-factor authentication before objects can be permanently deleted. This adds an extra layer of protection against accidental deletions. Even if someone has delete permissions, they need MFA to permanently delete versioned objects, providing compliance-grade protection.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nThere is no such configuration option in S3. S3 doesn't have a built-in \"confirmation dialog\" setting. This is not a real S3 feature.\n\n**Why option 1 is incorrect:**\nWhile this provides notification of deletions, it doesn't prevent accidental deletion or allow recovery. It's reactive, not protective. The object would still be deleted before the notification is sent.\n\n**Why option 2 is incorrect:**\nThis is a process solution, not a technical safeguard. It relies on human processes that can be bypassed or forgotten. Technical controls like versioning and MFA delete are more reliable and enforceable.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 14,
+    "text": "A social photo-sharing web application is hosted on Amazon Elastic Compute Cloud (Amazon EC2) instances behind an Elastic Load Balancer. The app gives the users the ability to upload their photos and also shows a leaderboard on the homepage of the app. The uploaded photos are stored in Amazon Simple Storage Service (Amazon S3) and the leaderboard data is maintained in Amazon DynamoDB. The Amazon EC2 instances need to access both Amazon S3 and Amazon DynamoDB for these features. As a solutions architect, which of the following solutions would you recommend as the MOST secure option?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Attach the appropriate IAM role to the Amazon EC2 instance profile so that the instance can access Amazon S3 and Amazon DynamoDB",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Save the AWS credentials (access key Id and secret access token) in a configuration file within the application code on the Amazon EC2 instances. Amazon EC2 instances can use these credentials to access Amazon S3 and Amazon DynamoDB",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Encrypt the AWS credentials via a custom encryption library and save it in a secret directory on the Amazon EC2 instances. The application code can then safely decrypt the AWS credentials to make the API calls to Amazon S3 and Amazon DynamoDB",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Configure AWS CLI on the Amazon EC2 instances using a valid IAM user's credentials. The application code can then invoke shell scripts to access Amazon S3 and Amazon DynamoDB via AWS CLI",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0
+    ],
+    "explanation": "**Why option 0 is correct:**\nIAM roles are the recommended and secure way to grant permissions to EC2 instances. Roles provide temporary credentials that are automatically rotated, eliminating the need to store long-lived access keys. An instance profile is a container for an IAM role that allows EC2 instances to assume the role. This is the AWS best practice for EC2 access to AWS services. Credentials are automatically provided to the instance via the instance metadata service.\n**Why other options are incorrect:**\n\n**Why option 1 is incorrect:**\nThis is a security anti-pattern. Hardcoding credentials in code is insecure because credentials can be exposed in code repositories, logs, or if the instance is compromised. Credentials don't rotate automatically and must be manually updated. This violates AWS security best practices.\n\n**Why option 2 is incorrect:**\nWhile encryption adds some security, this still requires storing credentials on the instance, which is not recommended. Credentials must still be decrypted and stored in memory, and the encryption key must be managed. IAM roles eliminate the need to store credentials entirely.\n\n**Why option 3 is incorrect:**\nSimilar to the previous options, this requires storing IAM user credentials on the instance, which is insecure. IAM user credentials are long-lived and don't rotate automatically. Using IAM roles is the recommended approach.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 15,
+    "text": "A healthcare company uses its on-premises infrastructure to run legacy applications that require specialized customizations to the underlying Oracle database as well as its host operating system (OS). The company also wants to improve the availability of the Oracle database layer. The company has hired you as an AWS Certified Solutions Architect – Associate to build a solution on AWS that meets these requirements while minimizing the underlying infrastructure maintenance effort. Which of the following options represents the best solution for this use case?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Leverage cross AZ read-replica configuration of Amazon RDS for Oracle that allows the Database Administrator (DBA) to access and customize the database environment and the underlying operating system",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Leverage multi-AZ configuration of Amazon RDS Custom for Oracle that allows the Database Administrator (DBA) to access and customize the database environment and the underlying operating system",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Deploy the Oracle database layer on multiple Amazon EC2 instances spread across two Availability Zones (AZs). This deployment configuration guarantees high availability and also allows the Database Administrator (DBA) to access and customize the database environment and the underlying operating system",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Leverage multi-AZ configuration of Amazon RDS for Oracle that allows the Database Administrator (DBA) to access and customize the database environment and the underlying operating system",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nAmazon RDS Custom is specifically designed for applications that require customization of the database environment and underlying operating system. RDS Custom for Oracle allows DBAs to access and customize the database environment, install custom software, and configure the OS while still providing managed database services. Multi-AZ configuration provides high availability with automatic failover. This is the only RDS option that allows both customization and high availability.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nStandard RDS for Oracle doesn't allow customization of the database environment or underlying OS. Read replicas provide read scaling but don't allow the level of customization required. Standard RDS is a managed service with limited OS and database customization.\n\n**Why option 2 is incorrect:**\nWhile this allows full customization, it requires managing the database yourself, including backups, patching, and high availability setup. This increases operational overhead compared to RDS Custom, which provides managed services with customization capabilities.\n\n**Why option 3 is incorrect:**\nStandard RDS for Oracle doesn't allow customization of the database environment or underlying operating system. The requirement specifically needs customization capabilities that standard RDS doesn't provide.",
+    "domain": "Design Resilient Architectures"
+  },
+  {
+    "id": 16,
+    "text": "A mobile gaming company is experiencing heavy read traffic to its Amazon Relational Database Service (Amazon RDS) database that retrieves player’s scores and stats. The company is using an Amazon RDS database instance type that is not cost-effective for their budget. The company would like to implement a strategy to deal with the high volume of read traffic, reduce latency, and also downsize the instance size to cut costs. Which of the following solutions do you recommend?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Move to Amazon Redshift",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Switch application code to AWS Lambda for better performance",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Setup Amazon ElastiCache in front of Amazon RDS",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Setup Amazon RDS Read Replicas",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      2
+    ],
+    "explanation": "**Why option 2 is correct:**\n**\n\n**Why option 0 is incorrect:**\nRedshift is a data warehouse designed for analytical queries on large datasets, not for transactional read/write operations. It's not suitable for real-time game data retrieval. Redshift has higher latency and is optimized for complex analytical queries, not simple lookups.\n\n**Why option 1 is incorrect:**\nLambda is a compute service and doesn't address the database read performance issue. The problem is database load, not compute performance. Lambda would still need to query the same RDS database, so it doesn't solve the problem.\n\n**Why option 3 is incorrect:**\nWhile read replicas can help distribute read traffic, they don't reduce costs - you're adding more database instances, which increases costs. Read replicas also don't reduce latency as much as caching does. ElastiCache provides better performance improvement and cost reduction.",
+    "domain": "Design Resilient Architectures"
+  },
+  {
+    "id": 17,
+    "text": "A financial services company wants to identify any sensitive data stored on its Amazon S3 buckets. The company also wants to monitor and protect all data stored on Amazon S3 against any malicious activity. As a solutions architect, which of the following solutions would you recommend to help address the given requirements?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use Amazon GuardDuty to monitor any malicious activity on data stored in Amazon S3. Use Amazon Macie to identify any sensitive data stored on Amazon S3",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Use Amazon GuardDuty to monitor any malicious activity on data stored in Amazon S3 as well as to identify any sensitive data stored on Amazon S3",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Use Amazon Macie to monitor any malicious activity on data stored in Amazon S3 as well as to identify any sensitive data stored on Amazon S3",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use Amazon Macie to monitor any malicious activity on data stored in Amazon S3. Use Amazon GuardDuty to identify any sensitive data stored on Amazon S3",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0
+    ],
+    "explanation": "**Why option 0 is correct:**\nMacie is a data security service that uses machine learning to automatically discover, classify, and protect sensitive data in S3. It can identify sensitive data like PII, credit card numbers, and other regulated information. Macie provides visibility into data access patterns and helps ensure compliance.\n**Why other options are incorrect:**\n\n**Why option 1 is incorrect:**\nThis reverses the roles of the services. GuardDuty monitors threats, Macie identifies sensitive data. The correct pairing is GuardDuty for threats and Macie for sensitive data.\n\n**Why option 2 is incorrect:**\n- Use Amazon GuardDuty to monitor malicious activity AND identify sensitive data: GuardDuty is designed for threat detection, not data classification. It doesn't have the capability to identify sensitive data patterns. Macie is specifically designed for sensitive data discovery.\n- Use Amazon Macie to monitor malicious activity AND identify sensitive data: Macie is designed for data discovery and classification, not threat detection. It doesn't monitor for malicious activity like unauthorized access attempts or data exfiltration. GuardDuty is needed for threat monitoring.\n- Use Amazon Macie to monitor malicious activity. Use Amazon GuardDuty to identify sensitive data: This reverses the roles of the services. GuardDuty monitors threats, Macie identifies sensitive data. The correct pairing is GuardDuty for threats and Macie for sensitive data.\n\n**Why option 3 is incorrect:**\n- Use Amazon GuardDuty to monitor malicious activity AND identify sensitive data: GuardDuty is designed for threat detection, not data classification. It doesn't have the capability to identify sensitive data patterns. Macie is specifically designed for sensitive data discovery.\n- Use Amazon Macie to monitor malicious activity AND identify sensitive data: Macie is designed for data discovery and classification, not threat detection. It doesn't monitor for malicious activity like unauthorized access attempts or data exfiltration. GuardDuty is needed for threat monitoring.\n- Use Amazon Macie to monitor malicious activity. Use Amazon GuardDuty to identify sensitive data: This reverses the roles of the services. GuardDuty monitors threats, Macie identifies sensitive data. The correct pairing is GuardDuty for threats and Macie for sensitive data.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 18,
+    "text": "A retail company uses AWS Cloud to manage its IT infrastructure. The company has set up AWS Organizations to manage several departments running their AWS accounts and using resources such as Amazon EC2 instances and Amazon RDS databases. The company wants to provide shared and centrally-managed VPCs to all departments using applications that need a high degree of interconnectivity. As a solutions architect, which of the following options would you choose to facilitate this use-case?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use VPC peering to share one or more subnets with other AWS accounts belonging to the same parent organization from AWS Organizations",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use VPC sharing to share one or more subnets with other AWS accounts belonging to the same parent organization from AWS Organizations",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Use VPC peering to share a VPC with other AWS accounts belonging to the same parent organization from AWS Organizations",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use VPC sharing to share a VPC with other AWS accounts belonging to the same parent organization from AWS Organizations",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\n**\n\n**Why option 0 is incorrect:**\nVPC peering connects VPCs but doesn't \"share\" them. Each VPC remains separate, and resources in one VPC cannot be launched in the other VPC's subnets. VPC peering is for network connectivity, not resource sharing.\n\n**Why option 2 is incorrect:**\n- Use VPC peering to share one or more subnets: VPC peering connects entire VPCs, not individual subnets. You cannot share subnets using VPC peering - it creates a network connection between two VPCs. VPC peering doesn't allow multiple accounts to launch resources in the same subnet.\n- Use VPC peering to share a VPC: VPC peering connects VPCs but doesn't \"share\" them. Each VPC remains separate, and resources in one VPC cannot be launched in the other VPC's subnets. VPC peering is for network connectivity, not resource sharing.\n- Use VPC sharing to share a VPC: VPC sharing works at the subnet level, not the VPC level. You share specific subnets with other accounts, not entire VPCs. This allows for more granular control and better resource isolation.\n\n**Why option 3 is incorrect:**\nVPC sharing works at the subnet level, not the VPC level. You share specific subnets with other accounts, not entire VPCs. This allows for more granular control and better resource isolation.",
+    "domain": "Design Resilient Architectures"
+  },
+  {
+    "id": 19,
+    "text": "A pharma company is working on developing a vaccine for the COVID-19 virus. The researchers at the company want to process the reference healthcare data in a highly available as well as HIPAA compliant in-memory database that supports caching results of SQL queries. As a solutions architect, which of the following AWS services would you recommend for this task?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Amazon ElastiCache for Redis/Memcached",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Amazon DynamoDB Accelerator (DAX)",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Amazon DynamoDB",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Amazon DocumentDB",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0
+    ],
+    "explanation": "**Why option 0 is correct:**\n**\n\n**Why option 1 is incorrect:**\nDocumentDB is a MongoDB-compatible document database, not a caching solution. It doesn't cache SQL query results and is designed for document storage, not query result caching.\n\n**Why option 2 is incorrect:**\n- Amazon DynamoDB Accelerator (DAX): DAX is specifically designed as a caching layer for DynamoDB, not for relational databases or SQL queries. It's optimized for DynamoDB's NoSQL data model and cannot cache SQL query results from other databases.\n- Amazon DynamoDB: DynamoDB is a NoSQL database, not a caching solution. While it's fast, it doesn't cache SQL query results. The requirement specifically asks for caching SQL query results, which requires a caching layer, not a different database.\n- Amazon DocumentDB: DocumentDB is a MongoDB-compatible document database, not a caching solution. It doesn't cache SQL query results and is designed for document storage, not query result caching.\n\n**Why option 3 is incorrect:**\n- Amazon DynamoDB Accelerator (DAX): DAX is specifically designed as a caching layer for DynamoDB, not for relational databases or SQL queries. It's optimized for DynamoDB's NoSQL data model and cannot cache SQL query results from other databases.\n- Amazon DynamoDB: DynamoDB is a NoSQL database, not a caching solution. While it's fast, it doesn't cache SQL query results. The requirement specifically asks for caching SQL query results, which requires a caching layer, not a different database.\n- Amazon DocumentDB: DocumentDB is a MongoDB-compatible document database, not a caching solution. It doesn't cache SQL query results and is designed for document storage, not query result caching.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 20,
+    "text": "A Big Data analytics company writes data and log files in Amazon S3 buckets. The company now wants to stream the existing data files as well as any ongoing file updates from Amazon S3 to Amazon Kinesis Data Streams. As a Solutions Architect, which of the following would you suggest as the fastest possible way of building a solution for this requirement?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Leverage Amazon S3 event notification to trigger an AWS Lambda function for the file create event. The AWS Lambda function will then send the necessary data to Amazon Kinesis Data Streams",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Leverage AWS Database Migration Service (AWS DMS) as a bridge between Amazon S3 and Amazon Kinesis Data Streams",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Amazon S3 bucket actions can be directly configured to write data into Amazon Simple Notification Service (Amazon SNS). Amazon SNS can then be used to send the updates to Amazon Kinesis Data Streams",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Configure Amazon EventBridge events for the bucket actions on Amazon S3. An AWS Lambda function can then be triggered from the Amazon EventBridge event that will send the necessary data to Amazon Kinesis Data Streams",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nAWS DMS can read data from S3 (using S3 as a source endpoint) and stream it to Kinesis Data Streams (using Kinesis as a target endpoint). DMS supports full load of existing data and ongoing change data capture (CDC) for new files. This provides a managed, efficient way to stream both existing and new S3 files to Kinesis without requiring custom code or Lambda functions. DMS handles the complexity of reading from S3 and writing to Kinesis.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nSimilar to S3 event notifications, EventBridge can trigger on S3 events but only for new objects. It doesn't handle existing files, and you would still need Lambda to read the file content and write to Kinesis, adding complexity.\n\n**Why option 2 is incorrect:**\n- Leverage Amazon S3 event notification to trigger an AWS Lambda function for the file create event: While this works for new files, it doesn't handle existing files in S3. S3 event notifications only trigger for new object creation events, not for existing objects. You would need a separate process to handle existing files.\n- Amazon S3 bucket actions can be directly configured to write data into Amazon SNS: S3 cannot directly write to SNS. S3 can send event notifications to SNS, but these are just notifications about object creation, not the actual data. SNS also cannot directly send data to Kinesis Data Streams - you would need Lambda or another service.\n- Configure Amazon EventBridge events for the bucket actions on Amazon S3: Similar to S3 event notifications, EventBridge can trigger on S3 events but only for new objects. It doesn't handle existing files, and you would still need Lambda to read the file content and write to Kinesis, adding complexity.\n\n**Why option 3 is incorrect:**\n- Leverage Amazon S3 event notification to trigger an AWS Lambda function for the file create event: While this works for new files, it doesn't handle existing files in S3. S3 event notifications only trigger for new object creation events, not for existing objects. You would need a separate process to handle existing files.\n- Amazon S3 bucket actions can be directly configured to write data into Amazon SNS: S3 cannot directly write to SNS. S3 can send event notifications to SNS, but these are just notifications about object creation, not the actual data. SNS also cannot directly send data to Kinesis Data Streams - you would need Lambda or another service.\n- Configure Amazon EventBridge events for the bucket actions on Amazon S3: Similar to S3 event notifications, EventBridge can trigger on S3 events but only for new objects. It doesn't handle existing files, and you would still need Lambda to read the file content and write to Kinesis, adding complexity.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 21,
+    "text": "A developer needs to implement an AWS Lambda function in AWS account A that accesses an Amazon Simple Storage Service (Amazon S3) bucket in AWS account B. As a Solutions Architect, which of the following will you recommend to meet this requirement?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Create an IAM role for the AWS Lambda function that grants access to the Amazon S3 bucket. Set the IAM role as the AWS Lambda function's execution role. Make sure that the bucket policy also grants access to the AWS Lambda function's execution role",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "The Amazon S3 bucket owner should make the bucket public so that it can be accessed by the AWS Lambda function in the other AWS account",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Create an IAM role for the AWS Lambda function that grants access to the Amazon S3 bucket. Set the IAM role as the Lambda function's execution role and that would give the AWS Lambda function cross-account access to the Amazon S3 bucket",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "AWS Lambda cannot access resources across AWS accounts. Use Identity federation to work around this limitation of Lambda",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0
+    ],
+    "explanation": "**Why option 0 is correct:**\nFor cross-account access, you need permissions on both sides: the Lambda function's execution role needs permissions to access S3, AND the S3 bucket policy must grant access to the Lambda function's role. The bucket policy in Account B must explicitly allow the role ARN from Account A. This is the standard pattern for cross-account resource access - both the resource policy (bucket policy) and the identity policy (role policy) must allow the access.\n**Why other options are incorrect:**\n\n**Why option 1 is incorrect:**\nMaking the bucket public is a security risk and violates the principle of least privilege. Public buckets expose data to anyone on the internet. Cross-account access should use IAM roles and bucket policies, not public access.\n\n**Why option 2 is incorrect:**\nThis is incomplete. Just creating a role with permissions isn't enough - the bucket policy in Account B must also grant access to that role. Without the bucket policy, the Lambda function will be denied access.\n\n**Why option 3 is incorrect:**\nThis is incorrect. Lambda can absolutely access resources across accounts using IAM roles and resource policies. Cross-account access is a standard AWS pattern.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 22,
+    "text": "A media company wants to get out of the business of owning and maintaining its own IT infrastructure. As part of this digital transformation, the media company wants to archive about 5 petabytes of data in its on-premises data center to durable long term storage. As a solutions architect, what is your recommendation to migrate this data in the MOST cost-optimal way?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Setup AWS direct connect between the on-premises data center and AWS Cloud. Use this connection to transfer the data into Amazon S3 Glacier",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Setup AWS Site-to-Site VPN connection between the on-premises data center and AWS Cloud. Use this connection to transfer the data into Amazon S3 Glacier",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Transfer the on-premises data into multiple AWS Snowball Edge Storage Optimized devices. Copy the AWS Snowball Edge data into Amazon S3 and create a lifecycle policy to transition the data into Amazon S3 Glacier",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Transfer the on-premises data into multiple AWS Snowball Edge Storage Optimized devices. Copy the AWS Snowball Edge data into Amazon S3 Glacier",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      2
+    ],
+    "explanation": "**Why option 2 is correct:**\nFor 5 petabytes of data, Snowball Edge Storage Optimized devices are the most cost-effective solution. Each device can hold up to 80TB. Snowball devices are shipped to your location, you copy data to them, then AWS ships them back and imports the data into S3. After import, you can use lifecycle policies to automatically transition data to Glacier for long-term archival storage. This approach avoids expensive network transfer costs and is much faster than transferring 5PB over the internet.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nVPN connections have bandwidth limitations and would take an extremely long time to transfer 5PB. VPN is also not cost-effective for such large transfers. Like Direct Connect, you cannot directly write to Glacier.\n\n**Why option 1 is incorrect:**\nDirect Connect has high setup costs and monthly fees. For a one-time migration of 5PB, the cost would be prohibitive. Direct Connect is designed for ongoing connectivity, not one-time bulk transfers. Also, you cannot directly write to Glacier - data must go to S3 first, then transition to Glacier.\n\n**Why option 3 is incorrect:**\nSnowball devices import data into S3, not directly into Glacier. You must first import to S3, then use lifecycle policies or other methods to transition to Glacier. Glacier doesn't support direct imports from Snowball.",
+    "domain": "Design Resilient Architectures"
+  },
+  {
+    "id": 23,
+    "text": "The engineering team at an e-commerce company has been tasked with migrating to a serverless architecture. The team wants to focus on the key points of consideration when using AWS Lambda as a backbone for this architecture. As a Solutions Architect, which of the following options would you identify as correct for the given requirement? (Select three)",
+    "options": [
+      {
+        "id": 0,
+        "text": "Serverless architecture and containers complement each other but you cannot package and deploy AWS Lambda functions as container images",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "By default, AWS Lambda functions always operate from an AWS-owned VPC and hence have access to any public internet address or public AWS APIs. Once an AWS Lambda function is VPC-enabled, it will need a route through a Network Address Translation gateway (NAT gateway) in a public subnet to access public resources",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "AWS Lambda allocates compute power in proportion to the memory you allocate to your function. AWS, thus recommends to over provision your function time out settings for the proper performance of AWS Lambda functions",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "If you intend to reuse code in more than one AWS Lambda function, you should consider creating an AWS Lambda Layer for the reusable code",
+        "correct": true
+      },
+      {
+        "id": 4,
+        "text": "The bigger your deployment package, the slower your AWS Lambda function will cold-start. Hence, AWS suggests packaging dependencies as a separate package from the actual AWS Lambda package",
+        "correct": false
+      },
+      {
+        "id": 5,
+        "text": "Since AWS Lambda functions can scale extremely quickly, it's a good idea to deploy a Amazon CloudWatch Alarm that notifies your team when function metrics such as ConcurrentExecutions or Invocations exceeds the expected threshold",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      1,
+      3,
+      5
+    ],
+    "explanation": "**Why option 1 is correct:**\nBy default, Lambda functions run in AWS-managed VPCs with internet access. When you attach a Lambda to your VPC, it loses default internet access and needs a NAT Gateway (or NAT Instance) in a public subnet to access the internet or AWS APIs. This is a critical consideration for VPC-enabled Lambdas.\n\n**Why option 3 is correct:**\n- Lambda VPC behavior: By default, Lambda functions run in AWS-managed VPCs with internet access. When you attach a Lambda to your VPC, it loses default internet access and needs a NAT Gateway (or NAT Instance) in a public subnet to access the internet or AWS APIs. This is a critical consideration for VPC-enabled Lambdas.\n- Lambda Layers: Lambda Layers allow you to package libraries, custom runtimes, or other function dependencies separately. This promotes code reuse, reduces deployment package size, and can speed up deployments. Layers are shared across functions, making them ideal for common dependencies.\n- CloudWatch Alarms for scaling: Lambda can scale to thousands of concurrent executions very quickly. Monitoring ConcurrentExecutions and Invocations helps prevent runaway costs and ensures you're aware of scaling events. CloudWatch alarms provide proactive monitoring.\n**Why other options are incorrect:**\n\n**Why option 5 is correct:**\nLambda can scale to thousands of concurrent executions very quickly. Monitoring ConcurrentExecutions and Invocations helps prevent runaway costs and ensures you're aware of scaling events. CloudWatch alarms provide proactive monitoring.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nThis is incorrect. Lambda DOES support container images (up to 10GB). You can package Lambda functions as container images and deploy them. Container images are supported for Lambda.\n\n**Why option 2 is incorrect:**\nThis is incorrect. AWS recommends RIGHT-SIZING timeout settings, not over-provisioning. Over-provisioning wastes money. You should set timeouts based on actual function execution time.\n\n**Why option 4 is incorrect:**\nWhile larger packages do increase cold start time, AWS recommends using Lambda Layers for dependencies, not separate packages. Layers are the recommended approach for managing dependencies.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 24,
+    "text": "A company manages a multi-tier social media application that runs on Amazon Elastic Compute Cloud (Amazon EC2) instances behind an Application Load Balancer. The instances run in an Amazon EC2 Auto Scaling group across multiple Availability Zones (AZs) and use an Amazon Aurora database. As an AWS Certified Solutions Architect – Associate, you have been tasked to make the application more resilient to periodic spikes in request rates. Which of the following solutions would you recommend for the given use-case? (Select two)",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use AWS Global Accelerator",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use AWS Direct Connect",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Use AWS Shield",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use Amazon CloudFront distribution in front of the Application Load Balancer",
+        "correct": true
+      },
+      {
+        "id": 4,
+        "text": "Use Amazon Aurora Replica",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      3,
+      4
+    ],
+    "explanation": "**Why option 3 is correct:**\nAurora read replicas can handle read traffic, offloading the primary database during spikes. This improves read performance and provides additional capacity. Read replicas can be in the same or different regions, providing geographic distribution and better resilience.\n**Why other options are incorrect:**\n\n**Why option 4 is correct:**\n- Amazon CloudFront: CloudFront is a CDN that caches content at edge locations worldwide, reducing latency and offloading traffic from the origin (Application Load Balancer). During traffic spikes, CloudFront serves cached content from edge locations, reducing load on the backend infrastructure. It also provides DDoS protection and can handle sudden traffic increases.\n- Amazon Aurora Replica: Aurora read replicas can handle read traffic, offloading the primary database during spikes. This improves read performance and provides additional capacity. Read replicas can be in the same or different regions, providing geographic distribution and better resilience.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nGlobal Accelerator routes traffic to optimal endpoints but doesn't cache content or reduce database load. It's designed for improving connection performance, not handling traffic spikes or database load. It doesn't address the database performance issue.\n\n**Why option 1 is incorrect:**\nDirect Connect provides dedicated network connectivity but doesn't help with traffic spikes or database performance. It's for network connectivity, not application resilience or performance optimization.\n\n**Why option 2 is incorrect:**\nShield provides DDoS protection but doesn't improve application performance or handle legitimate traffic spikes. It protects against attacks but doesn't optimize for high traffic volumes.",
+    "domain": "Design Resilient Architectures"
+  },
+  {
+    "id": 25,
+    "text": "For security purposes, a development team has decided to deploy the Amazon EC2 instances in a private subnet. The team plans to use VPC endpoints so that the instances can access some AWS services securely. The members of the team would like to know about the two AWS services that support Gateway Endpoints. As a solutions architect, which of the following services would you suggest for this requirement? (Select two)",
+    "options": [
+      {
+        "id": 0,
+        "text": "Amazon S3",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Amazon Kinesis",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Amazon Simple Queue Service (Amazon SQS)",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Amazon Simple Notification Service (Amazon SNS)",
+        "correct": false
+      },
+      {
+        "id": 4,
+        "text": "Amazon DynamoDB",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      0,
+      4
+    ],
+    "explanation": "**Why option 0 is correct:**\nGateway endpoints are VPC endpoints that use route tables to route traffic to AWS services. Only S3 and DynamoDB support gateway endpoints. Gateway endpoints are free and don't require NAT Gateway or Internet Gateway for access. They're added as routes in your VPC route tables and automatically route traffic to the service without going over the internet.\n**Why other options are incorrect:**\n\n**Why option 4 is correct:**\nGateway endpoints are VPC endpoints that use route tables to route traffic to AWS services. Only S3 and DynamoDB support gateway endpoints. Gateway endpoints are free and don't require NAT Gateway or Internet Gateway for access. They're added as routes in your VPC route tables and automatically route traffic to the service without going over the internet.\n**Why other options are incorrect:**\n\n**Why option 1 is incorrect:**\nSNS uses interface endpoints (PrivateLink), not gateway endpoints. Only S3 and DynamoDB support the simpler gateway endpoint model.\n\n**Why option 2 is incorrect:**\n- Amazon Kinesis: Kinesis uses interface endpoints (PrivateLink), not gateway endpoints. Interface endpoints are ENIs in your VPC that provide private connectivity. They're different from gateway endpoints.\n- Amazon Simple Queue Service (Amazon SQS): SQS uses interface endpoints (PrivateLink), not gateway endpoints. Interface endpoints require DNS resolution and are more complex than gateway endpoints.\n- Amazon Simple Notification Service (Amazon SNS): SNS uses interface endpoints (PrivateLink), not gateway endpoints. Only S3 and DynamoDB support the simpler gateway endpoint model.\n\n**Why option 3 is incorrect:**\n- Amazon Kinesis: Kinesis uses interface endpoints (PrivateLink), not gateway endpoints. Interface endpoints are ENIs in your VPC that provide private connectivity. They're different from gateway endpoints.\n- Amazon Simple Queue Service (Amazon SQS): SQS uses interface endpoints (PrivateLink), not gateway endpoints. Interface endpoints require DNS resolution and are more complex than gateway endpoints.\n- Amazon Simple Notification Service (Amazon SNS): SNS uses interface endpoints (PrivateLink), not gateway endpoints. Only S3 and DynamoDB support the simpler gateway endpoint model.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 26,
+    "text": "An e-commerce application uses an Amazon Aurora Multi-AZ deployment for its database. While analyzing the performance metrics, the engineering team has found that the database reads are causing high input/output (I/O) and adding latency to the write requests against the database. As an AWS Certified Solutions Architect Associate, what would you recommend to separate the read requests from the write requests?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Provision another Amazon Aurora database and link it to the primary database as a read replica",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Set up a read replica and modify the application to use the appropriate endpoint",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Activate read-through caching on the Amazon Aurora database",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Configure the application to read from the Multi-AZ standby instance",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nAurora read replicas are separate database instances that replicate data from the primary. They have their own endpoint that applications can use for read queries. By directing read traffic to the read replica endpoint, you offload read operations from the primary database, reducing I/O contention and allowing writes to perform better. The application must be modified to use the read replica endpoint for read queries while continuing to use the primary endpoint for writes.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nAurora doesn't have a \"read-through caching\" feature. You can use ElastiCache in front of Aurora for caching, but that's a separate service, not an Aurora feature.\n\n**Why option 2 is incorrect:**\n- Provision another Amazon Aurora database and link it to the primary database as a read replica: This wording is confusing, but the key issue is that you need to modify the application to use the read replica endpoint. Simply creating a read replica isn't enough - the application must be configured to route reads to it.\n- Activate read-through caching on the Amazon Aurora database: Aurora doesn't have a \"read-through caching\" feature. You can use ElastiCache in front of Aurora for caching, but that's a separate service, not an Aurora feature.\n- Configure the application to read from the Multi-AZ standby instance: The Multi-AZ standby instance is for high availability and automatic failover, not for read scaling. It's not accessible for read queries - it's only used during failover. Read replicas are separate instances designed for read scaling.\n\n**Why option 3 is incorrect:**\nThe Multi-AZ standby instance is for high availability and automatic failover, not for read scaling. It's not accessible for read queries - it's only used during failover. Read replicas are separate instances designed for read scaling.",
+    "domain": "Design Resilient Architectures"
+  },
+  {
+    "id": 27,
+    "text": "An Elastic Load Balancer has marked all the Amazon EC2 instances in the target group as unhealthy. Surprisingly, when a developer enters the IP address of the Amazon EC2 instances in the web browser, he can access the website. What could be the reason the instances are being marked as unhealthy? (Select two)",
+    "options": [
+      {
+        "id": 0,
+        "text": "The security group of the Amazon EC2 instance does not allow for traffic from the security group of the Application Load Balancer",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "The Amazon Elastic Block Store (Amazon EBS) volumes have been improperly mounted",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "You need to attach elastic IP address (EIP) to the Amazon EC2 instances",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Your web-app has a runtime that is not supported by the Application Load Balancer",
+        "correct": false
+      },
+      {
+        "id": 4,
+        "text": "The route for the health check is misconfigured",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      0,
+      4
+    ],
+    "explanation": "**Why option 0 is correct:**\nThe EC2 instance's security group must allow inbound traffic from the ALB's security group (or the ALB's IP addresses). If the security group only allows traffic from specific IPs or doesn't allow ALB traffic, health checks will fail even though the website works when accessed directly via IP.\n\n**Why option 4 is correct:**\nThe ALB health check is configured with a specific path (like /health or /). If the application doesn't respond correctly to that path, or if the path is incorrect, health checks will fail. The website might work at / but fail at /health, causing the instances to be marked unhealthy.\n**Why other options are incorrect:**\n\n**Why option 1 is incorrect:**\nEBS volume mounting issues would prevent the application from running at all. If the website works when accessed directly, the volumes are mounted correctly. This wouldn't cause selective health check failures.\n\n**Why option 2 is incorrect:**\nEIPs are not required for ALB health checks. ALB routes traffic to instances using their private IP addresses. EIPs are for public internet access, not for ALB connectivity.\n\n**Why option 3 is incorrect:**\nALB works with any HTTP/HTTPS application regardless of runtime. It operates at Layer 7 (HTTP) and doesn't care about the application runtime. This is not a valid reason for health check failures.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 28,
+    "text": "A company wants to store business-critical data on Amazon Elastic Block Store (Amazon EBS) volumes which provide persistent storage independent of Amazon EC2 instances. During a test run, the development team found that on terminating an Amazon EC2 instance, the attached Amazon EBS volume was also lost, which was contrary to their assumptions. As a solutions architect, could you explain this issue?",
+    "options": [
+      {
+        "id": 0,
+        "text": "On termination of an Amazon EC2 instance, all the attached Amazon EBS volumes are always terminated",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "The Amazon EBS volume was configured as the root volume of Amazon EC2 instance. On termination of the instance, the default behavior is to also terminate the attached root volume",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "The Amazon EBS volumes were not backed up on Amazon S3 storage, resulting in the loss of volume",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "The Amazon EBS volumes were not backed up on Amazon EFS file system storage, resulting in the loss of volume",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nWhen you launch an EC2 instance, the root EBS volume has a \"Delete on Termination\" attribute that defaults to true. This means when you terminate the instance, the root volume is automatically deleted. Additional EBS volumes attached to the instance have \"Delete on Termination\" set to false by default, so they persist. The team likely stored data on the root volume instead of a separate data volume, causing the data loss.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nThis is incorrect. Only the root volume is terminated by default. Additional volumes persist unless explicitly configured to be deleted.\n\n**Why option 2 is incorrect:**\nEFS is a file system service, not a backup destination. The issue is volume termination settings, not backup location.\n\n**Why option 3 is incorrect:**\n- On termination of an Amazon EC2 instance, all the attached Amazon EBS volumes are always terminated: This is incorrect. Only the root volume is terminated by default. Additional volumes persist unless explicitly configured to be deleted.\n- The Amazon EBS volumes were not backed up on Amazon S3 storage: Backing up to S3 is a good practice but not required for volumes to persist. The issue is the \"Delete on Termination\" setting, not lack of backups. Even without S3 backups, volumes can persist if configured correctly.\n- The Amazon EBS volumes were not backed up on Amazon EFS file system storage: EFS is a file system service, not a backup destination. The issue is volume termination settings, not backup location.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 29,
+    "text": "A Big Data processing company has created a distributed data processing framework that performs best if the network performance between the processing machines is high. The application has to be deployed on AWS, and the company is only looking at performance as the key measure. As a Solutions Architect, which deployment do you recommend?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use Spot Instances",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use a Cluster placement group",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Optimize the Amazon EC2 kernel using EC2 User Data",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use a Spread placement group",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\n**\n\n**Why option 0 is incorrect:**\nSpot Instances are about cost optimization, not network performance. They don't improve network performance between instances. Network performance depends on instance type and placement group, not purchasing option.\n\n**Why option 2 is incorrect:**\nKernel optimization might provide minor improvements but won't significantly impact network performance between instances. Placement groups are the primary way to optimize inter-instance network performance.\n\n**Why option 3 is incorrect:**\nSpread placement groups place instances on distinct hardware to minimize correlated failures. They actually REDUCE network performance compared to Cluster placement groups because instances are spread across different hardware. For high network performance, Cluster placement groups are required.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 30,
+    "text": "An IT company has an Access Control Management (ACM) application that uses Amazon RDS for MySQL but is running into performance issues despite using Read Replicas. The company has hired you as a solutions architect to address these performance-related challenges without moving away from the underlying relational database schema. The company has branch offices across the world, and it needs the solution to work on a global scale. Which of the following will you recommend as the MOST cost-effective and high-performance solution?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use Amazon DynamoDB Global Tables to provide fast, local, read and write performance in each region",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use Amazon Aurora Global Database to enable fast local reads with low latency in each region",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Spin up Amazon EC2 instances in each AWS region, install MySQL databases and migrate the existing data into these new databases",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Spin up a Amazon Redshift cluster in each AWS region. Migrate the existing data into Redshift clusters",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\n**\n\n**Why option 0 is incorrect:**\nRedshift is a data warehouse, not suitable for transactional applications. It's designed for analytical workloads, not operational databases. It also doesn't support the same MySQL compatibility.\n\n**Why option 2 is incorrect:**\n- Use Amazon DynamoDB Global Tables: DynamoDB is a NoSQL database and would require migrating from the relational MySQL schema. The requirement explicitly states \"without moving away from the underlying relational database schema.\" DynamoDB uses a different data model.\n- Spin up Amazon EC2 instances in each AWS region, install MySQL databases: This requires managing databases yourself, including backups, patching, replication, and high availability. It's not cost-effective and increases operational overhead. Aurora Global Database provides managed global replication.\n- Spin up a Amazon Redshift cluster in each AWS region: Redshift is a data warehouse, not suitable for transactional applications. It's designed for analytical workloads, not operational databases. It also doesn't support the same MySQL compatibility.\n\n**Why option 3 is incorrect:**\n- Use Amazon DynamoDB Global Tables: DynamoDB is a NoSQL database and would require migrating from the relational MySQL schema. The requirement explicitly states \"without moving away from the underlying relational database schema.\" DynamoDB uses a different data model.\n- Spin up Amazon EC2 instances in each AWS region, install MySQL databases: This requires managing databases yourself, including backups, patching, replication, and high availability. It's not cost-effective and increases operational overhead. Aurora Global Database provides managed global replication.\n- Spin up a Amazon Redshift cluster in each AWS region: Redshift is a data warehouse, not suitable for transactional applications. It's designed for analytical workloads, not operational databases. It also doesn't support the same MySQL compatibility.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 31,
+    "text": "A financial services firm uses a high-frequency trading system and wants to write the log files into Amazon S3. The system will also read these log files in parallel on a near real-time basis. The engineering team wants to address any data discrepancies that might arise when the trading system overwrites an existing log file and then tries to read that specific log file. Which of the following options BEST describes the capabilities of Amazon S3 relevant to this scenario?",
+    "options": [
+      {
+        "id": 0,
+        "text": "A process replaces an existing object and immediately tries to read it. Until the change is fully propagated, Amazon S3 might return the previous data",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "A process replaces an existing object and immediately tries to read it. Amazon S3 always returns the latest version of the object",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "A process replaces an existing object and immediately tries to read it. Until the change is fully propagated, Amazon S3 might return the new data",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "A process replaces an existing object and immediately tries to read it. Until the change is fully propagated, Amazon S3 does not return any data",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nS3 provides strong read-after-write consistency for PUT operations. When you overwrite an object and immediately read it, S3 always returns the new version. There's no eventual consistency delay for overwrite PUTs. This is critical for high-frequency trading systems where data consistency is essential. S3 guarantees that after a successful PUT, subsequent GET requests will return the new data.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\n- Until the change is fully propagated, Amazon S3 might return the previous data: This describes eventual consistency, which S3 does NOT have for overwrite PUTs. S3 has strong consistency for overwrite PUTs and DELETE operations. The \"propagation delay\" concept doesn't apply to overwrite PUTs.\n- Until the change is fully propagated, Amazon S3 might return the new data: This is backwards - if there were a propagation delay, you'd get old data, not new data. But more importantly, there's no propagation delay for overwrite PUTs.\n- Until the change is fully propagated, Amazon S3 does not return any data: S3 doesn't block reads during updates. It always returns data - either the old or new version. For overwrite PUTs, it always returns the new version immediately.\n\n**Why option 2 is incorrect:**\n- Until the change is fully propagated, Amazon S3 might return the previous data: This describes eventual consistency, which S3 does NOT have for overwrite PUTs. S3 has strong consistency for overwrite PUTs and DELETE operations. The \"propagation delay\" concept doesn't apply to overwrite PUTs.\n- Until the change is fully propagated, Amazon S3 might return the new data: This is backwards - if there were a propagation delay, you'd get old data, not new data. But more importantly, there's no propagation delay for overwrite PUTs.\n- Until the change is fully propagated, Amazon S3 does not return any data: S3 doesn't block reads during updates. It always returns data - either the old or new version. For overwrite PUTs, it always returns the new version immediately.\n\n**Why option 3 is incorrect:**\n- Until the change is fully propagated, Amazon S3 might return the previous data: This describes eventual consistency, which S3 does NOT have for overwrite PUTs. S3 has strong consistency for overwrite PUTs and DELETE operations. The \"propagation delay\" concept doesn't apply to overwrite PUTs.\n- Until the change is fully propagated, Amazon S3 might return the new data: This is backwards - if there were a propagation delay, you'd get old data, not new data. But more importantly, there's no propagation delay for overwrite PUTs.\n- Until the change is fully propagated, Amazon S3 does not return any data: S3 doesn't block reads during updates. It always returns data - either the old or new version. For overwrite PUTs, it always returns the new version immediately.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 32,
+    "text": "A media company has created an AWS Direct Connect connection for migrating its flagship application to the AWS Cloud. The on-premises application writes hundreds of video files into a mounted NFS file system daily. Post-migration, the company will host the application on an Amazon EC2 instance with a mounted Amazon Elastic File System (Amazon EFS) file system. Before the migration cutover, the company must build a process that will replicate the newly created on-premises video files to the Amazon EFS file system. Which of the following represents the MOST operationally efficient way to meet this requirement?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Configure an AWS DataSync agent on the on-premises server that has access to the NFS file system. Transfer data over the AWS Direct Connect connection to an AWS VPC peering endpoint for Amazon EFS by using a private VIF. Set up an AWS DataSync scheduled task to send the video files to the Amazon EFS file system every 24 hours",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Configure an AWS DataSync agent on the on-premises server that has access to the NFS file system. Transfer data over the AWS Direct Connect connection to an AWS PrivateLink interface VPC endpoint for Amazon EFS by using a private VIF. Set up an AWS DataSync scheduled task to send the video files to the Amazon EFS file system every 24 hours",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Configure an AWS DataSync agent on the on-premises server that has access to the NFS file system. Transfer data over the AWS Direct Connect connection to an Amazon S3 bucket by using a VPC gateway endpoint for Amazon S3. Set up an AWS Lambda function to process event notifications from Amazon S3 and copy the video files from Amazon S3 to the Amazon EFS file system",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Configure an AWS DataSync agent on the on-premises server that has access to the NFS file system. Transfer data over the AWS Direct Connect connection to an Amazon S3 bucket by using public VIF. Set up an AWS Lambda function to process event notifications from Amazon S3 and copy the video files from Amazon S3 to the Amazon EFS file system",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nAWS DataSync is designed for efficient data transfer between on-premises and AWS. It can transfer from NFS file systems to EFS. Using Direct Connect with a private VIF provides dedicated network connectivity. PrivateLink interface VPC endpoints allow private connectivity to EFS from on-premises via Direct Connect without traversing the public internet. DataSync can be scheduled to run automatically, making it operationally efficient.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\n- Transfer to an AWS VPC peering endpoint for Amazon EFS: VPC peering connects VPCs, but EFS doesn't use \"VPC peering endpoints.\" EFS uses mount targets within VPCs. You need PrivateLink interface endpoints for EFS access from on-premises via Direct Connect.\n- Transfer to an Amazon S3 bucket... then Lambda to copy to EFS: This adds unnecessary complexity and an extra step. DataSync can transfer directly from NFS to EFS, eliminating the need for S3 as an intermediate storage and Lambda processing. Direct transfer is more efficient.\n- Transfer to an Amazon S3 bucket by using public VIF: Public VIFs are for internet-routable traffic, not private connectivity. For secure, private transfers, you should use private VIFs. Also, transferring to S3 first adds unnecessary steps when DataSync can go directly to EFS.\n\n**Why option 2 is incorrect:**\n- Transfer to an AWS VPC peering endpoint for Amazon EFS: VPC peering connects VPCs, but EFS doesn't use \"VPC peering endpoints.\" EFS uses mount targets within VPCs. You need PrivateLink interface endpoints for EFS access from on-premises via Direct Connect.\n- Transfer to an Amazon S3 bucket... then Lambda to copy to EFS: This adds unnecessary complexity and an extra step. DataSync can transfer directly from NFS to EFS, eliminating the need for S3 as an intermediate storage and Lambda processing. Direct transfer is more efficient.\n- Transfer to an Amazon S3 bucket by using public VIF: Public VIFs are for internet-routable traffic, not private connectivity. For secure, private transfers, you should use private VIFs. Also, transferring to S3 first adds unnecessary steps when DataSync can go directly to EFS.\n\n**Why option 3 is incorrect:**\n- Transfer to an AWS VPC peering endpoint for Amazon EFS: VPC peering connects VPCs, but EFS doesn't use \"VPC peering endpoints.\" EFS uses mount targets within VPCs. You need PrivateLink interface endpoints for EFS access from on-premises via Direct Connect.\n- Transfer to an Amazon S3 bucket... then Lambda to copy to EFS: This adds unnecessary complexity and an extra step. DataSync can transfer directly from NFS to EFS, eliminating the need for S3 as an intermediate storage and Lambda processing. Direct transfer is more efficient.\n- Transfer to an Amazon S3 bucket by using public VIF: Public VIFs are for internet-routable traffic, not private connectivity. For secure, private transfers, you should use private VIFs. Also, transferring to S3 first adds unnecessary steps when DataSync can go directly to EFS.",
+    "domain": "Design Resilient Architectures"
+  },
+  {
+    "id": 33,
+    "text": "A leading social media analytics company is contemplating moving its dockerized application stack into AWS Cloud. The company is not sure about the pricing for using Amazon Elastic Container Service (Amazon ECS) with the EC2 launch type compared to the Amazon Elastic Container Service (Amazon ECS) with the Fargate launch type. Which of the following is correct regarding the pricing for these two services?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Both Amazon ECS with EC2 launch type and Amazon ECS with Fargate launch type are charged based on Amazon EC2 instances and Amazon EBS Elastic Volumes used",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Both Amazon ECS with EC2 launch type and Amazon ECS with Fargate launch type are charged based on vCPU and memory resources that the containerized application requests",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Both Amazon ECS with EC2 launch type and Amazon ECS with Fargate launch type are just charged based on Elastic Container Service used per hour",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Amazon ECS with EC2 launch type is charged based on EC2 instances and EBS volumes used. Amazon ECS with Fargate launch type is charged based on vCPU and memory resources that the containerized application requests",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      3
+    ],
+    "explanation": "**Why option 3 is correct:**\nECS with EC2 launch type runs containers on EC2 instances you manage. You pay for the EC2 instances (compute) and EBS volumes (storage) you provision, regardless of how much the containers actually use. ECS with Fargate is serverless - you only pay for the vCPU and memory resources your containers request and consume. Fargate abstracts away the underlying infrastructure, so you don't pay for EC2 instances or EBS volumes directly.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\n- Both are charged based on EC2 instances and EBS volumes: This only applies to EC2 launch type. Fargate doesn't use EC2 instances you manage, so this pricing model doesn't apply.\n- Both are charged based on vCPU and memory resources: This only applies to Fargate. EC2 launch type charges for entire EC2 instances, not just the resources containers use.\n- Both are just charged based on Elastic Container Service used per hour: There's no separate \"ECS service\" charge. ECS itself is free - you pay for the underlying compute resources (EC2 instances for EC2 launch type, or vCPU/memory for Fargate).\n\n**Why option 1 is incorrect:**\n- Both are charged based on EC2 instances and EBS volumes: This only applies to EC2 launch type. Fargate doesn't use EC2 instances you manage, so this pricing model doesn't apply.\n- Both are charged based on vCPU and memory resources: This only applies to Fargate. EC2 launch type charges for entire EC2 instances, not just the resources containers use.\n- Both are just charged based on Elastic Container Service used per hour: There's no separate \"ECS service\" charge. ECS itself is free - you pay for the underlying compute resources (EC2 instances for EC2 launch type, or vCPU/memory for Fargate).\n\n**Why option 2 is incorrect:**\n- Both are charged based on EC2 instances and EBS volumes: This only applies to EC2 launch type. Fargate doesn't use EC2 instances you manage, so this pricing model doesn't apply.\n- Both are charged based on vCPU and memory resources: This only applies to Fargate. EC2 launch type charges for entire EC2 instances, not just the resources containers use.\n- Both are just charged based on Elastic Container Service used per hour: There's no separate \"ECS service\" charge. ECS itself is free - you pay for the underlying compute resources (EC2 instances for EC2 launch type, or vCPU/memory for Fargate).",
+    "domain": "Design Cost-Optimized Architectures"
+  },
+  {
+    "id": 34,
+    "text": "A retail company uses AWS Cloud to manage its technology infrastructure. The company has deployed its consumer-focused web application on Amazon EC2-based web servers and uses Amazon RDS PostgreSQL database as the data store. The PostgreSQL database is set up in a private subnet that allows inbound traffic from selected Amazon EC2 instances. The database also uses AWS Key Management Service (AWS KMS) for encrypting data at rest. Which of the following steps would you recommend to facilitate end-to-end security for the data-in-transit while accessing the database?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Create a new security group that blocks SSH from the selected Amazon EC2 instances into the database",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Create a new network access control list (network ACL) that blocks SSH from the entire Amazon EC2 subnet into the database",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Use IAM authentication to access the database instead of the database user's access credentials",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Configure Amazon RDS to use SSL for data in transit",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      3
+    ],
+    "explanation": "**Why option 3 is correct:**\nSSL/TLS encryption secures data while it's being transmitted between the EC2 instances and the RDS database. This provides end-to-end security for data in transit. RDS supports SSL connections, and you can require SSL for all connections. This is the standard way to secure database connections and meets the requirement for \"end-to-end security for data-in-transit.\"\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nSimilar to security groups, NACLs control network traffic but don't encrypt it. Blocking SSH doesn't address data-in-transit encryption for database connections.\n\n**Why option 1 is incorrect:**\n- Create a new security group that blocks SSH from the selected Amazon EC2 instances into the database: Security groups control network access but don't encrypt data in transit. Blocking SSH doesn't encrypt database connections. SSH is for server access, not database connections.\n- Create a new network ACL that blocks SSH from the entire Amazon EC2 subnet: Similar to security groups, NACLs control network traffic but don't encrypt it. Blocking SSH doesn't address data-in-transit encryption for database connections.\n- Use IAM authentication to access the database instead of the database user's access credentials: IAM authentication provides authentication (who you are) but doesn't provide encryption for data in transit. You still need SSL/TLS to encrypt the connection. IAM authentication and SSL encryption are complementary, not alternatives.\n\n**Why option 2 is incorrect:**\nIAM authentication provides authentication (who you are) but doesn't provide encryption for data in transit. You still need SSL/TLS to encrypt the connection. IAM authentication and SSL encryption are complementary, not alternatives.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 35,
+    "text": "A news network uses Amazon Simple Storage Service (Amazon S3) to aggregate the raw video footage from its reporting teams across the US. The news network has recently expanded into new geographies in Europe and Asia. The technical teams at the overseas branch offices have reported huge delays in uploading large video files to the destination Amazon S3 bucket. Which of the following are the MOST cost-effective options to improve the file upload speed into Amazon S3 (Select two)",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use Amazon S3 Transfer Acceleration (Amazon S3TA) to enable faster file uploads into the destination S3 bucket",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Use multipart uploads for faster file uploads into the destination Amazon S3 bucket",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Create multiple AWS Direct Connect connections between the AWS Cloud and branch offices in Europe and Asia. Use the direct connect connections for faster file uploads into Amazon S3",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use AWS Global Accelerator for faster file uploads into the destination Amazon S3 bucket",
+        "correct": false
+      },
+      {
+        "id": 4,
+        "text": "Create multiple AWS Site-to-Site VPN connections between the AWS Cloud and branch offices in Europe and Asia. Use these VPN connections for faster file uploads into Amazon S3",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0,
+      1
+    ],
+    "explanation": "**Why option 0 is correct:**\n- S3 Transfer Acceleration: Uses CloudFront's globally distributed edge locations to optimize the path from clients to S3. Data is routed through the nearest edge location, then over AWS's optimized network backbone to S3. This significantly improves upload speeds from distant locations (Europe and Asia) to US-based S3 buckets.\n- Multipart uploads: Break large files into smaller parts that are uploaded in parallel. This improves throughput, allows resuming failed uploads, and is more efficient for large files. Multipart uploads are especially beneficial for large video files.\n**Why other options are incorrect:**\n\n**Why option 1 is correct:**\nBreak large files into smaller parts that are uploaded in parallel. This improves throughput, allows resuming failed uploads, and is more efficient for large files. Multipart uploads are especially beneficial for large video files.\n**Why other options are incorrect:**\n\n**Why option 2 is incorrect:**\nVPN connections have bandwidth limitations and don't optimize the network path like Transfer Acceleration does. They also require setup at each location and don't provide the same performance improvements.\n\n**Why option 3 is incorrect:**\nGlobal Accelerator optimizes traffic routing to applications, not to S3. It's designed for application endpoints, not object storage. S3 Transfer Acceleration is specifically designed for S3 uploads.\n\n**Why option 4 is incorrect:**\n- Create multiple AWS Direct Connect connections: Direct Connect requires physical installation at each location and has high setup costs. For multiple locations (Europe and Asia), this would be extremely expensive and time-consuming. Transfer Acceleration and multipart uploads are software solutions that work immediately.\n- Use AWS Global Accelerator for faster file uploads: Global Accelerator optimizes traffic routing to applications, not to S3. It's designed for application endpoints, not object storage. S3 Transfer Acceleration is specifically designed for S3 uploads.\n- Create multiple AWS Site-to-Site VPN connections: VPN connections have bandwidth limitations and don't optimize the network path like Transfer Acceleration does. They also require setup at each location and don't provide the same performance improvements.",
+    "domain": "Design Cost-Optimized Architectures"
+  },
+  {
+    "id": 36,
+    "text": "A financial services company recently launched an initiative to improve the security of its AWS resources and it had enabled AWS Shield Advanced across multiple AWS accounts owned by the company. Upon analysis, the company has found that the costs incurred are much higher than expected. Which of the following would you attribute as the underlying reason for the unexpectedly high costs for AWS Shield Advanced service?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Consolidated billing has not been enabled. All the AWS accounts should fall under a single consolidated billing for the monthly fee to be charged only once",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Savings Plans has not been enabled for the AWS Shield Advanced service across all the AWS accounts",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "AWS Shield Advanced also covers AWS Shield Standard plan, thereby resulting in increased costs",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "AWS Shield Advanced is being used for custom servers, that are not part of AWS Cloud, thereby resulting in increased costs",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0
+    ],
+    "explanation": "**Why option 0 is correct:**\nAWS Shield Advanced has a monthly subscription fee. When you have multiple AWS accounts, each account is charged separately unless consolidated billing is enabled through AWS Organizations. With consolidated billing, the monthly Shield Advanced fee is charged once for the organization, not per account. This is a significant cost savings when you have multiple accounts.\n**Why other options are incorrect:**\n\n**Why option 1 is incorrect:**\nShield Advanced doesn't support Savings Plans. Savings Plans are for compute services (EC2, Lambda, Fargate), not security services like Shield Advanced.\n\n**Why option 2 is incorrect:**\nShield Advanced only protects AWS resources (CloudFront, ELB, Route 53, EC2, etc.). It cannot protect on-premises or non-AWS infrastructure. This wouldn't cause unexpected costs.\n\n**Why option 3 is incorrect:**\nShield Advanced includes Shield Standard features, but this doesn't cause increased costs. Shield Standard is free, and Shield Advanced replaces it, not adds to it.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 37,
+    "text": "A Big Data analytics company wants to set up an AWS cloud architecture that throttles requests in case of sudden traffic spikes. The company is looking for AWS services that can be used for buffering or throttling to handle such traffic variations. Which of the following services can be used to support this requirement?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Amazon Simple Queue Service (Amazon SQS), Amazon Simple Notification Service (Amazon SNS) and AWS Lambda",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Amazon Gateway Endpoints, Amazon Simple Queue Service (Amazon SQS) and Amazon Kinesis",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Elastic Load Balancer, Amazon Simple Queue Service (Amazon SQS), AWS Lambda",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Amazon API Gateway, Amazon Simple Queue Service (Amazon SQS) and Amazon Kinesis",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      3
+    ],
+    "explanation": "**Why option 3 is correct:**\nCan buffer and throttle streaming data. Kinesis Data Streams can handle high-throughput data ingestion and throttle consumers, preventing downstream systems from being overwhelmed.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nGateway endpoints are VPC endpoints for S3 and DynamoDB - they don't provide throttling. They're for private connectivity, not traffic management.\n\n**Why option 1 is incorrect:**\nSNS doesn't provide throttling or buffering - it's a pub/sub messaging service. Lambda can be throttled but doesn't throttle incoming requests. This combination doesn't provide the throttling capabilities needed.\n\n**Why option 2 is incorrect:**\nELB distributes traffic but doesn't throttle it. ELB can handle high traffic but doesn't prevent spikes from reaching backend services. API Gateway provides better throttling capabilities.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 38,
+    "text": "The development team at a social media company wants to handle some complicated queries such as \"What are the number of likes on the videos that have been posted by friends of a user A?\". As a solutions architect, which of the following AWS database services would you suggest as the BEST fit to handle such use cases?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Amazon Neptune",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Amazon OpenSearch Service",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Amazon Aurora",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Amazon Redshift",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0
+    ],
+    "explanation": "**Why option 0 is correct:**\n**\n\n**Why option 1 is incorrect:**\nAurora is a relational database optimized for SQL queries. While it can handle complex queries with JOINs, graph databases like Neptune are specifically designed for relationship-heavy queries and perform much better for social network-style queries.\n\n**Why option 2 is incorrect:**\n- Amazon OpenSearch Service: OpenSearch (formerly Elasticsearch) is a search and analytics engine, not a graph database. It's good for full-text search and log analytics but not optimized for relationship traversal queries like \"friends of friends.\"\n- Amazon Aurora: Aurora is a relational database optimized for SQL queries. While it can handle complex queries with JOINs, graph databases like Neptune are specifically designed for relationship-heavy queries and perform much better for social network-style queries.\n- Amazon Redshift: Redshift is a data warehouse for analytical queries on large datasets. It's not designed for transactional queries or relationship traversal. It's optimized for aggregations and analytical workloads, not graph queries.\n\n**Why option 3 is incorrect:**\nRedshift is a data warehouse for analytical queries on large datasets. It's not designed for transactional queries or relationship traversal. It's optimized for aggregations and analytical workloads, not graph queries.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 39,
+    "text": "A startup's cloud infrastructure consists of a few Amazon EC2 instances, Amazon RDS instances and Amazon S3 storage. A year into their business operations, the startup is incurring costs that seem too high for their business requirements. Which of the following options represents a valid cost-optimization solution?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use AWS Trusted Advisor checks on Amazon EC2 Reserved Instances to automatically renew reserved instances (RI). AWS Trusted advisor also suggests Amazon RDS idle database instances",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use AWS Cost Explorer Resource Optimization to get a report of Amazon EC2 instances that are either idle or have low utilization and use AWS Compute Optimizer to look at instance type recommendations",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Use AWS Compute Optimizer recommendations to help you choose the optimal Amazon EC2 purchasing options and help reserve your instance capacities at reduced costs",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use Amazon S3 Storage class analysis to get recommendations for transitions of objects to Amazon S3 Glacier storage classes to reduce storage costs. You can also automate moving these objects into lower-cost storage tier using Lifecycle Policies",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\n- AWS Cost Explorer Resource Optimization: Analyzes EC2 usage patterns and identifies idle or underutilized instances that can be terminated or rightsized. It provides actionable recommendations for cost savings.\n- AWS Compute Optimizer: Analyzes historical utilization metrics and recommends optimal instance types. It can suggest moving to smaller instance types or different instance families that better match workload requirements, reducing costs.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nTrusted Advisor doesn't automatically renew Reserved Instances. Also, the startup likely doesn't have Reserved Instances yet. Trusted Advisor provides recommendations but doesn't focus on idle instances or instance type optimization.\n\n**Why option 2 is incorrect:**\nCompute Optimizer recommends instance types, not purchasing options (On-Demand vs Reserved vs Spot). For purchasing options, you'd use Cost Explorer or Reserved Instance recommendations.\n\n**Why option 3 is incorrect:**\nThis is for S3 cost optimization, not EC2 or RDS. The startup's infrastructure includes EC2 and RDS, so S3 optimization doesn't address their main cost concerns.",
+    "domain": "Design Resilient Architectures"
+  },
+  {
+    "id": 40,
+    "text": "An engineering team wants to examine the feasibility of theuser datafeature of Amazon EC2 for an upcoming project. Which of the following are true about the Amazon EC2 user data configuration? (Select two)",
+    "options": [
+      {
+        "id": 0,
+        "text": "By default, scripts entered as user data are executed with root user privileges",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "By default, user data runs only during the boot cycle when you first launch an instance",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "When an instance is running, you can update user data by using root user credentials",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "By default, user data is executed every time an Amazon EC2 instance is re-started",
+        "correct": false
+      },
+      {
+        "id": 4,
+        "text": "By default, scripts entered as user data do not have root user privileges for executing",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0,
+      1
+    ],
+    "explanation": "**Why option 0 is correct:**\nUser data scripts run as root by default, allowing them to perform system-level operations like installing packages, modifying system files, and configuring services. This is necessary for many bootstrap operations.\n\n**Why option 1 is correct:**\n- Root privileges: User data scripts run as root by default, allowing them to perform system-level operations like installing packages, modifying system files, and configuring services. This is necessary for many bootstrap operations.\n- Runs only during first boot: User data executes once when the instance first launches, not on every restart. This is by design - user data is for initial setup, not ongoing maintenance. If you need scripts to run on every boot, you must configure that explicitly (e.g., using systemd or cron).\n**Why other options are incorrect:**\n\n**Why option 2 is incorrect:**\nUser data cannot be modified after instance launch. It's set at launch time and cannot be changed. You can view it, but not update it. To change user data, you must launch a new instance.\n\n**Why option 3 is incorrect:**\nThis is incorrect. User data scripts run as root by default, which is why they can perform system-level operations.\n\n**Why option 4 is incorrect:**\n- When an instance is running, you can update user data by using root user credentials: User data cannot be modified after instance launch. It's set at launch time and cannot be changed. You can view it, but not update it. To change user data, you must launch a new instance.\n- By default, user data is executed every time an Amazon EC2 instance is re-started: User data runs only on first launch, not on restarts. Restarting an instance doesn't re-execute user data. This is a common misconception.\n- By default, scripts entered as user data do not have root user privileges: This is incorrect. User data scripts run as root by default, which is why they can perform system-level operations.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 41,
+    "text": "An Electronic Design Automation (EDA) application produces massive volumes of data that can be divided into two categories. The 'hot data' needs to be both processed and stored quickly in a parallel and distributed fashion. The 'cold data' needs to be kept for reference with quick access for reads and updates at a low cost. Which of the following AWS services is BEST suited to accelerate the aforementioned chip design process?",
+    "options": [
+      {
+        "id": 0,
+        "text": "AWS Glue",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Amazon EMR",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Amazon FSx for Lustre",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Amazon FSx for Windows File Server",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      2
+    ],
+    "explanation": "**Why option 2 is correct:**\n**\n\n**Why option 0 is incorrect:**\nGlue is an ETL (Extract, Transform, Load) service for data preparation and transformation. It's not a file system and doesn't provide the high-performance file access needed for EDA applications. Glue is for data processing pipelines, not file storage.\n\n**Why option 1 is incorrect:**\nEMR is a managed Hadoop/Spark cluster service for big data processing. While it can handle large datasets, it's not optimized for the high-performance file access patterns of EDA applications. EMR is for distributed data processing, not file system performance.\n\n**Why option 3 is incorrect:**\nFSx for Windows is designed for Windows-based file shares and Active Directory integration. It's not optimized for high-performance compute workloads like EDA. Lustre is specifically designed for HPC and compute-intensive applications.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 42,
+    "text": "Your company is deploying a website running on AWS Elastic Beanstalk. The website takes over 45 minutes for the installation and contains both static as well as dynamic files that must be generated during the installation process. As a Solutions Architect, you would like to bring the time to create a new instance in your AWS Elastic Beanstalk deployment to be less than 2 minutes. Which of the following options should be combined to build a solution for this requirement? (Select two)",
+    "options": [
+      {
+        "id": 0,
+        "text": "Create a Golden Amazon Machine Image (AMI) with the static installation components already setup",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Store the installation files in Amazon S3 so they can be quickly retrieved",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Use Amazon EC2 user data to customize the dynamic installation parts at boot time",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Use Amazon EC2 user data to install the application at boot time",
+        "correct": false
+      },
+      {
+        "id": 4,
+        "text": "Use AWS Elastic Beanstalk deployment caching feature",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0,
+      2
+    ],
+    "explanation": "**Why option 0 is correct:**\nA Golden AMI is a pre-configured AMI with common components already installed. By including static installation components (like operating system, common libraries, frameworks) in the AMI, you eliminate the need to install them on every instance launch, dramatically reducing launch time.\n\n**Why option 2 is correct:**\n- Golden AMI: A Golden AMI is a pre-configured AMI with common components already installed. By including static installation components (like operating system, common libraries, frameworks) in the AMI, you eliminate the need to install them on every instance launch, dramatically reducing launch time.\n- User data for dynamic parts: User data scripts can handle dynamic, instance-specific configuration that needs to happen at boot time. This allows customization while leveraging the pre-configured AMI for static components. The combination reduces launch time from 45 minutes to under 2 minutes.\n**Why other options are incorrect:**\n\n**Why option 1 is incorrect:**\nWhile S3 provides fast retrieval, you still need to download and install the files, which takes time. This doesn't solve the 45-minute installation problem. Pre-installing in an AMI is much faster.\n\n**Why option 3 is incorrect:**\nInstalling everything via user data still takes 45 minutes. The solution is to pre-install static components in an AMI, not install everything at boot time.\n\n**Why option 4 is incorrect:**\nElastic Beanstalk doesn't have a \"deployment caching\" feature that would significantly reduce installation time. The solution requires AMI optimization and user data, not Beanstalk features.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 43,
+    "text": "An IT company provides Amazon Simple Storage Service (Amazon S3) bucket access to specific users within the same account for completing project specific work. With changing business requirements, cross-account S3 access requests are also growing every month. The company is looking for a solution that can offer user level as well as account-level access permissions for the data stored in Amazon S3 buckets. As a Solutions Architect, which of the following would you suggest as the MOST optimized way of controlling access for this use-case?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use Identity and Access Management (IAM) policies",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use Amazon S3 Bucket Policies",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Use Security Groups",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use Access Control Lists (ACLs)",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nS3 Bucket Policies are resource-based policies attached to S3 buckets that can grant permissions to IAM users, roles, and even other AWS accounts. Bucket policies can control both user-level access (within the same account) and account-level access (cross-account). They're the most flexible and optimized way to control S3 access, supporting complex permission scenarios including cross-account access, which is mentioned in the requirement.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nIAM policies are identity-based and attached to users, groups, or roles. While they can grant S3 access, they don't provide account-level control for cross-account scenarios. Bucket policies are needed for cross-account access control.\n\n**Why option 2 is incorrect:**\nSecurity Groups are for EC2 instances and other VPC resources, not for S3 access control. S3 is accessed via API calls, not network-level security. Security Groups don't apply to S3.\n\n**Why option 3 is incorrect:**\nACLs are legacy and less flexible than bucket policies. They don't support complex permission scenarios or cross-account access as effectively as bucket policies. Bucket policies are the recommended approach.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 44,
+    "text": "The engineering team at a company wants to use Amazon Simple Queue Service (Amazon SQS) to decouple components of the underlying application architecture. However, the team is concerned about the VPC-bound components accessing Amazon Simple Queue Service (Amazon SQS) over the public internet. As a solutions architect, which of the following solutions would you recommend to address this use-case?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use Internet Gateway to access Amazon SQS",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use VPN connection to access Amazon SQS",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Use VPC endpoint to access Amazon SQS",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Use Network Address Translation (NAT) instance to access Amazon SQS",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      2
+    ],
+    "explanation": "**Why option 2 is correct:**\n**\n\n**Why option 0 is incorrect:**\nInternet Gateways provide public internet access for resources in public subnets. Using an Internet Gateway would route SQS traffic over the public internet, which is what the team wants to avoid. It also requires public subnets and public IPs.\n\n**Why option 1 is incorrect:**\nVPN connections are for connecting on-premises networks to VPCs, not for accessing AWS services from within a VPC. VPN doesn't provide private connectivity to AWS services - traffic would still go over the internet.\n\n**Why option 3 is incorrect:**\nNAT instances allow private subnet resources to access the internet, but traffic still goes over the public internet. VPC endpoints provide true private connectivity without internet traversal.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 45,
+    "text": "A retail company maintains an AWS Direct Connect connection to AWS and has recently migrated its data warehouse to AWS. The data analysts at the company query the data warehouse using a visualization tool. The average size of a query returned by the data warehouse is 60 megabytes and the query responses returned by the data warehouse are not cached in the visualization tool. Each webpage returned by the visualization tool is approximately 600 kilobytes. Which of the following options offers the LOWEST data transfer egress cost for the company?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Deploy the visualization tool on-premises. Query the data warehouse directly over an AWS Direct Connect connection at a location in the same AWS region",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Deploy the visualization tool in the same AWS region as the data warehouse. Access the visualization tool over a Direct Connect connection at a location in the same region",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Deploy the visualization tool on-premises. Query the data warehouse over the internet at a location in the same AWS region",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Deploy the visualization tool in the same AWS region as the data warehouse. Access the visualization tool over the internet at a location in the same region",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nData transfer within the same AWS region is free for data transfer between AWS services. By deploying the visualization tool in the same region as the data warehouse, the 60MB query responses don't incur data transfer costs. Users accessing the visualization tool over Direct Connect only transfer the 600KB web pages, not the 60MB query results. Direct Connect has lower egress costs than internet transfer, and since query results stay within AWS (same region), there's no egress charge for them.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nWhile query results stay in-region (free), accessing the tool over the internet has higher costs than Direct Connect for the web page transfers.\n\n**Why option 2 is incorrect:**\nThis would transfer 60MB query results over Direct Connect for each query, which incurs data transfer costs. The visualization tool in AWS with same-region queries avoids this cost.\n\n**Why option 3 is incorrect:**\nInternet egress from AWS has higher costs than Direct Connect. Transferring 60MB query results over the internet would be more expensive.",
+    "domain": "Design Cost-Optimized Architectures"
+  },
+  {
+    "id": 46,
+    "text": "The engineering team at an e-commerce company wants to migrate from Amazon Simple Queue Service (Amazon SQS) Standard queues to FIFO (First-In-First-Out) queues with batching. As a solutions architect, which of the following steps would you have in the migration checklist? (Select three)",
+    "options": [
+      {
+        "id": 0,
+        "text": "Make sure that the name of the FIFO (First-In-First-Out) queue is the same as the standard queue",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Make sure that the throughput for the target FIFO (First-In-First-Out) queue does not exceed 3,000 messages per second",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Make sure that the name of the FIFO (First-In-First-Out) queue ends with the .fifo suffix",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Make sure that the throughput for the target FIFO (First-In-First-Out) queue does not exceed 300 messages per second",
+        "correct": false
+      },
+      {
+        "id": 4,
+        "text": "Delete the existing standard queue and recreate it as a FIFO (First-In-First-Out) queue",
+        "correct": true
+      },
+      {
+        "id": 5,
+        "text": "Convert the existing standard queue into a FIFO (First-In-First-Out) queue",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1,
+      2,
+      4
+    ],
+    "explanation": "**Why option 1 is correct:**\n- Throughput limit of 3,000 messages per second: FIFO queues have a throughput limit of 3,000 messages per second (or 300 messages per second without batching). With batching, you can achieve up to 3,000 messages per second. This is a hard limit that must be considered during migration.\n- Queue name must end with .fifo: FIFO queues require the .fifo suffix in their name. This is a mandatory naming convention that distinguishes FIFO queues from standard queues.\n- Delete and recreate: Standard queues cannot be converted to FIFO queues. You must delete the standard queue and create a new FIFO queue. This is because FIFO and standard queues have fundamentally different architectures and behaviors.\n**Why other options are incorrect:**\n\n**Why option 2 is correct:**\n- Throughput limit of 3,000 messages per second: FIFO queues have a throughput limit of 3,000 messages per second (or 300 messages per second without batching). With batching, you can achieve up to 3,000 messages per second. This is a hard limit that must be considered during migration.\n- Queue name must end with .fifo: FIFO queues require the .fifo suffix in their name. This is a mandatory naming convention that distinguishes FIFO queues from standard queues.\n- Delete and recreate: Standard queues cannot be converted to FIFO queues. You must delete the standard queue and create a new FIFO queue. This is because FIFO and standard queues have fundamentally different architectures and behaviors.\n**Why other options are incorrect:**\n\n**Why option 4 is correct:**\nStandard queues cannot be converted to FIFO queues. You must delete the standard queue and create a new FIFO queue. This is because FIFO and standard queues have fundamentally different architectures and behaviors.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nFIFO queues must have different names (with .fifo suffix). You cannot reuse the same name. Also, you need to delete the standard queue first.\n\n**Why option 3 is incorrect:**\nThis is the limit WITHOUT batching. With batching (which the question mentions), the limit is 3,000 messages per second.\n\n**Why option 5 is incorrect:**\nStandard queues cannot be converted to FIFO queues. They must be deleted and recreated. This is a fundamental limitation.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 47,
+    "text": "The business analytics team at a company has been running ad-hoc queries on Oracle and PostgreSQL services on Amazon RDS to prepare daily reports for senior management. To facilitate the business analytics reporting, the engineering team now wants to continuously replicate this data and consolidate these databases into a petabyte-scale data warehouse by streaming data to Amazon Redshift. As a solutions architect, which of the following would you recommend as the MOST resource-efficient solution that requires the LEAST amount of development time without the need to manage the underlying infrastructure?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use Amazon Kinesis Data Streams to replicate the data from the databases into Amazon Redshift",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use AWS Glue to replicate the data from the databases into Amazon Redshift",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Use AWS EMR to replicate the data from the databases into Amazon Redshift",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use AWS Database Migration Service (AWS DMS) to replicate the data from the databases into Amazon Redshift",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      3
+    ],
+    "explanation": "**Why option 3 is correct:**\nAWS DMS is a managed service designed specifically for database migration and replication. It can continuously replicate data from multiple source databases (Oracle, PostgreSQL) to Redshift with minimal configuration. DMS handles schema conversion, data transformation, and ongoing replication automatically. It requires no infrastructure management and minimal development effort - you configure source and target endpoints and DMS handles the rest.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nKinesis is for real-time streaming data, not database replication. It would require custom code to read from databases and write to Redshift. Kinesis doesn't understand database schemas or handle replication automatically.\n\n**Why option 1 is incorrect:**\nGlue is an ETL service for data transformation and preparation, not continuous replication. It's designed for batch ETL jobs, not ongoing database replication. Glue would require more development and management effort.\n\n**Why option 2 is incorrect:**\nEMR is for big data processing with Hadoop/Spark, not database replication. It would require significant development effort to build replication logic. EMR is overkill for database replication and requires infrastructure management.",
+    "domain": "Design Resilient Architectures"
+  },
+  {
+    "id": 48,
+    "text": "A retail organization is moving some of its on-premises data to AWS Cloud. The DevOps team at the organization has set up an AWS Managed IPSec VPN Connection between their remote on-premises network and their Amazon VPC over the internet. Which of the following represents the correct configuration for the IPSec VPN Connection?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Create a virtual private gateway (VGW) on the on-premises side of the VPN and a Customer Gateway on the AWS side of the VPN",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Create a virtual private gateway (VGW) on the AWS side of the VPN and a Customer Gateway on the on-premises side of the VPN",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Create a Customer Gateway on both the AWS side of the VPN as well as the on-premises side of the VPN",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Create a virtual private gateway (VGW) on both the AWS side of the VPN as well as the on-premises side of the VPN",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nFor AWS Managed IPSec VPN connections, the Virtual Private Gateway (VGW) is an AWS-managed VPN endpoint that's attached to your VPC. The Customer Gateway is a resource in AWS that represents your on-premises VPN device. The VGW goes on the AWS side, and the Customer Gateway represents the on-premises side. This is the standard AWS VPN architecture.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nVGWs are AWS-managed and only exist on the AWS side. On-premises uses your own VPN equipment, represented by a Customer Gateway resource in AWS.\n\n**Why option 2 is incorrect:**\n- Create a VGW on the on-premises side and a Customer Gateway on the AWS side: This reverses the components. VGW is AWS-managed and goes on the AWS side. Customer Gateway represents on-premises equipment.\n- Create a Customer Gateway on both sides: Customer Gateways represent on-premises equipment. You only need one Customer Gateway (in AWS) to represent your on-premises device. The AWS side uses a VGW.\n- Create a VGW on both sides: VGWs are AWS-managed and only exist on the AWS side. On-premises uses your own VPN equipment, represented by a Customer Gateway resource in AWS.\n\n**Why option 3 is incorrect:**\n- Create a VGW on the on-premises side and a Customer Gateway on the AWS side: This reverses the components. VGW is AWS-managed and goes on the AWS side. Customer Gateway represents on-premises equipment.\n- Create a Customer Gateway on both sides: Customer Gateways represent on-premises equipment. You only need one Customer Gateway (in AWS) to represent your on-premises device. The AWS side uses a VGW.\n- Create a VGW on both sides: VGWs are AWS-managed and only exist on the AWS side. On-premises uses your own VPN equipment, represented by a Customer Gateway resource in AWS.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 49,
+    "text": "A financial services company has deployed its flagship application on Amazon EC2 instances. Since the application handles sensitive customer data, the security team at the company wants to ensure that any third-party Secure Sockets Layer certificate (SSL certificate) SSL/Transport Layer Security (TLS) certificates configured on Amazon EC2 instances via the AWS Certificate Manager (ACM) are renewed before their expiry date. The company has hired you as an AWS Certified Solutions Architect Associate to build a solution that notifies the security team 30 days before the certificate expiration. The solution should require the least amount of scripting and maintenance effort. What will you recommend?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Monitor the days to expiry Amazon CloudWatch metric for certificates created via ACM. Create a CloudWatch alarm to monitor such certificates based on the days to expiry metric and then trigger a custom action of notifying the security team",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Leverage AWS Config managed rule to check if any third-party SSL/TLS certificates imported into ACM are marked for expiration within 30 days. Configure the rule to trigger an Amazon SNS notification to the security team if any certificate expires within 30 days",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Leverage AWS Config managed rule to check if any SSL/TLS certificates created via ACM are marked for expiration within 30 days. Configure the rule to trigger an Amazon SNS notification to the security team if any certificate expires within 30 days",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Monitor the days to expiry Amazon CloudWatch metric for certificates imported into ACM. Create a CloudWatch alarm to monitor such certificates based on the days to expiry metric and then trigger a custom action of notifying the security team",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\n**\n\n**Why option 0 is incorrect:**\nCloudWatch doesn't provide a standard metric for certificate expiration. AWS Config is the service designed for compliance and configuration monitoring, including certificate expiration.\n\n**Why option 2 is incorrect:**\nACM-created certificates are automatically managed by AWS and don't need expiration monitoring. The requirement is for imported third-party certificates.\n\n**Why option 3 is incorrect:**\n- Monitor CloudWatch metric for certificates created via ACM: ACM-created certificates are automatically renewed by AWS, so monitoring expiration isn't necessary. Also, CloudWatch doesn't have a standard metric for certificate expiration. The question specifies \"third-party\" certificates imported into ACM.\n- Leverage AWS Config managed rule for certificates created via ACM: ACM-created certificates are automatically managed by AWS and don't need expiration monitoring. The requirement is for imported third-party certificates.\n- Monitor CloudWatch metric for certificates imported into ACM: CloudWatch doesn't provide a standard metric for certificate expiration. AWS Config is the service designed for compliance and configuration monitoring, including certificate expiration.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 50,
+    "text": "A retail company uses Amazon Elastic Compute Cloud (Amazon EC2) instances, Amazon API Gateway, Amazon RDS, Elastic Load Balancer and Amazon CloudFront services. To improve the security of these services, the Risk Advisory group has suggested a feasibility check for using the Amazon GuardDuty service. Which of the following would you identify as data sources supported by Amazon GuardDuty?",
+    "options": [
+      {
+        "id": 0,
+        "text": "VPC Flow Logs, Amazon API Gateway logs, Amazon S3 access logs",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "VPC Flow Logs, Domain Name System (DNS) logs, AWS CloudTrail events",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Elastic Load Balancing logs, Domain Name System (DNS) logs, AWS CloudTrail events",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Amazon CloudFront logs, Amazon API Gateway logs, AWS CloudTrail events",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nAmazon GuardDuty analyzes these specific data sources to detect threats:\n- VPC Flow Logs: Network traffic information showing source, destination, ports, and protocols. GuardDuty analyzes this for suspicious network activity.\n- DNS logs: DNS query logs from Route 53 Resolver. GuardDuty analyzes DNS queries for malicious domains, data exfiltration attempts, and other threats.\n- CloudTrail events: API calls and management events. GuardDuty analyzes API calls for unauthorized access, privilege escalation, and other security threats.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nGuardDuty doesn't analyze API Gateway logs or S3 access logs. It uses CloudTrail (which includes API calls) and DNS logs, not application-level logs.\n\n**Why option 2 is incorrect:**\n- VPC Flow Logs, API Gateway logs, S3 access logs: GuardDuty doesn't analyze API Gateway logs or S3 access logs. It uses CloudTrail (which includes API calls) and DNS logs, not application-level logs.\n- ELB logs, DNS logs, CloudTrail events: GuardDuty doesn't analyze ELB access logs. It uses VPC Flow Logs for network traffic analysis, not ELB logs.\n- CloudFront logs, API Gateway logs, CloudTrail events: GuardDuty doesn't analyze CloudFront or API Gateway logs. It focuses on VPC Flow Logs, DNS logs, and CloudTrail events.\n\n**Why option 3 is incorrect:**\nGuardDuty doesn't analyze CloudFront or API Gateway logs. It focuses on VPC Flow Logs, DNS logs, and CloudTrail events.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 51,
+    "text": "You have been hired as a Solutions Architect to advise a company on the various authentication/authorization mechanisms that AWS offers to authorize an API call within the Amazon API Gateway. The company would prefer a solution that offers built-in user management. Which of the following solutions would you suggest as the best fit for the given use-case?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use AWS_IAM authorization",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use Amazon Cognito User Pools",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Use Amazon Cognito Identity Pools",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use AWS Lambda authorizer for Amazon API Gateway",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\n**\n\n**Why option 0 is incorrect:**\nIAM authorization uses AWS IAM credentials, which are for AWS services and applications, not end users. IAM doesn't provide user management features like registration, password reset, or user profiles. It's for service-to-service authentication.\n\n**Why option 2 is incorrect:**\nIdentity Pools provide temporary AWS credentials for users, but they don't provide user management. Identity Pools work with User Pools or other identity providers. They're for granting AWS resource access, not user management.\n\n**Why option 3 is incorrect:**\nLambda authorizers allow custom authorization logic, but they don't provide user management. You'd need to build user registration, authentication, and management features yourself, which contradicts the \"built-in user management\" requirement.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 52,
+    "text": "A financial services company is looking to move its on-premises IT infrastructure to AWS Cloud. The company has multiple long-term server bound licenses across the application stack and the CTO wants to continue to utilize those licenses while moving to AWS. As a solutions architect, which of the following would you recommend as the MOST cost-effective solution?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use Amazon EC2 dedicated hosts",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Use Amazon EC2 dedicated instances",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Use Amazon EC2 on-demand instances",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use Amazon EC2 reserved instances (RI)",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0
+    ],
+    "explanation": "**Why option 0 is correct:**\nDedicated Hosts are physical servers dedicated to your use. They allow you to use your existing server-bound software licenses (like Windows Server, SQL Server, etc.) because you have visibility and control over the underlying physical server. Dedicated Hosts are the most cost-effective way to use existing licenses on AWS while maintaining compliance with license terms that require physical server dedication.\n**Why other options are incorrect:**\n\n**Why option 1 is incorrect:**\nReserved instances are a purchasing option, not an instance type. They don't address the license requirement for physical server visibility. Reserved instances can be On-Demand, Dedicated Instances, or Dedicated Hosts.\n\n**Why option 2 is incorrect:**\n- Use Amazon EC2 dedicated instances: Dedicated instances run on dedicated hardware but you don't have visibility into the physical server. Many license agreements require visibility into the physical server, which Dedicated Hosts provide but Dedicated Instances don't.\n- Use Amazon EC2 on-demand instances: On-demand instances don't provide the physical server visibility needed for server-bound licenses. They're shared or dedicated at the instance level, not the host level.\n- Use Amazon EC2 reserved instances: Reserved instances are a purchasing option, not an instance type. They don't address the license requirement for physical server visibility. Reserved instances can be On-Demand, Dedicated Instances, or Dedicated Hosts.\n\n**Why option 3 is incorrect:**\n- Use Amazon EC2 dedicated instances: Dedicated instances run on dedicated hardware but you don't have visibility into the physical server. Many license agreements require visibility into the physical server, which Dedicated Hosts provide but Dedicated Instances don't.\n- Use Amazon EC2 on-demand instances: On-demand instances don't provide the physical server visibility needed for server-bound licenses. They're shared or dedicated at the instance level, not the host level.\n- Use Amazon EC2 reserved instances: Reserved instances are a purchasing option, not an instance type. They don't address the license requirement for physical server visibility. Reserved instances can be On-Demand, Dedicated Instances, or Dedicated Hosts.",
+    "domain": "Design Cost-Optimized Architectures"
+  },
+  {
+    "id": 53,
+    "text": "The DevOps team at an IT company is provisioning a two-tier application in a VPC with a public subnet and a private subnet. The team wants to use either a Network Address Translation (NAT) instance or a Network Address Translation (NAT) gateway in the public subnet to enable instances in the private subnet to initiate outbound IPv4 traffic to the internet but needs some technical assistance in terms of the configuration options available for the Network Address Translation (NAT) instance and the Network Address Translation (NAT) gateway. As a solutions architect, which of the following options would you identify as CORRECT? (Select three)",
+    "options": [
+      {
+        "id": 0,
+        "text": "NAT instance can be used as a bastion server",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "NAT gateway can be used as a bastion server",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "NAT instance supports port forwarding",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "NAT gateway supports port forwarding",
+        "correct": false
+      },
+      {
+        "id": 4,
+        "text": "Security Groups can be associated with a NAT instance",
+        "correct": true
+      },
+      {
+        "id": 5,
+        "text": "Security Groups can be associated with a NAT gateway",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0,
+      2,
+      4
+    ],
+    "explanation": "**Why option 0 is correct:**\nNAT instances are EC2 instances, so they support security groups for fine-grained network access control.\n**Why other options are incorrect:**\n\n**Why option 2 is correct:**\n- NAT instance as bastion: NAT instances are EC2 instances, so they can be used as bastion servers for SSH access to private subnet instances. You can SSH into the NAT instance, then SSH from there to private instances.\n- NAT instance supports port forwarding: NAT instances run software (like iptables) that can be configured for port forwarding. This allows you to forward specific ports to instances in private subnets.\n- Security Groups on NAT instance: NAT instances are EC2 instances, so they support security groups for fine-grained network access control.\n**Why other options are incorrect:**\n\n**Why option 4 is correct:**\n- NAT instance as bastion: NAT instances are EC2 instances, so they can be used as bastion servers for SSH access to private subnet instances. You can SSH into the NAT instance, then SSH from there to private instances.\n- NAT instance supports port forwarding: NAT instances run software (like iptables) that can be configured for port forwarding. This allows you to forward specific ports to instances in private subnets.\n- Security Groups on NAT instance: NAT instances are EC2 instances, so they support security groups for fine-grained network access control.\n**Why other options are incorrect:**\n\n**Why option 1 is incorrect:**\nNAT gateways don't support port forwarding. They only provide basic NAT functionality (source/destination NAT). Port forwarding requires instance-level configuration.\n\n**Why option 3 is incorrect:**\n- NAT gateway can be used as a bastion server: NAT gateways are managed AWS services, not EC2 instances. You cannot SSH into them or use them as bastion servers. They're only for NAT functionality.\n- NAT gateway supports port forwarding: NAT gateways don't support port forwarding. They only provide basic NAT functionality (source/destination NAT). Port forwarding requires instance-level configuration.\n- Security Groups can be associated with a NAT gateway: NAT gateways are managed services and don't support security groups. They use NACLs for network-level control, not security groups.\n\n**Why option 5 is incorrect:**\nNAT gateways are managed services and don't support security groups. They use NACLs for network-level control, not security groups.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 54,
+    "text": "An organization wants to delegate access to a set of users from the development environment so that they can access some resources in the production environment which is managed under another AWS account. As a solutions architect, which of the following steps would you recommend?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Both IAM roles and IAM users can be used interchangeably for cross-account access",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Create a new IAM role with the required permissions to access the resources in the production environment. The users can then assume this IAM role while accessing the resources from the production environment",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "It is not possible to access cross-account resources",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Create new IAM user credentials for the production environment and share these credentials with the set of users from the development environment",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nIAM roles are the recommended way to provide cross-account access. Users from the development account can assume a role in the production account that has the necessary permissions. The production account's role trust policy allows the development account's users/roles to assume it. This provides secure, temporary access without sharing credentials.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nIAM users are not recommended for cross-account access. Roles provide temporary credentials and better security. Users have long-lived credentials that are harder to manage across accounts.\n\n**Why option 2 is incorrect:**\nCross-account access is absolutely possible using IAM roles. This is a standard AWS pattern for multi-account architectures.\n\n**Why option 3 is incorrect:**\nSharing credentials violates security best practices. Credentials can be compromised, are hard to rotate, and don't provide audit trails. Roles are the secure way to provide cross-account access.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 55,
+    "text": "A cyber security company is running a mission critical application using a single Spread placement group of Amazon EC2 instances. The company needs 15 Amazon EC2 instances for optimal performance. How many Availability Zones (AZs) will the company need to deploy these Amazon EC2 instances per the given use-case?",
+    "options": [
+      {
+        "id": 0,
+        "text": "7",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "3",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "14",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "15",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nSpread placement groups place instances on distinct underlying hardware to minimize correlated failures. Each Availability Zone can have a maximum of 7 running instances per spread placement group. To deploy 15 instances, you need to distribute them across multiple Availability Zones. With 7 instances per AZ maximum, you need at least 3 Availability Zones (7 + 7 + 1 = 15 instances minimum across 3 AZs).\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nThis doesn't account for the 7-instance-per-AZ limit. You'd need 3 AZs minimum.\n\n**Why option 2 is incorrect:**\n- 7: You can only have 7 instances per AZ in a spread placement group. With 15 instances, you need more than one AZ.\n- 14: This doesn't account for the 7-instance-per-AZ limit. You'd need 3 AZs minimum.\n- 15: You cannot put 15 instances in a single AZ with a spread placement group due to the 7-instance limit.\n\n**Why option 3 is incorrect:**\nYou cannot put 15 instances in a single AZ with a spread placement group due to the 7-instance limit.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 56,
+    "text": "A retail company has developed a REST API which is deployed in an Auto Scaling group behind an Application Load Balancer. The REST API stores the user data in Amazon DynamoDB and any static content, such as images, are served via Amazon Simple Storage Service (Amazon S3). On analyzing the usage trends, it is found that 90% of the read requests are for commonly accessed data across all users. As a Solutions Architect, which of the following would you suggest as the MOST efficient solution to improve the application performance?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Enable ElastiCache Redis for DynamoDB and Amazon CloudFront for Amazon S3",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Enable Amazon DynamoDB Accelerator (DAX) for Amazon DynamoDB and Amazon CloudFront for Amazon S3",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Enable Amazon DynamoDB Accelerator (DAX) for Amazon DynamoDB and ElastiCache Memcached for Amazon S3",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Enable ElastiCache Redis for DynamoDB and ElastiCache Memcached for Amazon S3",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nDAX is an in-memory caching layer specifically designed for DynamoDB. It provides microsecond latency for read operations and can cache commonly accessed data. Since 90% of reads are for commonly accessed data, DAX will dramatically improve DynamoDB read performance.\n\n**Why option 0 is incorrect:**\nDAX is better than ElastiCache for DynamoDB, and CloudFront is better than ElastiCache for S3 static content. This combination doesn't use the optimal services.\n\n**Why option 2 is incorrect:**\n- ElastiCache Redis for DynamoDB: ElastiCache is a general-purpose cache, but DAX is specifically optimized for DynamoDB with better integration and performance. DAX understands DynamoDB's data model and provides better caching for DynamoDB workloads.\n- DAX for DynamoDB and ElastiCache Memcached for S3: S3 doesn't need ElastiCache - CloudFront is the appropriate caching/CDN solution for S3 static content. ElastiCache is for application-level caching, not object storage.\n- ElastiCache Redis for DynamoDB and ElastiCache Memcached for S3: DAX is better than ElastiCache for DynamoDB, and CloudFront is better than ElastiCache for S3 static content. This combination doesn't use the optimal services.\n\n**Why option 3 is incorrect:**\n- ElastiCache Redis for DynamoDB: ElastiCache is a general-purpose cache, but DAX is specifically optimized for DynamoDB with better integration and performance. DAX understands DynamoDB's data model and provides better caching for DynamoDB workloads.\n- DAX for DynamoDB and ElastiCache Memcached for S3: S3 doesn't need ElastiCache - CloudFront is the appropriate caching/CDN solution for S3 static content. ElastiCache is for application-level caching, not object storage.\n- ElastiCache Redis for DynamoDB and ElastiCache Memcached for S3: DAX is better than ElastiCache for DynamoDB, and CloudFront is better than ElastiCache for S3 static content. This combination doesn't use the optimal services.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 57,
+    "text": "The infrastructure team at a company maintains 5 different VPCs (let's call these VPCs A, B, C, D, E) for resource isolation. Due to the changed organizational structure, the team wants to interconnect all VPCs together. To facilitate this, the team has set up VPC peering connection between VPC A and all other VPCs in a hub and spoke model with VPC A at the center. However, the team has still failed to establish connectivity between all VPCs. As a solutions architect, which of the following would you recommend as the MOST resource-efficient and scalable solution?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Establish VPC peering connections between all VPCs",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Use an internet gateway to interconnect the VPCs",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Use a VPC endpoint to interconnect the VPCs",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use AWS transit gateway to interconnect the VPCs",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      3
+    ],
+    "explanation": "**Why option 3 is correct:**\n**\n\n**Why option 0 is incorrect:**\nVPC peering requires a peering connection between each pair of VPCs. For 5 VPCs, this requires 10 peering connections (A-B, A-C, A-D, A-E, B-C, B-D, B-E, C-D, C-E, D-E). This is complex to manage and doesn't scale well.\n\n**Why option 1 is incorrect:**\nInternet Gateways provide internet access, not VPC-to-VPC connectivity. Routing VPC traffic through the internet is insecure and inefficient. VPCs should communicate privately.\n\n**Why option 2 is incorrect:**\nVPC endpoints are for accessing AWS services (like S3, DynamoDB) from your VPC, not for connecting VPCs together. Endpoints don't provide VPC-to-VPC connectivity.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 58,
+    "text": "A development team has deployed a microservice to the Amazon Elastic Container Service (Amazon ECS). The application layer is in a Docker container that provides both static and dynamic content through an Application Load Balancer. With increasing load, the Amazon ECS cluster is experiencing higher network usage. The development team has looked into the network usage and found that 90% of it is due to distributing static content of the application. As a Solutions Architect, what do you recommend to improve the application's network usage and decrease costs?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Distribute the static content through Amazon EFS",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Distribute the dynamic content through Amazon EFS",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Distribute the static content through Amazon S3",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Distribute the dynamic content through Amazon S3",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      2
+    ],
+    "explanation": "**Why option 2 is correct:**\nStatic content (images, CSS, JavaScript) should be served from S3 (ideally with CloudFront) rather than from ECS containers. This offloads 90% of network traffic from the ECS cluster, reducing costs and improving performance. S3 is designed for static content delivery and is much more cost-effective than serving static files from compute resources. This is a standard best practice for containerized applications.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nDynamic content is generated by the application and changes per request. S3 is for static, unchanging content. Dynamic content should remain in the application layer.\n\n**Why option 1 is incorrect:**\n- Distribute the static content through Amazon EFS: EFS is a network file system designed for shared storage, not static content delivery. It's more expensive than S3 for static content and doesn't provide the same performance or cost benefits. EFS is for dynamic, shared file storage.\n- Distribute the dynamic content through Amazon EFS: Dynamic content needs to be generated by the application, so it should stay in ECS. The problem is static content, not dynamic content.\n- Distribute the dynamic content through Amazon S3: Dynamic content is generated by the application and changes per request. S3 is for static, unchanging content. Dynamic content should remain in the application layer.\n\n**Why option 3 is incorrect:**\n- Distribute the static content through Amazon EFS: EFS is a network file system designed for shared storage, not static content delivery. It's more expensive than S3 for static content and doesn't provide the same performance or cost benefits. EFS is for dynamic, shared file storage.\n- Distribute the dynamic content through Amazon EFS: Dynamic content needs to be generated by the application, so it should stay in ECS. The problem is static content, not dynamic content.\n- Distribute the dynamic content through Amazon S3: Dynamic content is generated by the application and changes per request. S3 is for static, unchanging content. Dynamic content should remain in the application layer.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 59,
+    "text": "A company has a license-based, expensive, legacy commercial database solution deployed at its on-premises data center. The company wants to migrate this database to a more efficient, open-source, and cost-effective option on AWS Cloud. The CTO at the company wants a solution that can handle complex database configurations such as secondary indexes, foreign keys, and stored procedures. As a solutions architect, which of the following AWS services should be combined to handle this use-case? (Select two)",
+    "options": [
+      {
+        "id": 0,
+        "text": "AWS Schema Conversion Tool (AWS SCT)",
+        "correct": true
+      },
+      {
+        "id": 1,
+        "text": "Basic Schema Copy",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "AWS Database Migration Service (AWS DMS)",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "AWS Snowball Edge",
+        "correct": false
+      },
+      {
+        "id": 4,
+        "text": "AWS Glue",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      0,
+      2
+    ],
+    "explanation": "**Why option 0 is correct:**\n- AWS SCT: Converts database schemas from one database engine to another. It handles complex database objects like secondary indexes, foreign keys, stored procedures, and triggers. SCT analyzes the source database and generates conversion scripts for the target database.\n- AWS DMS: Handles the actual data migration and ongoing replication. It migrates data from the source database to the target while keeping them in sync. DMS works with SCT to provide a complete migration solution.\n**Why other options are incorrect:**\n\n**Why option 2 is correct:**\n- AWS SCT: Converts database schemas from one database engine to another. It handles complex database objects like secondary indexes, foreign keys, stored procedures, and triggers. SCT analyzes the source database and generates conversion scripts for the target database.\n- AWS DMS: Handles the actual data migration and ongoing replication. It migrates data from the source database to the target while keeping them in sync. DMS works with SCT to provide a complete migration solution.\n**Why other options are incorrect:**\n\n**Why option 1 is incorrect:**\nThis is not an AWS service. Schema conversion requires understanding different database syntaxes and features, which SCT handles automatically.\n\n**Why option 3 is incorrect:**\nSnowball is for physical data transfer, not database migration. It's for moving large datasets from on-premises to S3, not for migrating databases with complex schemas.\n\n**Why option 4 is incorrect:**\nGlue is an ETL service for data transformation, not database schema conversion. It doesn't handle stored procedures, foreign keys, or other complex database objects that SCT specializes in.",
+    "domain": "Design Cost-Optimized Architectures"
+  },
+  {
+    "id": 60,
+    "text": "A leading online gaming company is migrating its flagship application to AWS Cloud for delivering its online games to users across the world. The company would like to use a Network Load Balancer to handle millions of requests per second. The engineering team has provisioned multiple instances in a public subnet and specified these instance IDs as the targets for the NLB. As a solutions architect, can you help the engineering team understand the correct routing mechanism for these target instances?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Traffic is routed to instances using the primary elastic IP address specified in the primary network interface for the instance",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Traffic is routed to instances using the primary private IP address specified in the primary network interface for the instance",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Traffic is routed to instances using the instance ID specified in the primary network interface for the instance",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Traffic is routed to instances using the primary public IP address specified in the primary network interface for the instance",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nNetwork Load Balancers operate at Layer 4 (TCP/UDP) and route traffic based on IP addresses and ports. They route to instances using the instance's private IP address from the primary network interface. NLB doesn't use instance IDs, public IPs, or Elastic IPs for routing - it uses the private IP address that's assigned to the instance's primary network interface.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nNLB routes to private IP addresses, not public IPs. Public IPs are for internet-facing access, but NLB-to-instance communication uses private IPs.\n\n**Why option 2 is incorrect:**\n- Traffic is routed using the primary elastic IP address: NLB doesn't route based on Elastic IP addresses. Elastic IPs are for public internet access, but NLB routing uses private IP addresses.\n- Traffic is routed using the instance ID: Instance IDs are identifiers, not network addresses. NLB routes based on IP addresses, not instance IDs.\n- Traffic is routed using the primary public IP address: NLB routes to private IP addresses, not public IPs. Public IPs are for internet-facing access, but NLB-to-instance communication uses private IPs.\n\n**Why option 3 is incorrect:**\n- Traffic is routed using the primary elastic IP address: NLB doesn't route based on Elastic IP addresses. Elastic IPs are for public internet access, but NLB routing uses private IP addresses.\n- Traffic is routed using the instance ID: Instance IDs are identifiers, not network addresses. NLB routes based on IP addresses, not instance IDs.\n- Traffic is routed using the primary public IP address: NLB routes to private IP addresses, not public IPs. Public IPs are for internet-facing access, but NLB-to-instance communication uses private IPs.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 61,
+    "text": "A pharmaceutical company is considering moving to AWS Cloud to accelerate the research and development process. Most of the daily workflows would be centered around running batch jobs on Amazon EC2 instances with storage on Amazon Elastic Block Store (Amazon EBS) volumes. The CTO is concerned about meeting HIPAA compliance norms for sensitive data stored on Amazon EBS. Which of the following options outline the correct capabilities of an encrypted Amazon EBS volume? (Select three)",
+    "options": [
+      {
+        "id": 0,
+        "text": "Data moving between the volume and the instance is NOT encrypted",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Any snapshot created from the volume is encrypted",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Any snapshot created from the volume is NOT encrypted",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Data moving between the volume and the instance is encrypted",
+        "correct": true
+      },
+      {
+        "id": 4,
+        "text": "Data at rest inside the volume is NOT encrypted",
+        "correct": false
+      },
+      {
+        "id": 5,
+        "text": "Data at rest inside the volume is encrypted",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      1,
+      3,
+      5
+    ],
+    "explanation": "**Why option 1 is correct:**\nAny snapshot taken from an encrypted volume is automatically encrypted. You cannot create an unencrypted snapshot from an encrypted volume.\n\n**Why option 3 is correct:**\nData moving between the encrypted volume and the EC2 instance is encrypted. This provides end-to-end encryption.\n\n**Why option 5 is correct:**\nWhen an EBS volume is encrypted:\n- Snapshots are encrypted: Any snapshot taken from an encrypted volume is automatically encrypted. You cannot create an unencrypted snapshot from an encrypted volume.\n- Data in transit is encrypted: Data moving between the encrypted volume and the EC2 instance is encrypted. This provides end-to-end encryption.\n- Data at rest is encrypted: All data stored on the encrypted volume is encrypted at rest using AWS KMS. This meets HIPAA compliance requirements for data protection.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nThis is incorrect. Encrypted EBS volumes provide encryption for data in transit between the volume and instance.\n\n**Why option 2 is incorrect:**\nThis is incorrect. Snapshots from encrypted volumes are always encrypted.\n\n**Why option 4 is incorrect:**\nThis contradicts the definition of an encrypted volume. Encrypted volumes encrypt all data at rest.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 62,
+    "text": "A media company has its corporate headquarters in Los Angeles with an on-premises data center using an AWS Direct Connect connection to the AWS VPC. The branch offices in San Francisco and Miami use AWS Site-to-Site VPN connections to connect to the AWS VPC. The company is looking for a solution to have the branch offices send and receive data with each other as well as with their corporate headquarters. As a solutions architect, which of the following AWS services would you recommend addressing this use-case?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Software VPN",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "VPC Peering connection",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "VPC Endpoint",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "AWS VPN CloudHub",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      3
+    ],
+    "explanation": "**Why option 3 is correct:**\n**\n\n**Why option 0 is incorrect:**\nThis is a generic term, not an AWS service. Software VPNs don't provide the managed hub-and-spoke connectivity that CloudHub offers.\n\n**Why option 1 is incorrect:**\nVPC peering connects VPCs, but the branch offices are connecting via VPN to a single VPC, not to separate VPCs. CloudHub is specifically designed for this VPN hub scenario.\n\n**Why option 2 is incorrect:**\nVPC endpoints are for accessing AWS services (like S3, DynamoDB) from your VPC, not for interconnecting remote locations. Endpoints don't provide connectivity between branch offices.",
+    "domain": "Design Secure Architectures"
+  },
+  {
+    "id": 63,
+    "text": "An IT company has built a custom data warehousing solution for a retail organization by using Amazon Redshift. As part of the cost optimizations, the company wants to move any historical data (any data older than a year) into Amazon S3, as the daily analytical reports consume data for just the last one year. However the analysts want to retain the ability to cross-reference this historical data along with the daily reports. The company wants to develop a solution with the LEAST amount of effort and MINIMUM cost. As a solutions architect, which option would you recommend to facilitate this use-case?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use the Amazon Redshift COPY command to load the Amazon S3 based historical data into Amazon Redshift. Once the ad-hoc queries are run for the historic data, it can be removed from Amazon Redshift",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Setup access to the historical data via Amazon Athena. The analytics team can run historical data queries on Amazon Athena and continue the daily reporting on Amazon Redshift. In case the reports need to be cross-referenced, the analytics team need to export these in flat files and then do further analysis",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Use Amazon Redshift Spectrum to create Amazon Redshift cluster tables pointing to the underlying historical data in Amazon S3. The analytics team can then query this historical data to cross-reference with the daily reports from Redshift",
+        "correct": true
+      },
+      {
+        "id": 3,
+        "text": "Use AWS Glue ETL job to load the Amazon S3 based historical data into Redshift. Once the ad-hoc queries are run for the historic data, it can be removed from Amazon Redshift",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      2
+    ],
+    "explanation": "**Why option 2 is correct:**\n**\n\n**Why option 0 is incorrect:**\nThis requires exporting data and doing manual analysis, which is time-consuming and doesn't provide seamless cross-referencing. Spectrum allows direct SQL joins.\n\n**Why option 1 is incorrect:**\n- Use Redshift COPY command to load S3 data into Redshift, then remove it: This requires loading data into Redshift (incurring storage costs) and then removing it, which is inefficient. You'd need to repeat this process for each query. Spectrum queries S3 directly without loading.\n- Setup access via Amazon Athena... export to flat files for cross-reference: This requires exporting data and doing manual analysis, which is time-consuming and doesn't provide seamless cross-referencing. Spectrum allows direct SQL joins.\n- Use AWS Glue ETL job to load S3 data into Redshift, then remove it: Similar to the COPY approach, this loads data into Redshift temporarily, which is inefficient and costly. Spectrum queries S3 directly without ETL.\n\n**Why option 3 is incorrect:**\nSimilar to the COPY approach, this loads data into Redshift temporarily, which is inefficient and costly. Spectrum queries S3 directly without ETL.",
+    "domain": "Design Cost-Optimized Architectures"
+  },
+  {
+    "id": 64,
+    "text": "A big data analytics company is using Amazon Kinesis Data Streams (KDS) to process IoT data from the field devices of an agricultural sciences company. Multiple consumer applications are using the incoming data streams and the engineers have noticed a performance lag for the data delivery speed between producers and consumers of the data streams. As a solutions architect, which of the following would you recommend for improving the performance for the given use-case?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Swap out Amazon Kinesis Data Streams with Amazon SQS Standard queues",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Swap out Amazon Kinesis Data Streams with Amazon SQS FIFO queues",
+        "correct": false
+      },
+      {
+        "id": 2,
+        "text": "Swap out Amazon Kinesis Data Streams with Amazon Kinesis Data Firehose",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use Enhanced Fanout feature of Amazon Kinesis Data Streams",
+        "correct": true
+      }
+    ],
+    "correctAnswers": [
+      3
+    ],
+    "explanation": "**Why option 3 is correct:**\n**\n\n**Why option 0 is incorrect:**\nSQS doesn't provide the same real-time streaming capabilities as Kinesis. SQS is pull-based and doesn't support multiple consumers reading the same data stream efficiently. Kinesis is designed for streaming analytics.\n\n**Why option 1 is incorrect:**\nSimilar to standard queues, FIFO queues don't provide streaming data capabilities. They're for message queuing, not real-time data streams. FIFO queues also have lower throughput limits.\n\n**Why option 2 is incorrect:**\n- Swap out Kinesis Data Streams with Amazon SQS Standard queues: SQS doesn't provide the same real-time streaming capabilities as Kinesis. SQS is pull-based and doesn't support multiple consumers reading the same data stream efficiently. Kinesis is designed for streaming analytics.\n- Swap out Kinesis Data Streams with Amazon SQS FIFO queues: Similar to standard queues, FIFO queues don't provide streaming data capabilities. They're for message queuing, not real-time data streams. FIFO queues also have lower throughput limits.\n- Swap out Kinesis Data Streams with Amazon Kinesis Data Firehose: Firehose is for loading streaming data into destinations (S3, Redshift, etc.), not for multiple consumer applications. It doesn't support the multiple consumer pattern that Kinesis Data Streams provides.",
+    "domain": "Design High-Performing Architectures"
+  },
+  {
+    "id": 65,
+    "text": "A medium-sized business has a taxi dispatch application deployed on an Amazon EC2 instance. Because of an unknown bug, the application causes the instance to freeze regularly. Then, the instance has to be manually restarted via the AWS management console. Which of the following is the MOST cost-optimal and resource-efficient way to implement an automated solution until a permanent fix is delivered by the development team?",
+    "options": [
+      {
+        "id": 0,
+        "text": "Use Amazon EventBridge events to trigger an AWS Lambda function to check the instance status every 5 minutes. In the case of Instance Health Check failure, the AWS lambda function can use Amazon EC2 API to reboot the instance",
+        "correct": false
+      },
+      {
+        "id": 1,
+        "text": "Setup an Amazon CloudWatch alarm to monitor the health status of the instance. In case of an Instance Health Check failure, an EC2 Reboot CloudWatch Alarm Action can be used to reboot the instance",
+        "correct": true
+      },
+      {
+        "id": 2,
+        "text": "Setup an Amazon CloudWatch alarm to monitor the health status of the instance. In case of an Instance Health Check failure, Amazon CloudWatch Alarm can publish to an Amazon Simple Notification Service (Amazon SNS) event which can then trigger an AWS lambda function. The AWS lambda function can use Amazon EC2 API to reboot the instance",
+        "correct": false
+      },
+      {
+        "id": 3,
+        "text": "Use Amazon EventBridge events to trigger an AWS Lambda function to reboot the instance status every 5 minutes",
+        "correct": false
+      }
+    ],
+    "correctAnswers": [
+      1
+    ],
+    "explanation": "**Why option 1 is correct:**\nCloudWatch can monitor EC2 instance status checks (system status and instance status). When a status check fails, CloudWatch alarms can trigger EC2 reboot actions directly without requiring Lambda functions. This is the most cost-effective and resource-efficient solution - CloudWatch alarms are inexpensive, and EC2 reboot actions don't require Lambda execution (no Lambda costs). It's also the simplest solution with minimal components.\n**Why other options are incorrect:**\n\n**Why option 0 is incorrect:**\nRebooting every 5 minutes regardless of status is wasteful and doesn't solve the problem. You need to detect failures first, then reboot. Also, Lambda execution incurs costs.\n\n**Why option 2 is incorrect:**\nThis adds unnecessary complexity (SNS + Lambda) when CloudWatch alarms can directly trigger EC2 reboot actions. Lambda execution costs money, while direct EC2 actions don't.\n\n**Why option 3 is incorrect:**\n- Use EventBridge events to trigger Lambda to check instance status every 5 minutes: This requires Lambda execution every 5 minutes (costs money) and custom code. CloudWatch alarms with EC2 actions are simpler and more cost-effective. Also, checking every 5 minutes might miss failures.\n- Setup CloudWatch alarm... publish to SNS... trigger Lambda to reboot: This adds unnecessary complexity (SNS + Lambda) when CloudWatch alarms can directly trigger EC2 reboot actions. Lambda execution costs money, while direct EC2 actions don't.\n- Use EventBridge events to trigger Lambda to reboot every 5 minutes: Rebooting every 5 minutes regardless of status is wasteful and doesn't solve the problem. You need to detect failures first, then reboot. Also, Lambda execution incurs costs.",
+    "domain": "Design Cost-Optimized Architectures"
+  }
+]

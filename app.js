@@ -9,7 +9,305 @@ let testStartTime = null;
 let testTimer = null;
 let savedProgress = null;
 let selectedDomain = null;
+let selectedSource = null; // 'stephane' or 'dojo'
+let currentUser = null; // Current user object
+let previousAnswers = {}; // Track previous answers to detect changes
 const TEST_DURATION = 130 * 60 * 1000; // 130 minutes in milliseconds
+
+// User System
+function initUserSystem() {
+    // Check if user exists in localStorage
+    const savedUser = localStorage.getItem('saa-c03-user');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+    } else {
+        // Create new user
+        const userName = prompt('Welcome! Please enter your name:') || 'Student';
+        currentUser = {
+            name: userName,
+            createdAt: new Date().toISOString(),
+            stats: {
+                totalQuestionsAnswered: 0,
+                totalCorrectAnswers: 0,
+                testsCompleted: 0,
+                domainsPracticed: new Set(),
+                questionsAnswered: new Set(), // Track unique questions answered
+                lastActivity: new Date().toISOString()
+            }
+        };
+        saveUser();
+    }
+    
+    // Convert Set to Array for JSON storage
+    if (currentUser.stats.domainsPracticed && !Array.isArray(currentUser.stats.domainsPracticed)) {
+        currentUser.stats.domainsPracticed = Array.from(currentUser.stats.domainsPracticed);
+    }
+    if (currentUser.stats.questionsAnswered && !Array.isArray(currentUser.stats.questionsAnswered)) {
+        currentUser.stats.questionsAnswered = Array.from(currentUser.stats.questionsAnswered);
+    }
+    
+    // Convert back to Sets for runtime use
+    if (Array.isArray(currentUser.stats.domainsPracticed)) {
+        currentUser.stats.domainsPracticed = new Set(currentUser.stats.domainsPracticed);
+    }
+    if (Array.isArray(currentUser.stats.questionsAnswered)) {
+        currentUser.stats.questionsAnswered = new Set(currentUser.stats.questionsAnswered);
+    }
+    
+    updateDashboardStats();
+}
+
+function saveUser() {
+    // Convert Sets to Arrays for JSON storage
+    const userToSave = {
+        ...currentUser,
+        stats: {
+            ...currentUser.stats,
+            domainsPracticed: Array.from(currentUser.stats.domainsPracticed || []),
+            questionsAnswered: Array.from(currentUser.stats.questionsAnswered || [])
+        }
+    };
+    localStorage.setItem('saa-c03-user', JSON.stringify(userToSave));
+}
+
+function recalculateUserStats() {
+    // Recalculate stats based on ALL current answers (current session + saved progress)
+    if (!currentUser) return;
+    
+    // Reset counters
+    let totalQuestionsAnswered = 0;
+    let totalCorrectAnswers = 0;
+    const questionsAnsweredSet = new Set();
+    const domainsPracticedSet = new Set();
+    
+    // First, process current session answers
+    if (currentQuestions && currentQuestions.length > 0) {
+        currentQuestions.forEach(question => {
+            const questionKey = question.id.toString();
+            const selectedAnswers = userAnswers[questionKey] || [];
+            
+            // Only count if question has an answer
+            if (selectedAnswers.length > 0) {
+                // Create unique question identifier
+                const questionId = currentTest ? `test${currentTest}-q${question.id}` : `domain-${selectedDomain}-q${question.id}`;
+                
+                // Check if answer is correct
+                const selectedSet = new Set(selectedAnswers.sort());
+                const correctSet = new Set(question.correctAnswers.sort());
+                const isCorrect = selectedSet.size === correctSet.size && 
+                                [...selectedSet].every(id => correctSet.has(id));
+                
+                // Track this question (will overwrite if already exists from saved progress)
+                questionsAnsweredSet.add(questionId);
+                
+                // Track correct answers (recalculate based on current answer)
+                if (isCorrect) {
+                    totalCorrectAnswers++;
+                }
+                
+                // Track domains
+                if (question.domain) {
+                    domainsPracticedSet.add(question.domain);
+                }
+            }
+        });
+    }
+    
+    // Then, process all saved progress from other tests
+    // This ensures we count questions from all tests, not just current one
+    if (typeof examQuestions !== 'undefined') {
+        for (let testNum = 1; testNum <= 20; testNum++) {
+            const progressKey = `saa-c03-progress-test${testNum}`;
+            const saved = localStorage.getItem(progressKey);
+            if (saved) {
+                try {
+                    const progress = JSON.parse(saved);
+                    if (progress.answers && progress.test === testNum) {
+                        // Get questions for this test
+                        const testKey = `test${testNum}`;
+                        const testQuestions = examQuestions[testKey];
+                        if (testQuestions && testQuestions.length > 0) {
+                            testQuestions.forEach(question => {
+                                const questionKey = question.id.toString();
+                                const selectedAnswers = progress.answers[questionKey] || [];
+                                
+                                // Only count if question has an answer and not already counted from current session
+                                if (selectedAnswers.length > 0) {
+                                    const questionId = `test${testNum}-q${question.id}`;
+                                    
+                                    // Skip if already counted from current session
+                                    if (!questionsAnsweredSet.has(questionId)) {
+                                        // Check if answer is correct
+                                        const selectedSet = new Set(selectedAnswers.sort());
+                                        const correctSet = new Set(question.correctAnswers.sort());
+                                        const isCorrect = selectedSet.size === correctSet.size && 
+                                                        [...selectedSet].every(id => correctSet.has(id));
+                                        
+                                        questionsAnsweredSet.add(questionId);
+                                        
+                                        if (isCorrect) {
+                                            totalCorrectAnswers++;
+                                        }
+                                        
+                                        if (question.domain) {
+                                            domainsPracticedSet.add(question.domain);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error processing saved progress for test ${testNum}:`, error);
+                }
+            }
+        }
+    }
+    
+    // Count total questions answered
+    totalQuestionsAnswered = questionsAnsweredSet.size;
+    
+    // Update user stats
+    currentUser.stats.totalQuestionsAnswered = totalQuestionsAnswered;
+    currentUser.stats.totalCorrectAnswers = totalCorrectAnswers;
+    currentUser.stats.questionsAnswered = questionsAnsweredSet;
+    currentUser.stats.domainsPracticed = domainsPracticedSet;
+    currentUser.stats.lastActivity = new Date().toISOString();
+    
+    saveUser();
+    updateDashboardStats();
+}
+
+function updateUserStats(questionId, isCorrect, domain) {
+    // Legacy function - now we use recalculateUserStats instead
+    recalculateUserStats();
+}
+
+function markTestCompleted() {
+    if (!currentUser) return;
+    currentUser.stats.testsCompleted++;
+    saveUser();
+    updateDashboardStats();
+}
+
+function updateDashboardStats() {
+    if (!currentUser) return;
+    
+    const accuracy = currentUser.stats.totalQuestionsAnswered > 0
+        ? Math.round((currentUser.stats.totalCorrectAnswers / currentUser.stats.totalQuestionsAnswered) * 100)
+        : 0;
+    
+    // Update dashboard stats
+    const statCards = document.querySelectorAll('.stat-card');
+    if (statCards.length >= 3) {
+        statCards[0].querySelector('.stat-number').textContent = currentUser.stats.totalQuestionsAnswered;
+        statCards[0].querySelector('.stat-label').textContent = 'Questions Answered';
+        
+        statCards[1].querySelector('.stat-number').textContent = `${accuracy}%`;
+        statCards[1].querySelector('.stat-label').textContent = 'Accuracy';
+        
+        statCards[2].querySelector('.stat-number').textContent = currentUser.stats.testsCompleted;
+        statCards[2].querySelector('.stat-label').textContent = 'Tests Completed';
+    }
+    
+    // Update user name in header if element exists
+    const userNameElement = document.getElementById('user-name');
+    if (userNameElement) {
+        userNameElement.textContent = currentUser.name;
+    }
+}
+
+// User Settings Functions
+function showUserSettings() {
+    if (!currentUser) return;
+    
+    const dialog = document.getElementById('user-settings-dialog');
+    const nameInput = document.getElementById('user-name-input');
+    const questionsAnswered = document.getElementById('settings-questions-answered');
+    const accuracy = document.getElementById('settings-accuracy');
+    const testsCompleted = document.getElementById('settings-tests-completed');
+    const domainsPracticed = document.getElementById('settings-domains-practiced');
+    
+    nameInput.value = currentUser.name;
+    questionsAnswered.textContent = currentUser.stats.totalQuestionsAnswered;
+    
+    const acc = currentUser.stats.totalQuestionsAnswered > 0
+        ? Math.round((currentUser.stats.totalCorrectAnswers / currentUser.stats.totalQuestionsAnswered) * 100)
+        : 0;
+    accuracy.textContent = `${acc}%`;
+    
+    testsCompleted.textContent = currentUser.stats.testsCompleted;
+    domainsPracticed.textContent = currentUser.stats.domainsPracticed.size || 0;
+    
+    dialog.classList.remove('hidden');
+}
+
+function closeUserSettings() {
+    document.getElementById('user-settings-dialog').classList.add('hidden');
+}
+
+function saveUserSettings() {
+    const nameInput = document.getElementById('user-name-input');
+    const newName = nameInput.value.trim();
+    
+    if (newName && newName !== currentUser.name) {
+        currentUser.name = newName;
+        saveUser();
+        updateDashboardStats();
+    }
+    
+    closeUserSettings();
+}
+
+function resetUserData() {
+    if (!confirm('Are you sure you want to reset all your progress? This cannot be undone.')) {
+        return;
+    }
+    
+    const userName = currentUser.name;
+    currentUser = {
+        name: userName,
+        createdAt: new Date().toISOString(),
+        stats: {
+            totalQuestionsAnswered: 0,
+            totalCorrectAnswers: 0,
+            testsCompleted: 0,
+            domainsPracticed: new Set(),
+            questionsAnswered: new Set(),
+            lastActivity: new Date().toISOString()
+        }
+    };
+    
+    saveUser();
+    updateDashboardStats();
+    closeUserSettings();
+    
+    // Clear all saved progress for all tests
+    // Clear test progress - check all localStorage keys matching the pattern
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (
+            key.startsWith('saa-c03-progress-test') ||
+            key.startsWith('saa-c03-progress-domain-') ||
+            key === 'saa-c03-progress' ||
+            key === 'saa-c03-current-progress'
+        )) {
+            keysToRemove.push(key);
+        }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Reset current state
+    savedProgress = null;
+    userAnswers = {};
+    markedQuestions = new Set();
+    
+    // Reload test buttons if on test selection screen to update UI
+    if (selectedSource) {
+        loadAvailableTests();
+    }
+}
 
 // SAA-C03 Domains
 const DOMAINS = [
@@ -21,45 +319,45 @@ const DOMAINS = [
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async function() {
-    // Try to load questions from various sources
-    if (typeof examQuestions === 'undefined') {
-        if (typeof autoLoadQuestions !== 'undefined') {
-            const loadedQuestions = await autoLoadQuestions();
-            if (loadedQuestions) {
-                window.examQuestions = loadedQuestions;
-            } else {
-                console.error('Questions not loaded. Please ensure questions.js is properly loaded or questions are available in the questions directory.');
-                return;
-            }
+    // Initialize user system first
+    initUserSystem();
+    
+    // Try to load questions from JSON files first (preferred method)
+    if (typeof autoLoadQuestions !== 'undefined') {
+        const loadedQuestions = await autoLoadQuestions();
+        if (loadedQuestions) {
+            window.examQuestions = loadedQuestions;
+            console.log('✓ Loaded questions from JSON files');
+        } else if (typeof examQuestions !== 'undefined') {
+            // Fallback to questions.js if JSON files not available
+            console.log('✓ Loaded questions from questions.js (fallback)');
         } else {
-            console.error('questions.js not loaded');
+            console.error('Questions not loaded. Please ensure questions are available in the questions directory or questions.js is loaded.');
             return;
         }
+    } else if (typeof examQuestions === 'undefined') {
+        console.error('Neither question-loader.js nor questions.js loaded');
+        return;
     }
     
-    // Dynamically load available tests
-    loadAvailableTests();
+    // Don't load tests here - wait for source selection
+    // loadAvailableTests() will be called when a source is selected
     
     // Add keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcuts);
 });
 
-function loadAvailableTests() {
-    if (typeof examQuestions === 'undefined') return;
+// Organize tests by source
+function organizeTestsBySource() {
+    if (typeof examQuestions === 'undefined') {
+        console.error('organizeTestsBySource: examQuestions is undefined');
+        return { stephane: [], dojo: [] };
+    }
     
-    const testButtonsContainer = document.querySelector('.test-buttons');
-    if (!testButtonsContainer) return;
+    const organized = { stephane: [], dojo: [] };
     
-    // Clear existing test buttons (except Review by Domain)
-    const existingButtons = testButtonsContainer.querySelectorAll('.test-btn');
-    existingButtons.forEach(btn => {
-        if (!btn.onclick || !btn.onclick.toString().includes('goToDomainReview')) {
-            btn.remove();
-        }
-    });
-    
-    // Get all available tests
-    const availableTests = Object.keys(examQuestions)
+    // Get all test keys
+    const allTests = Object.keys(examQuestions)
         .filter(key => key.startsWith('test'))
         .sort((a, b) => {
             const numA = parseInt(a.replace('test', ''));
@@ -67,48 +365,210 @@ function loadAvailableTests() {
             return numA - numB;
         });
     
-    // Update stats
-    const totalQuestions = availableTests.reduce((sum, testKey) => {
-        return sum + (examQuestions[testKey]?.length || 0);
-    }, 0);
+    console.log('All test keys found:', allTests);
     
-    const statNumber = document.querySelector('.stat-number');
-    if (statNumber && statNumber.textContent === '130') {
-        // Update total questions stat
-        const totalStat = document.querySelectorAll('.stat-number')[0];
-        if (totalStat) totalStat.textContent = totalQuestions;
-        
-        // Update test count stat
-        const testCountStat = document.querySelectorAll('.stat-number')[1];
-        if (testCountStat) testCountStat.textContent = availableTests.length;
+    // For now, assume test1-test7 are Stephane, test8+ are Dojo
+    // This can be adjusted based on actual file naming or metadata
+    allTests.forEach(testKey => {
+        const testNumber = parseInt(testKey.replace('test', ''));
+        if (testNumber <= 7) {
+            organized.stephane.push({ key: testKey, number: testNumber });
+        } else {
+            organized.dojo.push({ key: testKey, number: testNumber });
+        }
+    });
+    
+    console.log('Organized tests:', organized);
+    return organized;
+}
+
+function loadAvailableTests() {
+    if (typeof examQuestions === 'undefined') {
+        console.error('examQuestions not loaded');
+        return;
     }
     
+    const testButtonsContainer = document.getElementById('test-buttons-container');
+    if (!testButtonsContainer) {
+        console.error('test-buttons-container not found');
+        return;
+    }
+    
+    // Clear existing test buttons
+    testButtonsContainer.innerHTML = '';
+    
+    // Get tests for selected source
+    const organized = organizeTestsBySource();
+    if (!organized) {
+        testButtonsContainer.innerHTML = '<p>No tests available.</p>';
+        return;
+    }
+    
+    let testsForSource = [];
+    if (selectedSource === 'stephane') {
+        testsForSource = organized.stephane || [];
+    } else if (selectedSource === 'dojo') {
+        testsForSource = organized.dojo || [];
+    } else {
+        testButtonsContainer.innerHTML = '<p>Please select a source first.</p>';
+        return;
+    }
+    
+    if (testsForSource.length === 0) {
+        testButtonsContainer.innerHTML = `<p>No tests available for ${selectedSource}.</p>`;
+        console.log('No tests found for source:', selectedSource, 'Available:', organized);
+        return;
+    }
+    
+    console.log(`Loading ${testsForSource.length} tests for ${selectedSource}:`, testsForSource);
+    
     // Create buttons for each test
-    availableTests.forEach(testKey => {
-        const testNumber = parseInt(testKey.replace('test', ''));
-        const questions = examQuestions[testKey] || [];
+    testsForSource.forEach(({ key, number }) => {
+        const questions = examQuestions[key] || [];
         const questionCount = questions.length;
         
-        const testBtn = document.createElement('button');
-        testBtn.className = 'test-btn';
-        testBtn.onclick = () => selectTest(testNumber);
-        testBtn.innerHTML = `
+        console.log(`Creating button for ${key}: ${questionCount} questions`);
+        
+        if (questionCount === 0) {
+            console.warn(`No questions found for ${key}`);
+            return;
+        }
+        
+        const savedProgress = getSavedProgressForTest(number);
+        
+        const testBtn = document.createElement('div');
+        testBtn.className = 'test-btn-wrapper';
+        
+        const buttonContent = document.createElement('button');
+        buttonContent.className = 'test-btn';
+        buttonContent.onclick = () => {
+            if (savedProgress) {
+                if (confirm(`You have saved progress for this test (${savedProgress.mode} mode). Resume?`)) {
+                    loadSavedProgress(number);
+                } else {
+                    selectTest(number);
+                }
+            } else {
+                selectTest(number);
+            }
+        };
+        
+        buttonContent.innerHTML = `
             <div class="test-btn-header">
-                <h3>Test ${testNumber}</h3>
+                <h3>Test ${number}</h3>
                 <span class="test-count">${questionCount} Questions</span>
             </div>
             <p>Comprehensive practice exam covering all domains</p>
+            ${savedProgress ? `<div class="test-progress-indicator">📌 Saved progress (${savedProgress.mode} mode, Q${savedProgress.questionIndex + 1}/${questionCount})</div>` : ''}
         `;
         
-        // Insert before Review by Domain button
-        const reviewBtn = testButtonsContainer.querySelector('button[onclick*="goToDomainReview"]');
-        if (reviewBtn) {
-            testButtonsContainer.insertBefore(testBtn, reviewBtn);
-        } else {
-            testButtonsContainer.appendChild(testBtn);
+        testBtn.appendChild(buttonContent);
+        
+        // Add restart button if progress exists
+        if (savedProgress) {
+            const restartBtn = document.createElement('button');
+            restartBtn.className = 'restart-test-btn';
+            restartBtn.textContent = '🔄 Restart';
+            restartBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (confirm('Are you sure you want to restart this test? Your saved progress will be lost.')) {
+                    clearSavedProgressForTest(number);
+                }
+            };
+            testBtn.appendChild(restartBtn);
         }
+        
+        testButtonsContainer.appendChild(testBtn);
+        console.log(`Added test button for Test ${number}`);
     });
+    
+    console.log(`Total buttons created: ${testButtonsContainer.children.length}`);
+    
+    // Update stats on main screen
+    const totalQuestions = Object.keys(examQuestions)
+        .filter(key => key.startsWith('test'))
+        .reduce((sum, testKey) => sum + (examQuestions[testKey]?.length || 0), 0);
+    
+    const totalTests = Object.keys(examQuestions)
+        .filter(key => key.startsWith('test')).length;
+    
+    const totalStat = document.getElementById('total-questions-stat');
+    const testCountStat = document.getElementById('total-tests-stat');
+    if (totalStat) totalStat.textContent = totalQuestions;
+    if (testCountStat) testCountStat.textContent = totalTests;
 }
+
+// New flow: Main selection
+function selectPracticeMode(mode) {
+    if (mode === 'domain') {
+        // Go directly to domain selection
+        document.getElementById('main-selection').classList.add('hidden');
+        document.getElementById('domain-selection').classList.remove('hidden');
+    } else if (mode === 'test') {
+        // Go to source selection
+        document.getElementById('main-selection').classList.add('hidden');
+        document.getElementById('source-selection').classList.remove('hidden');
+    }
+}
+
+// Select source (Stephane or Dojo)
+function selectSource(source) {
+    console.log('selectSource called with:', source);
+    
+    try {
+        selectedSource = source;
+        
+        // First, switch screens immediately - do this FIRST before anything else
+        const sourceSelectionEl = document.getElementById('source-selection');
+        const testSelectionEl = document.getElementById('test-selection');
+        
+        console.log('Screen elements:', { sourceSelectionEl, testSelectionEl });
+        
+        if (!sourceSelectionEl) {
+            console.error('source-selection element not found!');
+            alert('Error: Source selection screen not found. Please refresh the page.');
+            return;
+        }
+        
+        if (!testSelectionEl) {
+            console.error('test-selection element not found!');
+            alert('Error: Test selection screen not found. Please refresh the page.');
+            return;
+        }
+        
+        // Hide source selection and show test selection IMMEDIATELY
+        sourceSelectionEl.classList.add('hidden');
+        testSelectionEl.classList.remove('hidden');
+        
+        console.log('Screens switched. Now loading tests...');
+        
+        // Check if questions are loaded
+        if (typeof examQuestions === 'undefined') {
+            console.error('examQuestions is undefined');
+            const container = document.getElementById('test-buttons-container');
+            if (container) {
+                container.innerHTML = '<p>Questions are still loading. Please wait a moment and try again.</p>';
+            }
+            return;
+        }
+        
+        // Log available tests
+        const testKeys = Object.keys(examQuestions).filter(k => k.startsWith('test'));
+        console.log('Available test keys:', testKeys);
+        console.log('Total tests:', testKeys.length);
+        
+        // Load tests for this source
+        loadAvailableTests();
+        
+    } catch (error) {
+        console.error('Error in selectSource:', error);
+        console.error('Error stack:', error.stack);
+        alert('An error occurred: ' + error.message + '\nCheck console for details.');
+    }
+}
+
+// Make sure function is globally accessible
+window.selectSource = selectSource;
 
 function selectTest(testNumber) {
     currentTest = testNumber;
@@ -123,55 +583,48 @@ function selectTest(testNumber) {
     document.getElementById('mode-selection').classList.remove('hidden');
 }
 
-// Allow direct access to domain review without selecting a test
-function goToDomainReview() {
+// Navigation functions
+function goBackToMainSelection() {
+    document.getElementById('main-selection').classList.remove('hidden');
+    document.getElementById('source-selection').classList.add('hidden');
     document.getElementById('test-selection').classList.add('hidden');
-    document.getElementById('domain-selection').classList.remove('hidden');
-    currentTest = null; // No specific test selected
+    document.getElementById('domain-selection').classList.add('hidden');
+    document.getElementById('mode-selection').classList.add('hidden');
+    currentTest = null;
+    selectedDomain = null;
+    selectedSource = null;
+}
+
+function goBackToSourceSelection() {
+    document.getElementById('source-selection').classList.remove('hidden');
+    document.getElementById('test-selection').classList.add('hidden');
+    currentTest = null;
 }
 
 function goBackToTestSelection() {
     document.getElementById('mode-selection').classList.add('hidden');
-    document.getElementById('domain-selection').classList.add('hidden');
     document.getElementById('test-selection').classList.remove('hidden');
     currentTest = null;
-    selectedDomain = null;
-}
-
-function goBackToModeSelection() {
-    document.getElementById('domain-selection').classList.add('hidden');
-    document.getElementById('mode-selection').classList.remove('hidden');
-    selectedDomain = null;
 }
 
 function selectMode(mode) {
     currentMode = mode;
-    
-    if (mode === 'review-domain') {
-        // Show domain selection screen (no need to select test first)
-        document.getElementById('mode-selection').classList.add('hidden');
-        document.getElementById('domain-selection').classList.remove('hidden');
-        return;
-    }
-    
-    // For review-domain mode, we need a test selected, but we'll use both tests
-    // So we can skip test selection requirement
-    if (mode === 'review-domain') {
-        return; // Already handled above
-    }
-    
     currentQuestionIndex = 0;
     userAnswers = {};
     markedQuestions = new Set();
     selectedDomain = null;
     
-    // Check for saved progress
-    if (mode === 'test' && savedProgress) {
-        if (confirm('You have saved progress. Would you like to resume?')) {
-            loadSavedProgress();
-        } else {
-            savedProgress = null;
-            localStorage.removeItem('saa-c03-progress');
+    // Check for saved progress for this specific test
+    if (currentTest) {
+        const saved = getSavedProgressForTest(currentTest);
+        if (saved && saved.mode === mode) {
+            if (confirm(`You have saved progress for Test ${currentTest} (${saved.mode} mode, Q${saved.questionIndex + 1}). Would you like to resume?`)) {
+                loadSavedProgress(currentTest);
+                return;
+            } else {
+                // User chose not to resume, clear the saved progress
+                clearSavedProgressForTest(currentTest);
+            }
         }
     }
     
@@ -181,12 +634,12 @@ function selectMode(mode) {
     }
     
     document.getElementById('mode-selection').classList.add('hidden');
-    document.getElementById('domain-selection').classList.add('hidden');
     document.getElementById('question-screen').classList.remove('hidden');
     
     buildQuestionNavbar();
     loadQuestion();
     updateStats();
+    recalculateUserStats(); // Recalculate stats based on current answers
 }
 
 function selectDomainForReview(domain) {
@@ -196,19 +649,25 @@ function selectDomainForReview(domain) {
     userAnswers = {};
     markedQuestions = new Set();
     
-    // Get all questions from both tests and filter by domain
-    const test1Questions = getTestQuestions(1);
-    const test2Questions = getTestQuestions(2);
-    const allQuestions = [...test1Questions, ...test2Questions];
+    // Combine questions from all tests for domain review
+    const allQuestions = [];
+    if (typeof examQuestions !== 'undefined') {
+        for (const testKey in examQuestions) {
+            if (examQuestions.hasOwnProperty(testKey) && testKey.startsWith('test')) {
+                allQuestions.push(...examQuestions[testKey]);
+            }
+        }
+    }
+    
     currentQuestions = allQuestions.filter(q => q.domain === domain);
     
     if (currentQuestions.length === 0) {
         alert(`No questions found for domain: ${domain}`);
-        goBackToModeSelection();
+        goBackToMainSelection();
         return;
     }
     
-    // Set currentTest to null since we're using questions from both tests
+    // Set currentTest to null since we're using questions from all tests
     currentTest = null;
     
     document.getElementById('domain-selection').classList.add('hidden');
@@ -217,6 +676,7 @@ function selectDomainForReview(domain) {
     buildQuestionNavbar();
     loadQuestion();
     updateStats();
+    recalculateUserStats(); // Recalculate stats based on current answers
 }
 
 function startTimer() {
@@ -263,15 +723,33 @@ function buildQuestionNavbar() {
 function updateQuestionNavbar() {
     const navItems = document.querySelectorAll('.question-nav-item');
     navItems.forEach((item, index) => {
-        item.classList.remove('current', 'answered', 'marked');
+        item.classList.remove('current', 'answered', 'marked', 'correct', 'incorrect');
         
         if (index === currentQuestionIndex) {
             item.classList.add('current');
         }
         
         const questionKey = currentQuestions[index].id.toString();
-        if (userAnswers[questionKey] && userAnswers[questionKey].length > 0) {
+        const question = currentQuestions[index];
+        const hasAnswer = userAnswers[questionKey] && userAnswers[questionKey].length > 0;
+        
+        if (hasAnswer) {
             item.classList.add('answered');
+            
+            // In review mode, show correct/incorrect status
+            if (currentMode === 'review') {
+                const selectedAnswers = userAnswers[questionKey] || [];
+                const selectedSet = new Set(selectedAnswers.sort());
+                const correctSet = new Set(question.correctAnswers.sort());
+                const isCorrect = selectedSet.size === correctSet.size && 
+                                [...selectedSet].every(id => correctSet.has(id));
+                
+                if (isCorrect) {
+                    item.classList.add('correct');
+                } else {
+                    item.classList.add('incorrect');
+                }
+            }
         }
         
         if (markedQuestions.has(index)) {
@@ -450,6 +928,10 @@ function loadQuestion() {
         optionsContainer.appendChild(optionDiv);
     });
     
+    // Check if this question has been answered (has saved answers)
+    const questionKey = question.id.toString();
+    const hasAnswer = userAnswers[questionKey] && userAnswers[questionKey].length > 0;
+    
     // Hide explanation initially
     const explanationDiv = document.getElementById('explanation');
     explanationDiv.classList.add('hidden');
@@ -462,9 +944,25 @@ function loadQuestion() {
     prevBtn.disabled = currentQuestionIndex === 0;
     
     if (currentMode === 'review') {
-        submitBtn.textContent = 'Check Answer';
-        nextBtn.classList.add('hidden');
-        submitBtn.classList.remove('hidden');
+        // In review mode, if question has been answered, show feedback automatically
+        if (hasAnswer) {
+            // Disable inputs and show feedback
+            const inputs = optionsContainer.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.disabled = true;
+            });
+            
+            // Show answer feedback
+            showAnswerFeedback(question, userAnswers[questionKey]);
+            
+            // Show next button instead of submit
+            submitBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+        } else {
+            submitBtn.textContent = 'Check Answer';
+            nextBtn.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
+        }
     } else {
         submitBtn.textContent = currentQuestionIndex === currentQuestions.length - 1 ? 'Submit Test' : 'Next Question';
         nextBtn.classList.add('hidden');
@@ -474,6 +972,9 @@ function loadQuestion() {
 
 function updateOptionSelection(questionId, optionId, isSelected, isMultipleChoice) {
     const questionKey = questionId.toString();
+    
+    // Store previous answer state
+    const previousAnswer = userAnswers[questionKey] ? [...userAnswers[questionKey]] : [];
     
     if (!userAnswers[questionKey]) {
         userAnswers[questionKey] = [];
@@ -491,6 +992,10 @@ function updateOptionSelection(questionId, optionId, isSelected, isMultipleChoic
         userAnswers[questionKey] = isSelected ? [optionId] : [];
     }
     
+    // Check if answer changed
+    const currentAnswer = userAnswers[questionKey] || [];
+    const answerChanged = JSON.stringify(previousAnswer.sort()) !== JSON.stringify(currentAnswer.sort());
+    
     // Update visual selection
     const options = document.querySelectorAll(`.option`);
     options.forEach(opt => {
@@ -505,6 +1010,11 @@ function updateOptionSelection(questionId, optionId, isSelected, isMultipleChoic
     // Update navbar to show answered status
     updateQuestionNavbar();
     updateStats();
+    
+    // Recalculate user stats whenever answer changes
+    if (answerChanged) {
+        recalculateUserStats();
+    }
 }
 
 function submitAnswer() {
@@ -531,29 +1041,38 @@ function showAnswerFeedback(question, selectedAnswers) {
     const incorrectSelectedOptions = [];
     const incorrectOptions = [];
     
+    // Check if answer is correct
+    const selectedSet = new Set(selectedAnswers.sort());
+    const correctSet = new Set(question.correctAnswers.sort());
+    const isCorrect = selectedSet.size === correctSet.size && 
+                    [...selectedSet].every(id => correctSet.has(id));
+    
+    // Recalculate user stats based on current answers
+    recalculateUserStats();
+    
     options.forEach(opt => {
         const input = opt.querySelector('input');
         if (!input) return;
         
         const optionId = parseInt(input.value);
-        const isCorrect = question.correctAnswers.includes(optionId);
+        const isCorrectOption = question.correctAnswers.includes(optionId);
         const isSelected = selectedAnswers.includes(optionId);
         
         opt.classList.remove('correct', 'incorrect', 'selected');
         
-        if (isCorrect) {
+        if (isCorrectOption) {
             opt.classList.add('correct');
             correctOptions.push({
                 text: question.options[optionId].text,
                 id: optionId
             });
-        } else if (isSelected && !isCorrect) {
+        } else if (isSelected && !isCorrectOption) {
             opt.classList.add('incorrect');
             incorrectSelectedOptions.push({
                 text: question.options[optionId].text,
                 id: optionId
             });
-        } else if (!isCorrect) {
+        } else if (!isCorrectOption) {
             incorrectOptions.push({
                 text: question.options[optionId].text,
                 id: optionId
@@ -566,38 +1085,73 @@ function showAnswerFeedback(question, selectedAnswers) {
     
     // Show detailed explanation
     const explanationDiv = document.getElementById('explanation');
+    if (explanationDiv) {
+        explanationDiv.classList.remove('hidden');
+    }
+    
     const correctExplanationDiv = document.getElementById('correct-explanation');
     const incorrectExplanationDiv = document.getElementById('incorrect-explanation');
     
-    // Build correct answer explanation
-    let correctHtml = '<div class="correct-explanation"><h4 class="explanation-title correct-title">✓ Correct Answer' + (correctOptions.length > 1 ? 's' : '') + ':</h4><ul class="explanation-list">';
-    correctOptions.forEach(opt => {
-        correctHtml += `<li><strong>${opt.text}</strong></li>`;
-    });
-    correctHtml += '</ul>';
+    // Parse explanation text to extract explanations for each option
+    const optionExplanations = {};
     if (question.explanation) {
-        correctHtml += `<p class="explanation-detail">${question.explanation}</p>`;
-    } else {
-        correctHtml += '<p class="explanation-detail">This is the correct answer because it best addresses all the requirements described in the scenario.</p>';
+        // Split by "**Why option X is correct/incorrect:**" markers
+        const parts = question.explanation.split(/\*\*Why option (\d+) is (correct|incorrect):\*\*/);
+        for (let i = 1; i < parts.length; i += 3) {
+            if (i + 2 < parts.length) {
+                const optionId = parseInt(parts[i]);
+                const type = parts[i + 1]; // "correct" or "incorrect"
+                const explanationText = parts[i + 2].trim();
+                optionExplanations[optionId] = {
+                    type: type,
+                    text: explanationText
+                };
+            }
+        }
     }
+    
+    // Build correct answer explanation
+    let correctHtml = '<div class="correct-explanation"><h4 class="explanation-title correct-title">✓ Correct Answer' + (correctOptions.length > 1 ? 's' : '') + ':</h4>';
+    correctOptions.forEach(opt => {
+        const explanation = optionExplanations[opt.id];
+        if (explanation && explanation.type === 'correct') {
+            // Escape HTML and format newlines
+            let formattedText = explanation.text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n\n/g, '</p><p class="explanation-detail">')
+                .replace(/\n/g, '<br>');
+            correctHtml += `<div class="option-explanation"><strong>${opt.text}</strong><p class="explanation-detail">${formattedText}</p></div>`;
+        } else {
+            correctHtml += `<div class="option-explanation"><strong>${opt.text}</strong><p class="explanation-detail">This is the correct answer because it best addresses all the requirements described in the scenario.</p></div>`;
+        }
+    });
     correctHtml += '</div>';
     correctExplanationDiv.innerHTML = correctHtml;
     
     // Build incorrect answer explanation
-    if (incorrectSelectedOptions.length > 0 || incorrectOptions.length > 0) {
-        let incorrectHtml = '<div class="incorrect-explanation"><h4 class="explanation-title incorrect-title">✗ Why Other Options Are Incorrect:</h4><ul class="explanation-list">';
+    const allIncorrectOptions = [...incorrectSelectedOptions, ...incorrectOptions];
+    if (allIncorrectOptions.length > 0) {
+        let incorrectHtml = '<div class="incorrect-explanation"><h4 class="explanation-title incorrect-title">✗ Why Other Options Are Incorrect:</h4>';
         
-        // Show why selected incorrect answers are wrong
-        incorrectSelectedOptions.forEach(opt => {
-            incorrectHtml += `<li><strong>${opt.text}</strong> - This option is incorrect because it does not fully address the requirements or may introduce issues not mentioned in the scenario.</li>`;
+        allIncorrectOptions.forEach(opt => {
+            const explanation = optionExplanations[opt.id];
+            if (explanation && explanation.type === 'incorrect') {
+                // Escape HTML and format newlines
+                let formattedText = explanation.text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\n\n/g, '</p><p class="explanation-detail">')
+                    .replace(/\n/g, '<br>');
+                incorrectHtml += `<div class="option-explanation"><strong>${opt.text}</strong><p class="explanation-detail">${formattedText}</p></div>`;
+            } else {
+                incorrectHtml += `<div class="option-explanation"><strong>${opt.text}</strong><p class="explanation-detail">This option is incorrect because it does not meet the specific requirements outlined in the scenario.</p></div>`;
+            }
         });
         
-        // Show why other incorrect options are wrong (if any were not selected)
-        incorrectOptions.forEach(opt => {
-            incorrectHtml += `<li><strong>${opt.text}</strong> - This option is incorrect because it does not meet the specific requirements outlined in the scenario.</li>`;
-        });
-        
-        incorrectHtml += '</ul></div>';
+        incorrectHtml += '</div>';
         incorrectExplanationDiv.innerHTML = incorrectHtml;
     } else {
         incorrectExplanationDiv.innerHTML = '';
@@ -638,6 +1192,11 @@ function submitTest() {
 function showResults() {
     document.getElementById('question-screen').classList.add('hidden');
     document.getElementById('results-screen').classList.remove('hidden');
+    
+    // Mark test as completed if in test mode
+    if (currentMode === 'test') {
+        markTestCompleted();
+    }
     
     // Calculate scores
     let correct = 0;
@@ -773,19 +1332,45 @@ function closeDashboardDialog() {
 }
 
 function saveAndReturnToDashboard() {
-    // Save progress to localStorage
-    const progress = {
-        test: currentTest,
-        mode: currentMode,
-        questionIndex: currentQuestionIndex,
-        answers: userAnswers,
-        marked: Array.from(markedQuestions),
-        startTime: testStartTime,
-        selectedDomain: selectedDomain
-    };
-    
-    localStorage.setItem('saa-c03-progress', JSON.stringify(progress));
-    savedProgress = progress;
+    // Save progress to localStorage per test
+    if (currentTest) {
+        const progress = {
+            test: currentTest,
+            mode: currentMode,
+            questionIndex: currentQuestionIndex,
+            answers: userAnswers,
+            marked: Array.from(markedQuestions),
+            startTime: testStartTime,
+            selectedDomain: selectedDomain,
+            source: selectedSource,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Save progress with test-specific key
+        const progressKey = `saa-c03-progress-test${currentTest}`;
+        localStorage.setItem(progressKey, JSON.stringify(progress));
+        savedProgress = progress;
+        
+        // Also save a reference to the current test progress
+        localStorage.setItem('saa-c03-current-progress', progressKey);
+    } else if (selectedDomain) {
+        // Save domain review progress
+        const progress = {
+            test: null,
+            mode: currentMode,
+            questionIndex: currentQuestionIndex,
+            answers: userAnswers,
+            marked: Array.from(markedQuestions),
+            startTime: testStartTime,
+            selectedDomain: selectedDomain,
+            timestamp: new Date().toISOString()
+        };
+        
+        const progressKey = `saa-c03-progress-domain-${selectedDomain.replace(/\s+/g, '-')}`;
+        localStorage.setItem(progressKey, JSON.stringify(progress));
+        savedProgress = progress;
+        localStorage.setItem('saa-c03-current-progress', progressKey);
+    }
     
     if (testTimer) {
         clearInterval(testTimer);
@@ -802,9 +1387,72 @@ function returnToDashboardWithoutSaving() {
         testTimer = null;
     }
     
-    // Clear saved progress
-    savedProgress = null;
-    localStorage.removeItem('saa-c03-progress');
+    // Restore to last saved progress (discard unsaved changes)
+    if (currentTest) {
+        const saved = getSavedProgressForTest(currentTest);
+        if (saved) {
+            // Restore saved state
+            savedProgress = saved;
+            currentQuestionIndex = saved.questionIndex || 0;
+            userAnswers = saved.answers || {};
+            markedQuestions = new Set(saved.marked || []);
+            testStartTime = saved.startTime ? new Date(saved.startTime) : Date.now();
+            
+            // Save the restored state back (to keep it as the current saved state)
+            const progressKey = `saa-c03-progress-test${currentTest}`;
+            localStorage.setItem(progressKey, JSON.stringify(savedProgress));
+            localStorage.setItem('saa-c03-current-progress', progressKey);
+            
+            // Recalculate stats based on restored answers
+            recalculateUserStats();
+        } else {
+            // No saved progress exists, clear everything
+            userAnswers = {};
+            markedQuestions = new Set();
+            savedProgress = null;
+            localStorage.removeItem('saa-c03-current-progress');
+        }
+    } else if (selectedDomain) {
+        // For domain review, restore saved progress if it exists
+        const progressKey = `saa-c03-progress-domain-${selectedDomain.replace(/\s+/g, '-')}`;
+        const saved = localStorage.getItem(progressKey);
+        if (saved) {
+            try {
+                const progress = JSON.parse(saved);
+                savedProgress = progress;
+                currentQuestionIndex = progress.questionIndex || 0;
+                userAnswers = progress.answers || {};
+                markedQuestions = new Set(progress.marked || []);
+                
+                // Save the restored state back
+                localStorage.setItem(progressKey, JSON.stringify(progress));
+                localStorage.setItem('saa-c03-current-progress', progressKey);
+                
+                // Recalculate stats based on restored answers
+                recalculateUserStats();
+            } catch (error) {
+                console.error('Error restoring domain progress:', error);
+                // Clear on error
+                userAnswers = {};
+                markedQuestions = new Set();
+                savedProgress = null;
+                localStorage.removeItem(progressKey);
+                localStorage.removeItem('saa-c03-current-progress');
+            }
+        } else {
+            // No saved progress exists, clear everything
+            userAnswers = {};
+            markedQuestions = new Set();
+            savedProgress = null;
+            localStorage.removeItem('saa-c03-current-progress');
+        }
+    } else {
+        // No test or domain, just clear
+        userAnswers = {};
+        markedQuestions = new Set();
+        savedProgress = null;
+        localStorage.removeItem('saa-c03-current-progress');
+    }
     
     closeDashboardDialog();
     returnToDashboard();
@@ -816,15 +1464,61 @@ function returnToDashboard() {
     document.getElementById('results-screen').classList.add('hidden');
     document.getElementById('mode-selection').classList.add('hidden');
     document.getElementById('domain-selection').classList.add('hidden');
+    document.getElementById('source-selection').classList.add('hidden');
+    document.getElementById('test-selection').classList.add('hidden');
     document.getElementById('timer').classList.add('hidden');
     
-    // Show test selection
-    document.getElementById('test-selection').classList.remove('hidden');
+    // Show main selection
+    document.getElementById('main-selection').classList.remove('hidden');
+    
+    // Reset state
+    currentTest = null;
+    selectedSource = null;
+    selectedDomain = null;
 }
 
-function loadSavedProgress() {
-    const saved = localStorage.getItem('saa-c03-progress');
-    if (!saved) return;
+function getSavedProgressForTest(testNumber) {
+    const progressKey = `saa-c03-progress-test${testNumber}`;
+    const saved = localStorage.getItem(progressKey);
+    if (!saved) return null;
+    
+    try {
+        return JSON.parse(saved);
+    } catch (error) {
+        console.error('Error parsing saved progress:', error);
+        return null;
+    }
+}
+
+function clearSavedProgressForTest(testNumber) {
+    const progressKey = `saa-c03-progress-test${testNumber}`;
+    localStorage.removeItem(progressKey);
+    
+    // Clear current progress reference if it matches
+    const currentProgressKey = localStorage.getItem('saa-c03-current-progress');
+    if (currentProgressKey === progressKey) {
+        localStorage.removeItem('saa-c03-current-progress');
+    }
+    
+    // Reload test buttons to update UI
+    if (selectedSource) {
+        loadAvailableTests();
+    }
+}
+
+function loadSavedProgress(testNumber) {
+    // Load progress for specific test or current progress
+    let progressKey;
+    if (testNumber) {
+        progressKey = `saa-c03-progress-test${testNumber}`;
+    } else {
+        progressKey = localStorage.getItem('saa-c03-current-progress');
+    }
+    
+    if (!progressKey) return false;
+    
+    const saved = localStorage.getItem(progressKey);
+    if (!saved) return false;
     
     try {
         const progress = JSON.parse(saved);
@@ -835,11 +1529,24 @@ function loadSavedProgress() {
         userAnswers = progress.answers || {};
         markedQuestions = new Set(progress.marked || []);
         selectedDomain = progress.selectedDomain;
+        selectedSource = progress.source || null;
         testStartTime = progress.startTime ? new Date(progress.startTime) : Date.now();
         
         // Reload questions
+        // After loading, recalculate stats based on loaded answers
+        setTimeout(() => {
+            recalculateUserStats();
+        }, 100);
         if (selectedDomain) {
-            const allQuestions = getTestQuestions(currentTest);
+            // Get all questions from all tests for domain review
+            const allQuestions = [];
+            if (typeof examQuestions !== 'undefined') {
+                for (const testKey in examQuestions) {
+                    if (examQuestions.hasOwnProperty(testKey) && testKey.startsWith('test')) {
+                        allQuestions.push(...examQuestions[testKey]);
+                    }
+                }
+            }
             currentQuestions = allQuestions.filter(q => q.domain === selectedDomain);
         } else {
             currentQuestions = getTestQuestions(currentTest);
@@ -849,15 +1556,25 @@ function loadSavedProgress() {
             startTimer();
         }
         
+        // Hide all selection screens
+        document.getElementById('main-selection').classList.add('hidden');
         document.getElementById('mode-selection').classList.add('hidden');
         document.getElementById('domain-selection').classList.add('hidden');
+        document.getElementById('source-selection').classList.add('hidden');
+        document.getElementById('test-selection').classList.add('hidden');
+        
+        // Show question screen
         document.getElementById('question-screen').classList.remove('hidden');
         
         buildQuestionNavbar();
         loadQuestion();
         updateStats();
-    } catch (e) {
-        console.error('Error loading saved progress:', e);
+        recalculateUserStats(); // Recalculate stats based on loaded answers
+        return true;
+    } catch (error) {
+        console.error('Error loading saved progress:', error);
+        localStorage.removeItem(progressKey);
+        return false;
     }
 }
 

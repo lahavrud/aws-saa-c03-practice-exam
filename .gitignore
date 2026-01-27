@@ -7,9 +7,7 @@ __pycache__/
 venv/
 env/
 ENV/
-*.egg-info/
-dist/
-build/
+.venv
 
 # IDE
 .vscode/
@@ -22,13 +20,14 @@ build/
 .DS_Store
 Thumbs.db
 
+# Project specific
+questions.js.backup*
+*.backup
+*.bak
+
 # Logs
 *.log
 
 # Temporary files
 *.tmp
-*.temp
-questions_data.txt
-
-# PDF files (optional - uncomment if you don't want to commit PDFs)
-# questions/*.pdf
+temp/

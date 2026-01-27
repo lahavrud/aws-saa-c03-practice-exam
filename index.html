@@ -13,53 +13,66 @@
             <div id="timer" class="timer hidden"></div>
         </header>
 
-        <!-- Test Selection Screen -->
-        <div id="test-selection" class="screen">
+        <!-- Main Selection Screen -->
+        <div id="main-selection" class="screen">
             <div class="dashboard-header">
                 <h1>AWS SAA-C03 Practice Exam</h1>
-                <p class="dashboard-subtitle">Test your knowledge with comprehensive practice questions</p>
+                <p class="dashboard-subtitle">Welcome back, <span id="user-name">Student</span>!</p>
+                <button class="user-settings-btn" onclick="showUserSettings()" title="User Settings">⚙️</button>
             </div>
             <div class="dashboard-stats">
                 <div class="stat-card">
-                    <div class="stat-number">130</div>
-                    <div class="stat-label">Total Questions</div>
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Questions Answered</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">2</div>
-                    <div class="stat-label">Practice Tests</div>
+                    <div class="stat-number">0%</div>
+                    <div class="stat-label">Accuracy</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">4</div>
-                    <div class="stat-label">Domains</div>
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Tests Completed</div>
                 </div>
             </div>
-            <h2>Select a Test</h2>
-            <div class="test-buttons">
-                <button class="test-btn" onclick="selectTest(1)">
-                    <div class="test-btn-header">
-                        <h3>Test 1</h3>
-                        <span class="test-count">65 Questions</span>
-                    </div>
-                    <p>Comprehensive practice exam covering all domains</p>
+            <h2>Choose Your Practice Mode</h2>
+            <div class="mode-buttons">
+                <button class="mode-btn large" onclick="selectPracticeMode('domain')">
+                    <h3>By Domain</h3>
+                    <p>Practice all questions from a specific AWS domain across all tests</p>
                 </button>
-                <button class="test-btn" onclick="selectTest(2)">
-                    <div class="test-btn-header">
-                        <h3>Test 2</h3>
-                        <span class="test-count">65 Questions</span>
-                    </div>
-                    <p>Additional practice questions for mastery</p>
-                </button>
-                <button class="test-btn" onclick="goToDomainReview()">
-                    <div class="test-btn-header">
-                        <h3>Review by Domain</h3>
-                        <span class="test-count">All Questions</span>
-                    </div>
-                    <p>Practice questions from a specific domain across both tests</p>
+                <button class="mode-btn large" onclick="selectPracticeMode('test')">
+                    <h3>By Test</h3>
+                    <p>Take a complete practice exam with review or test mode</p>
                 </button>
             </div>
         </div>
 
-        <!-- Mode Selection Screen -->
+        <!-- Source Selection Screen (for By Test) -->
+        <div id="source-selection" class="screen hidden">
+            <h2>Select Test Source</h2>
+            <div class="source-buttons">
+                <button class="source-btn" onclick="selectSource('stephane')">
+                    <h3>Stephane</h3>
+                    <p>Practice tests from Stephane Maarek</p>
+                </button>
+                <button class="source-btn" onclick="selectSource('dojo')">
+                    <h3>Dojo</h3>
+                    <p>Practice tests from Tutorials Dojo</p>
+                </button>
+            </div>
+            <button class="back-btn" onclick="goBackToMainSelection()">← Back</button>
+        </div>
+
+        <!-- Test Selection Screen (for By Test) -->
+        <div id="test-selection" class="screen hidden">
+            <h2>Select a Test</h2>
+            <div class="test-buttons" id="test-buttons-container">
+                <!-- Test buttons will be dynamically loaded here by app.js -->
+            </div>
+            <button class="back-btn" onclick="goBackToSourceSelection()">← Back</button>
+        </div>
+
+        <!-- Mode Selection Screen (for By Test) -->
         <div id="mode-selection" class="screen hidden">
             <h2>Select Mode</h2>
             <div class="mode-buttons">
@@ -71,15 +84,11 @@
                     <h3>Test Mode</h3>
                     <p>Timed exam simulation (130 minutes)</p>
                 </button>
-                <button class="mode-btn" onclick="selectMode('review-domain')">
-                    <h3>Review by Domain</h3>
-                    <p>Practice all questions from a specific domain (across both tests)</p>
-                </button>
             </div>
             <button class="back-btn" onclick="goBackToTestSelection()">← Back to Tests</button>
         </div>
 
-        <!-- Domain Selection Screen -->
+        <!-- Domain Selection Screen (for By Domain) -->
         <div id="domain-selection" class="screen hidden">
             <h2>Select Domain to Review</h2>
             <div class="domain-buttons">
@@ -100,7 +109,7 @@
                     <p>Cost optimization, pricing, savings</p>
                 </button>
             </div>
-            <button class="back-btn" onclick="goBackToModeSelection()">← Back to Modes</button>
+            <button class="back-btn" onclick="goBackToMainSelection()">← Back</button>
         </div>
 
         <!-- Question Screen -->
@@ -209,6 +218,31 @@
                     <button class="modal-btn primary" onclick="saveAndReturnToDashboard()">Save & Return</button>
                     <button class="modal-btn" onclick="returnToDashboardWithoutSaving()">Return Without Saving</button>
                     <button class="modal-btn" onclick="closeDashboardDialog()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Settings Dialog -->
+        <div id="user-settings-dialog" class="modal hidden">
+            <div class="modal-content">
+                <h3>User Settings</h3>
+                <div class="user-settings-form">
+                    <div class="form-group">
+                        <label for="user-name-input">Your Name:</label>
+                        <input type="text" id="user-name-input" placeholder="Enter your name" />
+                    </div>
+                    <div class="user-stats-info">
+                        <h4>Your Statistics</h4>
+                        <p><strong>Questions Answered:</strong> <span id="settings-questions-answered">0</span></p>
+                        <p><strong>Accuracy:</strong> <span id="settings-accuracy">0%</span></p>
+                        <p><strong>Tests Completed:</strong> <span id="settings-tests-completed">0</span></p>
+                        <p><strong>Domains Practiced:</strong> <span id="settings-domains-practiced">0</span></p>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="modal-btn primary" onclick="saveUserSettings()">Save</button>
+                        <button class="modal-btn danger" onclick="resetUserData()">Reset Progress</button>
+                        <button class="modal-btn" onclick="closeUserSettings()">Cancel</button>
+                    </div>
                 </div>
             </div>
         </div>

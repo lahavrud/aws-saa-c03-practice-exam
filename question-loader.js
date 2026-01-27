@@ -95,30 +95,45 @@ function parseQuestionsFromText(text) {
 
 // Auto-detect and load questions from questions directory
 async function autoLoadQuestions() {
-    // Try to load from questions.js first (default)
+    // Try to load from questions.js first (for backward compatibility)
     if (typeof examQuestions !== 'undefined') {
         return examQuestions;
     }
     
-    // Try to load from JSON files in questions directory
-    const jsonFiles = [
-        'questions/test1.json',
-        'questions/test2.json',
-        'questions/questions.json'
-    ];
+    // Try to load from combined JSON file first
+    try {
+        const combinedData = await loadQuestionsFromFile('questions/all_tests.json');
+        if (combinedData && typeof combinedData === 'object') {
+            return combinedData;
+        }
+    } catch (error) {
+        console.log('Could not load all_tests.json, trying individual files...');
+    }
     
-    for (const file of jsonFiles) {
+    // Try to load individual test JSON files
+    const loadedTests = {};
+    let foundAny = false;
+    
+    // Try to load test1.json, test2.json, etc. up to test20.json
+    for (let i = 1; i <= 20; i++) {
+        const testFile = `questions/test${i}.json`;
         try {
-            const data = await loadQuestionsFromFile(file);
-            if (data) {
-                return data;
+            const data = await loadQuestionsFromFile(testFile);
+            if (data && Array.isArray(data)) {
+                loadedTests[`test${i}`] = data;
+                foundAny = true;
+                console.log(`Loaded ${testFile}: ${data.length} questions`);
             }
         } catch (error) {
             // Continue to next file
         }
     }
     
-    // Try to load from text files
+    if (foundAny) {
+        return loadedTests;
+    }
+    
+    // Fallback: Try to load from text files
     const textFiles = [
         'questions/test1.txt',
         'questions/test2.txt',
