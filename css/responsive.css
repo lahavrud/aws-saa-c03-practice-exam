@@ -1,0 +1,568 @@
+/* Responsive Styles - Media Queries */
+
+@media (max-width: 768px) {
+    body {
+        padding: 0;
+    }
+
+    .container {
+        margin: 0;
+        border-radius: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .screen {
+        padding: 15px;
+    }
+
+    .navbar-container {
+        padding: 12px 15px;
+    }
+
+    .navbar-brand-name {
+        font-size: 1.1em;
+    }
+
+    .navbar-logo-wrapper {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+    }
+
+    .navbar-toggle {
+        display: flex;
+    }
+
+    .navbar-menu {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        background: #232F3E;
+        flex-direction: column;
+        padding: 15px;
+        gap: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        max-height: calc(100vh - 60px);
+        overflow-y: auto;
+        transform: translateY(-100%);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        align-items: stretch;
+        z-index: 999;
+    }
+
+    .navbar-menu.active {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .navbar-link {
+        display: block;
+        padding: 12px;
+        width: 100%;
+        text-align: left;
+    }
+
+    header, .page-header {
+        padding: 15px;
+    }
+
+    header h1 {
+        font-size: 1.3em;
+    }
+
+    .hero-section {
+        padding: 40px 20px;
+        margin: -15px -15px 30px -15px;
+        border-radius: 8px;
+    }
+
+    .hero-section-compact {
+        padding: 30px 20px;
+        margin-bottom: 20px;
+    }
+
+    .hero-title {
+        font-size: 1.8em;
+    }
+
+    .hero-section-compact .hero-title {
+        font-size: 1.5em;
+        padding-right: 50px;
+    }
+
+    .hero-subtitle {
+        font-size: 1em;
+    }
+
+    .hero-section-compact .hero-subtitle {
+        font-size: 0.9em;
+    }
+
+    .hero-features {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+
+    .hero-feature {
+        justify-content: center;
+    }
+
+    .hero-logo-wrapper {
+        height: 80px;
+        padding: 0;
+    }
+
+    .hero-logo-compact {
+        height: 60px;
+        padding: 0;
+    }
+
+    .hero-thumbnail-wrapper {
+        max-width: 100%;
+        margin-bottom: 20px;
+    }
+
+    h2 {
+        font-size: 1.4em;
+        margin-bottom: 20px;
+    }
+
+    .timer {
+        position: static;
+        margin-top: 10px;
+        display: inline-block;
+        font-size: 1em;
+        padding: 8px 15px;
+    }
+
+    .test-buttons, .mode-buttons {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .test-btn, .mode-btn {
+        min-height: 80px;
+        padding: 15px;
+    }
+
+    .score-summary {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+
+    .navigation {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .nav-btn {
+        width: 100%;
+        min-height: 44px;
+        padding: 12px;
+    }
+    
+    .question-navbar {
+        margin: -15px -15px 15px -15px;
+        padding: 10px 15px;
+    }
+    
+    .question-grid {
+        grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+        gap: 8px;
+        max-height: 200px;
+    }
+    
+    .question-nav-item {
+        width: 40px;
+        height: 40px;
+        font-size: 0.85em;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .question-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .question-actions {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .mark-btn, .dashboard-btn {
+        min-height: 44px;
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+    
+    .stats-bar {
+        flex-direction: column;
+        gap: 8px;
+        font-size: 0.85em;
+    }
+    
+    .keyboard-hint {
+        display: none;
+    }
+
+    .option {
+        padding: 12px;
+        min-height: 50px;
+    }
+
+    .option input[type="radio"],
+    .option input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+        min-height: 20px;
+    }
+
+    .explanation {
+        padding: 15px;
+        margin-top: 20px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.8em;
+    }
+
+    .insights-section {
+        padding: 15px;
+    }
+
+    .summary-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .insights-highlights {
+        grid-template-columns: 1fr;
+    }
+
+    .domain-details {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    button, .btn {
+        min-height: 44px;
+        min-width: 44px;
+        touch-action: manipulation;
+    }
+}
+
+/* Insights Section */
+
+@media (max-width: 480px) {
+    .screen {
+        padding: 10px;
+    }
+
+    header {
+        padding: 12px;
+    }
+
+    header h1 {
+        font-size: 1.1em;
+    }
+
+    h2 {
+        font-size: 1.2em;
+        margin-bottom: 15px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5em;
+    }
+
+    .timer {
+        font-size: 0.9em;
+        padding: 6px 12px;
+    }
+
+    .question-grid {
+        grid-template-columns: repeat(auto-fill, minmax(35px, 1fr));
+        gap: 6px;
+        max-height: 150px;
+    }
+
+    .question-nav-item {
+        width: 35px;
+        height: 35px;
+        font-size: 0.75em;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .test-btn, .mode-btn {
+        min-height: 70px;
+        padding: 12px;
+    }
+
+    .option {
+        padding: 10px;
+        min-height: 45px;
+    }
+
+    #question-text {
+        font-size: 0.95em;
+        line-height: 1.6;
+    }
+
+    .insights-section {
+        padding: 12px;
+    }
+
+    .summary-stat {
+        padding: 12px;
+    }
+
+    .domain-insight-card {
+        padding: 12px;
+    }
+}
+
+/* Prevent horizontal scrolling on mobile devices */
+@media (max-width: 768px) {
+    html, body {
+        overflow-x: hidden;
+        width: 100%;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    button, .btn, .nav-btn, .test-btn, .mode-btn {
+        min-height: 48px;
+        padding: 12px 16px;
+    }
+
+    .option {
+        min-height: 56px;
+        padding: 14px;
+    }
+
+    .question-nav-item {
+        min-width: 48px;
+        min-height: 48px;
+    }
+
+    /* Study Guide & FAQ Mobile Styles */
+    .study-guide-hero,
+    .faq-hero {
+        padding: 40px 20px;
+        margin-bottom: 30px;
+    }
+
+    .study-guide-icon,
+    .faq-icon {
+        font-size: 60px;
+    }
+
+    .study-guide-hero h1,
+    .faq-hero h1 {
+        font-size: 1.8em;
+    }
+
+    .study-guide-subtitle,
+    .faq-subtitle {
+        font-size: 1em;
+    }
+
+    .study-guide-content,
+    .faq-content {
+        padding: 0;
+    }
+
+    .study-guide-section,
+    .faq-section {
+        padding: 25px 20px;
+        margin-bottom: 30px;
+    }
+
+    .study-guide-section-header,
+    .faq-section-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .study-guide-section-icon,
+    .faq-section-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 2em;
+    }
+
+    .study-guide-section-header h2,
+    .faq-section-header h2 {
+        font-size: 1.5em;
+    }
+
+    .study-guide-info-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .study-guide-domains {
+        grid-template-columns: 1fr;
+    }
+
+    .study-guide-tip-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .tip-number {
+        margin: 0 auto;
+    }
+
+    .study-guide-services {
+        grid-template-columns: 1fr;
+    }
+
+    .study-guide-exam-tips {
+        grid-template-columns: 1fr;
+    }
+
+    .study-guide-resources {
+        grid-template-columns: 1fr;
+    }
+
+    .study-guide-cta-content h2,
+    .faq-cta-content h2 {
+        font-size: 1.5em;
+    }
+
+    .study-guide-cta-content p,
+    .faq-cta-content p {
+        font-size: 1em;
+    }
+
+    .study-guide-cta-buttons,
+    .faq-cta-buttons {
+        flex-direction: column;
+    }
+
+    .study-guide-btn-primary,
+    .study-guide-btn-secondary,
+    .faq-btn-primary,
+    .faq-btn-secondary {
+        width: 100%;
+    }
+
+    .faq-question {
+        padding: 15px 20px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .faq-toggle {
+        align-self: flex-end;
+    }
+
+    .faq-answer {
+        padding: 0 20px;
+    }
+
+    .faq-item.active .faq-answer {
+        padding: 0 20px 15px;
+    }
+
+    /* Settings Modal Mobile */
+    .settings-modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+
+    .settings-header {
+        padding: 20px;
+    }
+
+    .settings-header h3 {
+        font-size: 1.3em;
+    }
+
+    .user-settings-form {
+        padding: 20px;
+        gap: 20px;
+    }
+
+    .settings-section {
+        padding: 15px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 12px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.5em;
+    }
+
+    .data-actions {
+        flex-direction: column;
+    }
+
+    .data-action-btn {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .settings-footer {
+        flex-direction: column;
+    }
+
+    .settings-footer-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .study-guide-info-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .study-guide-domain-card .domain-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .study-guide-domain-card .domain-weight {
+        align-self: flex-end;
+    }
+}

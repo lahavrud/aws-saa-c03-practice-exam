@@ -26,7 +26,8 @@ const Results = (function() {
             let unanswered = 0;
             
             currentQuestions.forEach(question => {
-                const questionKey = question.id.toString();
+                // Use uniqueId for retrieving answers
+                const questionKey = (question.uniqueId || question.id).toString();
                 const selectedAnswers = userAnswers[questionKey] || [];
                 
                 if (selectedAnswers.length === 0) {
@@ -84,7 +85,8 @@ const Results = (function() {
                 
                 domainStats[domain].total++;
                 
-                const questionKey = question.id.toString();
+                // Use uniqueId for retrieving answers
+                const questionKey = (question.uniqueId || question.id).toString();
                 const selectedAnswers = userAnswers[questionKey] || [];
                 
                 if (selectedAnswers.length === 0) {
@@ -127,7 +129,8 @@ const Results = (function() {
             reviewContainer.innerHTML = '';
             
             questions.forEach((question, index) => {
-                const questionKey = question.id.toString();
+                // Use uniqueId for retrieving answers
+                const questionKey = (question.uniqueId || question.id).toString();
                 const selectedAnswers = userAnswers[questionKey] || [];
                 const correctAnswers = question.correctAnswers || [];
                 

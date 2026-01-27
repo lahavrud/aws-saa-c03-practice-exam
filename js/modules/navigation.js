@@ -89,7 +89,7 @@ const Navigation = (function() {
         },
         
         // Return to dashboard
-        returnToDashboard: () => {
+        returnToDashboard: (preserveState = false) => {
             Navigation.hideScreen('question-screen');
             Navigation.hideScreen('results-screen');
             Navigation.hideScreen('mode-selection');
@@ -107,14 +107,42 @@ const Navigation = (function() {
                     Stats.recalculateUserStats(false);
                     Stats.updateDashboard();
                 }
+                // Update insights when showing dashboard
+                if (typeof Insights !== 'undefined' && Insights.displayInsights) {
+                    // Small delay to ensure DOM is ready
+                    setTimeout(() => {
+                        Insights.displayInsights();
+                    }, 100);
+                }
             }
             
-            AppState.resetTestState();
+            // Only reset test state if not preserving it (e.g., after saving)
+            if (!preserveState) {
+                AppState.resetTestState();
+            }
         },
         
         // Save and return to dashboard
         saveAndReturnToDashboard: () => {
-            ProgressManager.saveProgress();
+            console.log('saveAndReturnToDashboard called');
+            console.log('Current test:', AppState.getCurrentTest());
+            console.log('Current mode:', AppState.getCurrentMode());
+            console.log('User answers:', AppState.getUserAnswers());
+            console.log('Selected domain:', AppState.getSelectedDomain());
+            console.log('User email:', AppState.getCurrentUserEmail());
+            
+            // Save progress first - capture state before any resets
+            const saveSuccess = ProgressManager.saveProgress();
+            
+            console.log('Save result:', saveSuccess);
+            
+            if (!saveSuccess) {
+                console.warn('Progress save returned false - may not have saved');
+                // Show user-friendly message
+                alert('Warning: Progress may not have been saved. Please check your browser console for details.');
+            } else {
+                console.log('✓ Progress saved successfully');
+            }
             
             const testTimer = AppState.getTestTimer();
             if (testTimer && typeof Timer !== 'undefined' && Timer.stop) {
@@ -127,7 +155,10 @@ const Navigation = (function() {
             if (typeof UI !== 'undefined' && UI.closeDashboardDialog) {
                 UI.closeDashboardDialog();
             }
-            Navigation.returnToDashboard();
+            
+            // Reset state after saving is complete
+            AppState.resetTestState();
+            Navigation.returnToDashboard(true);
         },
         
         // Return to dashboard without saving
@@ -140,17 +171,11 @@ const Navigation = (function() {
             // Restore to last saved progress
             const currentTest = AppState.getCurrentTest();
             if (currentTest) {
-                    const saved = ProgressManager.getSavedProgressForTest(currentTest);
-                    if (saved) {
-                        ProgressManager.loadSavedProgress(currentTest);
-                        if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
-                            Stats.recalculateUserStats(false);
-                        }
-                    } else {
-                        AppState.resetTestState();
-                        if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
-                            Stats.recalculateUserStats(false);
-                        }
+                const saved = ProgressManager.getSavedProgressForTest(currentTest);
+                if (saved) {
+                    ProgressManager.loadSavedProgress(currentTest);
+                    if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
+                        Stats.recalculateUserStats(false);
                     }
                 } else {
                     AppState.resetTestState();
@@ -158,6 +183,12 @@ const Navigation = (function() {
                         Stats.recalculateUserStats(false);
                     }
                 }
+            } else {
+                AppState.resetTestState();
+                if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
+                    Stats.recalculateUserStats(false);
+                }
+            }
             
             UI.closeDashboardDialog();
             Navigation.returnToDashboard();
@@ -324,3 +355,200 @@ function handleKeyboardShortcuts(e) {
 }
 
 document.addEventListener('keydown', handleKeyboardShortcuts);
+
+// Show main screen function
+window.showMainScreen = () => {
+    if (typeof Navigation !== 'undefined' && Navigation.showMainScreen) {
+        Navigation.showMainScreen();
+    }
+    // Close mobile menu if open
+    const menu = document.getElementById('navbar-menu');
+    const toggle = document.getElementById('navbar-menu-toggle');
+    if (menu && toggle) {
+        menu.classList.remove('active');
+        toggle.classList.remove('active');
+    }
+};
+
+// FAQ Page Functions
+window.showFAQ = () => {
+    if (typeof Navigation !== 'undefined') {
+        Navigation.hideAllScreens();
+        Navigation.showScreen('faq-screen');
+    }
+    // Close mobile menu if open
+    const menu = document.getElementById('navbar-menu');
+    const toggle = document.getElementById('navbar-menu-toggle');
+    if (menu && toggle) {
+        menu.classList.remove('active');
+        toggle.classList.remove('active');
+    }
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Initialize FAQ toggles
+    initFAQToggles();
+};
+
+// Initialize FAQ toggle functionality
+function initFAQToggles() {
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach(item => {
+        const toggle = item.querySelector('.faq-toggle');
+        const answer = item.querySelector('.faq-answer');
+        const question = item.querySelector('.faq-question');
+        
+        if (toggle && answer) {
+            // Set initial state
+            answer.style.maxHeight = null;
+            item.classList.remove('active');
+            
+            // Add click handler to both toggle button and question
+            const handleClick = () => {
+                const isActive = item.classList.contains('active');
+                
+                // Close all other items (optional - remove if you want multiple open)
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.classList.remove('active');
+                        const otherAnswer = otherItem.querySelector('.faq-answer');
+                        if (otherAnswer) {
+                            otherAnswer.style.maxHeight = null;
+                        }
+                    }
+                });
+                
+                // Toggle current item
+                if (isActive) {
+                    item.classList.remove('active');
+                    answer.style.maxHeight = null;
+                } else {
+                    item.classList.add('active');
+                    answer.style.maxHeight = answer.scrollHeight + 'px';
+                }
+            };
+            
+            toggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleClick();
+            });
+            
+            if (question) {
+                question.addEventListener('click', handleClick);
+            }
+        }
+    });
+}
+
+// Initialize FAQ toggles when DOM is ready (in case FAQ screen is shown initially)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initFAQToggles, 100);
+    });
+} else {
+    setTimeout(initFAQToggles, 100);
+}
+
+// Study Guide Page Functions
+window.showStudyGuide = () => {
+    if (typeof Navigation !== 'undefined') {
+        Navigation.hideAllScreens();
+        Navigation.showScreen('study-guide-screen');
+    }
+    // Close mobile menu if open
+    const menu = document.getElementById('navbar-menu');
+    const toggle = document.getElementById('navbar-menu-toggle');
+    if (menu && toggle) {
+        menu.classList.remove('active');
+        toggle.classList.remove('active');
+    }
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// About Us Page Functions
+window.showAboutUsPage = () => {
+    if (typeof Navigation !== 'undefined') {
+        Navigation.hideAllScreens();
+        Navigation.showScreen('about-us-screen');
+    }
+    // Close mobile menu if open
+    const menu = document.getElementById('navbar-menu');
+    const toggle = document.getElementById('navbar-menu-toggle');
+    if (menu && toggle) {
+        menu.classList.remove('active');
+        toggle.classList.remove('active');
+    }
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// About Us Modal Functions (for quick access)
+window.showAboutUs = () => {
+    const modal = document.getElementById('about-us-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    // Close mobile menu if open
+    const menu = document.getElementById('navbar-menu');
+    const toggle = document.getElementById('navbar-menu-toggle');
+    if (menu && toggle) {
+        menu.classList.remove('active');
+        toggle.classList.remove('active');
+    }
+};
+
+window.closeAboutUs = () => {
+    const modal = document.getElementById('about-us-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+};
+
+// Close About Us modal when clicking outside
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('about-us-modal');
+    if (modal && !modal.classList.contains('hidden')) {
+        if (e.target === modal) {
+            closeAboutUs();
+        }
+    }
+});
+
+// Mobile Menu Toggle
+function initMobileMenu() {
+    const toggle = document.getElementById('navbar-menu-toggle');
+    const menu = document.getElementById('navbar-menu');
+    
+    if (toggle && menu) {
+        toggle.addEventListener('click', () => {
+            toggle.classList.toggle('active');
+            menu.classList.toggle('active');
+        });
+        
+        // Close menu when clicking a link
+        const links = menu.querySelectorAll('.navbar-link');
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                toggle.classList.remove('active');
+                menu.classList.remove('active');
+            });
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+                toggle.classList.remove('active');
+                menu.classList.remove('active');
+            }
+        });
+    }
+}
+
+// Initialize mobile menu when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMobileMenu);
+} else {
+    initMobileMenu();
+}

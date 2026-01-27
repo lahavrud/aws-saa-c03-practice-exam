@@ -15,7 +15,8 @@ const UI = (function() {
             let correct = 0;
             
             currentQuestions.forEach(question => {
-                const questionKey = question.id.toString();
+                // Use uniqueId for retrieving answers
+                const questionKey = (question.uniqueId || question.id).toString();
                 const selectedAnswers = userAnswers[questionKey] || [];
                 
                 if (selectedAnswers.length > 0) {

@@ -21602,8 +21602,44 @@ const examQuestions = {
 };
 
 // Ensure examQuestions is accessible globally via window
+// Add unique IDs to all questions for consistent tracking
 if (typeof window !== 'undefined') {
-    window.examQuestions = examQuestions;
+    // Function to add unique IDs to questions
+    function addUniqueIdsToQuestions(questions) {
+        if (!questions || typeof questions !== 'object') {
+            return questions;
+        }
+        
+        const processed = {};
+        for (const testKey in questions) {
+            if (questions.hasOwnProperty(testKey) && testKey.startsWith('test')) {
+                const testQuestions = questions[testKey];
+                if (Array.isArray(testQuestions)) {
+                    processed[testKey] = testQuestions.map((q, index) => {
+                        // Only add uniqueId if it doesn't already exist
+                        if (!q.uniqueId) {
+                            const testNum = testKey.replace('test', '');
+                            // Use original question ID for stability - won't change if questions are reordered
+                            return {
+                                ...q,
+                                uniqueId: `test${testNum}-q${q.id}`,
+                                originalId: q.id // Keep original for reference
+                            };
+                        }
+                        return q;
+                    });
+                } else {
+                    processed[testKey] = testQuestions;
+                }
+            } else {
+                processed[testKey] = questions[testKey];
+            }
+        }
+        
+        return processed;
+    }
+    
+    window.examQuestions = addUniqueIdsToQuestions(examQuestions);
 }
 
 // Function to get all questions for a test

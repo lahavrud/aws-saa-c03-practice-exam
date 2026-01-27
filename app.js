@@ -1,9 +1,9 @@
-// AWS SAA-C03 Practice Exam Application - Modular Architecture
+// AWS Lahavda - Practice Exam Application - Modular Architecture
 // Main application orchestrator that coordinates all modules
 
 // Initialize application when DOM is ready
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Initializing AWS SAA-C03 Practice Exam Application...');
+    console.log('🚀 Initializing AWS Lahavda Application...');
     
     // Ensure sign-in screen is visible by default if no user is authenticated
     // This is important for GitHub Pages where Firebase might load slowly
@@ -131,18 +131,22 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
         }
 
-        // Mark question button
-    const markBtn = document.getElementById('mark-btn');
-        if (markBtn) {
-            markBtn.addEventListener('click', (e) => {
-            e.preventDefault();
+        // Mark question button - use event delegation to handle dynamically updated buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#mark-btn')) {
+                e.preventDefault();
+                e.stopPropagation();
+                const markBtn = e.target.closest('#mark-btn');
+                // Remove onclick to prevent double-firing
+                markBtn.removeAttribute('onclick');
+                
                 if (typeof window.toggleMarkQuestion === 'function') {
                     window.toggleMarkQuestion();
                 } else if (typeof TestManager !== 'undefined' && TestManager.toggleMarkQuestion) {
                     TestManager.toggleMarkQuestion();
                 }
-            });
-        }
+            }
+        });
         
         // Dashboard button
         const dashboardBtn = document.querySelector('.dashboard-btn');

@@ -3,21 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AWS SAA-C03 Practice Exam</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>AWS Lahavda</title>
+    <!-- CSS Files - Load in order for proper cascade -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/navigation.css">
+    <link rel="stylesheet" href="css/hero.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/screens.css">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <div class="navbar-logo-wrapper">
+                    <img src="Website-logo.png" alt="AWS Lahavda Logo" class="navbar-logo" />
+                </div>
+                <span class="navbar-brand-name">AWS Lahavda</span>
+            </div>
+            <button class="navbar-toggle" id="navbar-menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="navbar-menu" id="navbar-menu">
+                <li><a href="#" class="navbar-link" onclick="showMainScreen(); return false;">Home</a></li>
+                <li><a href="#" class="navbar-link" onclick="showAboutUsPage(); return false;">About Us</a></li>
+                <li><a href="#" class="navbar-link" onclick="showUserSettings(); return false;">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+
     <div class="container">
-        <header>
-            <h1>AWS SAA-C03 Practice Exam</h1>
+        <header class="page-header">
             <div id="timer" class="timer hidden"></div>
         </header>
 
         <!-- Sign-In Screen (shown by default when not authenticated) -->
         <div id="sign-in-screen" class="screen">
-            <div class="dashboard-header">
-                <h1>AWS SAA-C03 Practice Exam</h1>
-                <p class="dashboard-subtitle">Sign in with your Google account to continue</p>
+            <div class="hero-section">
+                <div class="hero-content">
+                    <div class="hero-thumbnail-wrapper">
+                        <img src="Website-thumbnail.png" alt="AWS SAA-C03 Certification" class="hero-thumbnail" />
+                    </div>
+                    <div class="hero-badge">AWS Certified Solutions Architect</div>
+                    <h1 class="hero-title">Master the SAA-C03 Exam</h1>
+                    <p class="hero-subtitle">Comprehensive practice exams with detailed explanations. Track your progress and identify areas for improvement.</p>
+                    <div class="hero-features">
+                        <div class="hero-feature">
+                            <span class="hero-feature-icon">📚</span>
+                            <span>650+ Practice Questions</span>
+                        </div>
+                        <div class="hero-feature">
+                            <span class="hero-feature-icon">📊</span>
+                            <span>Performance Tracking</span>
+                        </div>
+                        <div class="hero-feature">
+                            <span class="hero-feature-icon">🎯</span>
+                            <span>Domain-Specific Practice</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-decoration">
+                    <div class="hero-circle hero-circle-1"></div>
+                    <div class="hero-circle hero-circle-2"></div>
+                    <div class="hero-circle hero-circle-3"></div>
+                </div>
             </div>
             <div class="sign-in-container">
                 <div class="sign-in-card">
@@ -41,25 +93,27 @@
 
         <!-- Main Selection Screen -->
         <div id="main-selection" class="screen hidden">
-            <div class="dashboard-header">
-                <h1>AWS SAA-C03 Practice Exam</h1>
-                <p class="dashboard-subtitle">Welcome back, <span id="user-name">Student</span>!</p>
+            <div class="hero-section hero-section-compact">
+                <div class="hero-content">
+                    <div class="hero-logo-wrapper">
+                        <img src="Website-logo.png" alt="AWS Lahavda Logo" class="hero-logo hero-logo-compact" />
+                    </div>
+                    <div class="hero-badge">Welcome back</div>
+                    <h1 class="hero-title">Ready to practice, <span id="user-name">Student</span>?</h1>
+                    <p class="hero-subtitle">Continue your journey to AWS certification success</p>
+                </div>
                 <button class="user-settings-btn" onclick="showUserSettings()" title="User Settings">⚙️</button>
-            </div>
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <div class="stat-number">0</div>
-                    <div class="stat-label">Questions Answered</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">0%</div>
-                    <div class="stat-label">Accuracy</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">0</div>
-                    <div class="stat-label">Tests Completed</div>
+                <div class="hero-decoration">
+                    <div class="hero-circle hero-circle-1"></div>
+                    <div class="hero-circle hero-circle-2"></div>
                 </div>
             </div>
+            <!-- Insights Section -->
+            <div id="insights-container" class="insights-section">
+                <h2>Performance Insights</h2>
+                <div class="insights-loading">Loading insights...</div>
+            </div>
+            
             <h2>Choose Your Practice Mode</h2>
             <div class="mode-buttons">
                 <button class="mode-btn large" onclick="selectPracticeMode('domain')">
@@ -118,6 +172,830 @@
             <button class="back-btn" onclick="goBackToTestSelection()">← Back to Tests</button>
         </div>
 
+        <!-- Study Guide Screen -->
+        <div id="study-guide-screen" class="screen hidden">
+            <div class="study-guide-page">
+                <div class="study-guide-hero">
+                    <div class="study-guide-icon">📚</div>
+                    <h1>AWS SAA-C03 Study Guide</h1>
+                    <p class="study-guide-subtitle">Your comprehensive roadmap to AWS Solutions Architect Associate certification success</p>
+                </div>
+
+                <div class="study-guide-content">
+                    <!-- Exam Overview -->
+                    <section class="study-guide-section">
+                        <div class="study-guide-section-header">
+                            <div class="study-guide-section-icon">ℹ️</div>
+                            <h2>Exam Overview</h2>
+                        </div>
+                        <div class="study-guide-info-cards">
+                            <div class="study-guide-info-card">
+                                <div class="info-card-icon">⏱️</div>
+                                <h3>Duration</h3>
+                                <p>130 minutes</p>
+                            </div>
+                            <div class="study-guide-info-card">
+                                <div class="info-card-icon">❓</div>
+                                <h3>Questions</h3>
+                                <p>65 questions</p>
+                            </div>
+                            <div class="study-guide-info-card">
+                                <div class="info-card-icon">✅</div>
+                                <h3>Passing Score</h3>
+                                <p>720/1000 (72%)</p>
+                            </div>
+                            <div class="study-guide-info-card">
+                                <div class="info-card-icon">💰</div>
+                                <h3>Exam Fee</h3>
+                                <p>$150 USD</p>
+                            </div>
+                        </div>
+                        <div class="study-guide-text-content">
+                            <p>The AWS Certified Solutions Architect - Associate (SAA-C03) exam validates your ability to design and deploy scalable, highly available, and fault-tolerant systems on AWS. The exam tests your knowledge across four key domains of AWS architecture.</p>
+                            <p><strong>Question Types:</strong> Multiple choice and multiple response questions. Some questions may include diagrams or scenarios that require you to select the best solution.</p>
+                        </div>
+                    </section>
+
+                    <!-- Exam Domains -->
+                    <section class="study-guide-section">
+                        <div class="study-guide-section-header">
+                            <div class="study-guide-section-icon">📖</div>
+                            <h2>Exam Domains & Weighting</h2>
+                        </div>
+                        <div class="study-guide-domains">
+                            <div class="study-guide-domain-card">
+                                <div class="domain-header">
+                                    <h3>Domain 1: Design Secure Architectures</h3>
+                                    <span class="domain-weight">30%</span>
+                                </div>
+                                <div class="domain-content">
+                                    <h4>Key Topics:</h4>
+                                    <ul>
+                                        <li>IAM roles, policies, and best practices</li>
+                                        <li>Data encryption (at rest and in transit)</li>
+                                        <li>Network security (VPC, Security Groups, NACLs)</li>
+                                        <li>AWS WAF, Shield, and GuardDuty</li>
+                                        <li>Compliance and data protection</li>
+                                        <li>Secrets management (Secrets Manager, Parameter Store)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="study-guide-domain-card">
+                                <div class="domain-header">
+                                    <h3>Domain 2: Design Resilient Architectures</h3>
+                                    <span class="domain-weight">26%</span>
+                                </div>
+                                <div class="domain-content">
+                                    <h4>Key Topics:</h4>
+                                    <ul>
+                                        <li>High availability and fault tolerance</li>
+                                        <li>Multi-AZ and multi-region deployments</li>
+                                        <li>Backup and disaster recovery strategies</li>
+                                        <li>Auto Scaling and Elastic Load Balancing</li>
+                                        <li>RDS, DynamoDB, and S3 replication</li>
+                                        <li>Route 53 health checks and failover</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="study-guide-domain-card">
+                                <div class="domain-header">
+                                    <h3>Domain 3: Design High-Performing Architectures</h3>
+                                    <span class="domain-weight">24%</span>
+                                </div>
+                                <div class="domain-content">
+                                    <h4>Key Topics:</h4>
+                                    <ul>
+                                        <li>Elastic Compute Cloud (EC2) instance types</li>
+                                        <li>Amazon S3 and CloudFront CDN</li>
+                                        <li>Database performance optimization</li>
+                                        <li>ElastiCache and DAX caching strategies</li>
+                                        <li>Auto Scaling policies and metrics</li>
+                                        <li>Network performance and placement groups</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="study-guide-domain-card">
+                                <div class="domain-header">
+                                    <h3>Domain 4: Design Cost-Optimized Architectures</h3>
+                                    <span class="domain-weight">20%</span>
+                                </div>
+                                <div class="domain-content">
+                                    <h4>Key Topics:</h4>
+                                    <ul>
+                                        <li>EC2 pricing models (On-Demand, Reserved, Spot)</li>
+                                        <li>Savings Plans and Reserved Instances</li>
+                                        <li>S3 storage classes and lifecycle policies</li>
+                                        <li>Cost monitoring with Cost Explorer and Budgets</li>
+                                        <li>Right-sizing instances and resources</li>
+                                        <li>Data transfer cost optimization</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Study Tips -->
+                    <section class="study-guide-section">
+                        <div class="study-guide-section-header">
+                            <div class="study-guide-section-icon">💡</div>
+                            <h2>Study Tips & Strategies</h2>
+                        </div>
+                        <div class="study-guide-tips">
+                            <div class="study-guide-tip-card">
+                                <div class="tip-number">1</div>
+                                <div class="tip-content">
+                                    <h3>Start with Hands-On Practice</h3>
+                                    <p>Create a free AWS account and practice building solutions. Hands-on experience is crucial for understanding AWS services and their interactions.</p>
+                                </div>
+                            </div>
+                            <div class="study-guide-tip-card">
+                                <div class="tip-number">2</div>
+                                <div class="tip-content">
+                                    <h3>Use Practice Exams</h3>
+                                    <p>Take multiple practice exams to familiarize yourself with question formats and identify weak areas. Aim for consistent scores above 80% before scheduling your exam.</p>
+                                </div>
+                            </div>
+                            <div class="study-guide-tip-card">
+                                <div class="tip-number">3</div>
+                                <div class="tip-content">
+                                    <h3>Focus on Weak Domains</h3>
+                                    <p>Use our domain-specific practice mode to focus on areas where you score lower. Review explanations thoroughly to understand the reasoning behind correct answers.</p>
+                                </div>
+                            </div>
+                            <div class="study-guide-tip-card">
+                                <div class="tip-number">4</div>
+                                <div class="tip-content">
+                                    <h3>Understand AWS Well-Architected Framework</h3>
+                                    <p>The five pillars (Operational Excellence, Security, Reliability, Performance Efficiency, Cost Optimization) are fundamental to the exam.</p>
+                                </div>
+                            </div>
+                            <div class="study-guide-tip-card">
+                                <div class="tip-number">5</div>
+                                <div class="tip-content">
+                                    <h3>Review AWS Documentation</h3>
+                                    <p>Read AWS service documentation, especially FAQs and best practices. The exam often tests your knowledge of AWS-recommended approaches.</p>
+                                </div>
+                            </div>
+                            <div class="study-guide-tip-card">
+                                <div class="tip-number">6</div>
+                                <div class="tip-content">
+                                    <h3>Time Management</h3>
+                                    <p>Practice completing 65 questions in 130 minutes. That's approximately 2 minutes per question. Use our timed test mode to build this skill.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Key AWS Services -->
+                    <section class="study-guide-section">
+                        <div class="study-guide-section-header">
+                            <div class="study-guide-section-icon">☁️</div>
+                            <h2>Essential AWS Services to Master</h2>
+                        </div>
+                        <div class="study-guide-services">
+                            <div class="service-category">
+                                <h3>Compute</h3>
+                                <ul>
+                                    <li>EC2 (Instance types, AMIs, EBS)</li>
+                                    <li>Lambda (Serverless functions)</li>
+                                    <li>Elastic Beanstalk</li>
+                                    <li>ECS & EKS (Container services)</li>
+                                </ul>
+                            </div>
+                            <div class="service-category">
+                                <h3>Storage</h3>
+                                <ul>
+                                    <li>S3 (Storage classes, lifecycle policies)</li>
+                                    <li>EBS (Volume types, snapshots)</li>
+                                    <li>EFS (Elastic File System)</li>
+                                    <li>Storage Gateway</li>
+                                </ul>
+                            </div>
+                            <div class="service-category">
+                                <h3>Database</h3>
+                                <ul>
+                                    <li>RDS (Multi-AZ, read replicas)</li>
+                                    <li>DynamoDB (Global tables, DAX)</li>
+                                    <li>ElastiCache (Redis & Memcached)</li>
+                                    <li>Redshift</li>
+                                </ul>
+                            </div>
+                            <div class="service-category">
+                                <h3>Networking</h3>
+                                <ul>
+                                    <li>VPC (Subnets, Route Tables, Internet Gateway)</li>
+                                    <li>CloudFront (CDN)</li>
+                                    <li>Route 53 (DNS, health checks)</li>
+                                    <li>API Gateway</li>
+                                </ul>
+                            </div>
+                            <div class="service-category">
+                                <h3>Security</h3>
+                                <ul>
+                                    <li>IAM (Users, Roles, Policies)</li>
+                                    <li>KMS (Key Management Service)</li>
+                                    <li>Secrets Manager</li>
+                                    <li>WAF, Shield, GuardDuty</li>
+                                </ul>
+                            </div>
+                            <div class="service-category">
+                                <h3>Management</h3>
+                                <ul>
+                                    <li>CloudWatch (Monitoring, Alarms)</li>
+                                    <li>CloudFormation (Infrastructure as Code)</li>
+                                    <li>Auto Scaling</li>
+                                    <li>Elastic Load Balancing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Exam Day Tips -->
+                    <section class="study-guide-section">
+                        <div class="study-guide-section-header">
+                            <div class="study-guide-section-icon">📝</div>
+                            <h2>Exam Day Tips</h2>
+                        </div>
+                        <div class="study-guide-exam-tips">
+                            <div class="exam-tip-item">
+                                <div class="exam-tip-icon">✅</div>
+                                <div>
+                                    <h4>Before the Exam</h4>
+                                    <ul>
+                                        <li>Get a good night's sleep</li>
+                                        <li>Arrive early (if taking at a test center) or test your setup (if online)</li>
+                                        <li>Review key concepts one last time</li>
+                                        <li>Have a valid ID ready</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="exam-tip-item">
+                                <div class="exam-tip-icon">⏱️</div>
+                                <div>
+                                    <h4>During the Exam</h4>
+                                    <ul>
+                                        <li>Read questions carefully - look for keywords like "MOST", "LEAST", "BEST"</li>
+                                        <li>Eliminate obviously wrong answers first</li>
+                                        <li>Mark questions for review if unsure</li>
+                                        <li>Manage your time - don't spend too long on one question</li>
+                                        <li>Review marked questions before submitting</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="exam-tip-item">
+                                <div class="exam-tip-icon">🎯</div>
+                                <div>
+                                    <h4>Question Strategy</h4>
+                                    <ul>
+                                        <li>Focus on AWS best practices and recommended approaches</li>
+                                        <li>Consider cost, security, and performance in your answers</li>
+                                        <li>Look for the most operationally efficient solution</li>
+                                        <li>Remember: AWS prefers managed services over self-managed solutions</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Recommended Resources -->
+                    <section class="study-guide-section">
+                        <div class="study-guide-section-header">
+                            <div class="study-guide-section-icon">📚</div>
+                            <h2>Recommended Resources</h2>
+                        </div>
+                        <div class="study-guide-resources">
+                            <div class="resource-card">
+                                <h3>Official AWS Resources</h3>
+                                <ul>
+                                    <li>AWS Certified Solutions Architect - Associate Exam Guide</li>
+                                    <li>AWS Well-Architected Framework documentation</li>
+                                    <li>AWS Service documentation and FAQs</li>
+                                    <li>AWS Training and Certification portal</li>
+                                </ul>
+                            </div>
+                            <div class="resource-card">
+                                <h3>Practice Platforms</h3>
+                                <ul>
+                                    <li>AWS Lahavda (this platform!)</li>
+                                    <li>Stephane Maarek's practice tests</li>
+                                    <li>Tutorials Dojo practice exams</li>
+                                    <li>AWS official sample questions</li>
+                                </ul>
+                            </div>
+                            <div class="resource-card">
+                                <h3>Additional Learning</h3>
+                                <ul>
+                                    <li>AWS re:Invent session recordings</li>
+                                    <li>YouTube channels (AWS official, Stephane Maarek)</li>
+                                    <li>Study groups and forums (Reddit r/AWSCertifications)</li>
+                                    <li>Hands-on labs (AWS Free Tier, Qwiklabs)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- CTA Section -->
+                    <section class="study-guide-section study-guide-cta">
+                        <div class="study-guide-cta-content">
+                            <h2>Ready to Start Practicing?</h2>
+                            <p>Put your knowledge to the test with our comprehensive practice exams. Track your progress and identify areas for improvement.</p>
+                            <div class="study-guide-cta-buttons">
+                                <button class="study-guide-btn-primary" onclick="if (typeof Navigation !== 'undefined') Navigation.showScreen('sign-in-screen'); else if (typeof showSignInScreen === 'function') showSignInScreen();">
+                                    Start Practicing Now
+                                </button>
+                                <button class="study-guide-btn-secondary" onclick="if (typeof Navigation !== 'undefined') Navigation.showMainScreen(); else if (typeof showMainScreen === 'function') showMainScreen();">
+                                    Explore Practice Modes
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Us Screen -->
+        <div id="about-us-screen" class="screen hidden">
+            <div class="about-page">
+                <div class="about-page-hero">
+                    <div class="about-page-logo-wrapper">
+                        <img src="Website-logo.png" alt="AWS Lahavda Logo" class="about-page-logo" />
+                    </div>
+                    <h1>About AWS Lahavda</h1>
+                    <p class="about-page-tagline">Your trusted partner for AWS certification success</p>
+                </div>
+
+                <div class="about-page-content">
+                    <!-- Mission Section -->
+                    <section class="about-page-section">
+                        <div class="about-page-section-header">
+                            <div class="about-page-icon">🎯</div>
+                            <h2>Our Mission</h2>
+                        </div>
+                        <div class="about-page-section-content">
+                            <p>AWS Lahavda is dedicated to helping aspiring cloud professionals achieve their AWS Solutions Architect Associate (SAA-C03) certification. We understand that passing this exam requires not just knowledge, but also confidence and practice.</p>
+                            <p>Our platform provides comprehensive practice exams, detailed explanations, and intelligent progress tracking to ensure you're fully prepared for exam day. We believe that everyone deserves access to quality study materials, which is why our platform is completely free.</p>
+                        </div>
+                    </section>
+
+                    <!-- What We Offer Section -->
+                    <section class="about-page-section">
+                        <div class="about-page-section-header">
+                            <div class="about-page-icon">✨</div>
+                            <h2>What We Offer</h2>
+                        </div>
+                        <div class="about-page-features-grid">
+                            <div class="about-page-feature-card">
+                                <div class="about-page-feature-icon">📚</div>
+                                <h3>650+ Practice Questions</h3>
+                                <p>Comprehensive question bank covering all four exam domains: Design Secure Architectures, Design Resilient Architectures, Design High-Performing Architectures, and Design Cost-Optimized Architectures.</p>
+                            </div>
+                            <div class="about-page-feature-card">
+                                <div class="about-page-feature-icon">📊</div>
+                                <h3>Performance Analytics</h3>
+                                <p>Track your progress with detailed statistics, domain-specific performance metrics, and identify areas that need more attention. Visual insights help you understand your strengths and weaknesses.</p>
+                            </div>
+                            <div class="about-page-feature-card">
+                                <div class="about-page-feature-icon">🎯</div>
+                                <h3>Domain-Specific Practice</h3>
+                                <p>Focus on specific AWS domains that need attention. Practice questions from a single domain across all available tests to master that area completely.</p>
+                            </div>
+                            <div class="about-page-feature-card">
+                                <div class="about-page-feature-icon">💡</div>
+                                <h3>Detailed Explanations</h3>
+                                <p>Learn from comprehensive explanations for every question. Understand not just the correct answer, but why other options are incorrect, helping you build deeper knowledge.</p>
+                            </div>
+                            <div class="about-page-feature-card">
+                                <div class="about-page-feature-icon">⏱️</div>
+                                <h3>Timed Test Mode</h3>
+                                <p>Simulate the real exam experience with our 130-minute timed test mode. Practice under exam conditions to build confidence and time management skills.</p>
+                            </div>
+                            <div class="about-page-feature-card">
+                                <div class="about-page-feature-icon">🔄</div>
+                                <h3>Review Mode</h3>
+                                <p>Get immediate feedback after each answer in review mode. Perfect for learning and understanding concepts without the pressure of a timed exam.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Why Choose Us Section -->
+                    <section class="about-page-section">
+                        <div class="about-page-section-header">
+                            <div class="about-page-icon">🌟</div>
+                            <h2>Why Choose AWS Lahavda?</h2>
+                        </div>
+                        <div class="about-page-benefits">
+                            <div class="about-page-benefit-item">
+                                <div class="about-page-benefit-check">✓</div>
+                                <div>
+                                    <h4>Multiple Trusted Sources</h4>
+                                    <p>Questions from Stephane Maarek, Tutorials Dojo, and Sergey - ensuring comprehensive coverage of exam topics.</p>
+                                </div>
+                            </div>
+                            <div class="about-page-benefit-item">
+                                <div class="about-page-benefit-check">✓</div>
+                                <div>
+                                    <h4>Real-Time Progress Tracking</h4>
+                                    <p>Your progress is automatically saved and synced across all your devices using Firebase. Study on your phone, tablet, or computer seamlessly.</p>
+                                </div>
+                            </div>
+                            <div class="about-page-benefit-item">
+                                <div class="about-page-benefit-check">✓</div>
+                                <div>
+                                    <h4>Flexible Practice Modes</h4>
+                                    <p>Choose between review mode for learning or test mode for exam simulation. Practice by domain or take complete practice exams.</p>
+                                </div>
+                            </div>
+                            <div class="about-page-benefit-item">
+                                <div class="about-page-benefit-check">✓</div>
+                                <div>
+                                    <h4>Completely Free</h4>
+                                    <p>No hidden costs, no subscriptions. Just sign in with your Google account and start practicing immediately.</p>
+                                </div>
+                            </div>
+                            <div class="about-page-benefit-item">
+                                <div class="about-page-benefit-check">✓</div>
+                                <div>
+                                    <h4>Mobile-Responsive Design</h4>
+                                    <p>Study anywhere, anytime. Our platform works perfectly on desktop, tablet, and mobile devices.</p>
+                                </div>
+                            </div>
+                            <div class="about-page-benefit-item">
+                                <div class="about-page-benefit-check">✓</div>
+                                <div>
+                                    <h4>Question Marking & Review</h4>
+                                    <p>Mark questions for review and easily navigate through your marked questions. Perfect for focusing on challenging topics.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Exam Domains Section -->
+                    <section class="about-page-section">
+                        <div class="about-page-section-header">
+                            <div class="about-page-icon">📖</div>
+                            <h2>Exam Domains Covered</h2>
+                        </div>
+                        <div class="about-page-domains">
+                            <div class="about-page-domain-card">
+                                <h3>Design Secure Architectures</h3>
+                                <p>Security, IAM, encryption, compliance, and data protection best practices.</p>
+                            </div>
+                            <div class="about-page-domain-card">
+                                <h3>Design Resilient Architectures</h3>
+                                <p>Availability, backups, disaster recovery, and fault tolerance strategies.</p>
+                            </div>
+                            <div class="about-page-domain-card">
+                                <h3>Design High-Performing Architectures</h3>
+                                <p>Performance optimization, scaling, caching, and latency reduction techniques.</p>
+                            </div>
+                            <div class="about-page-domain-card">
+                                <h3>Design Cost-Optimized Architectures</h3>
+                                <p>Cost optimization, pricing models, savings plans, and resource efficiency.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Get Started Section -->
+                    <section class="about-page-section about-page-cta">
+                        <div class="about-page-cta-content">
+                            <h2>Ready to Start Your Journey?</h2>
+                            <p>Join thousands of students preparing for their AWS certification. Sign in with your Google account and start practicing today!</p>
+                            <div class="about-page-cta-buttons">
+                                <button class="about-page-btn-primary" onclick="if (typeof Navigation !== 'undefined') Navigation.showScreen('sign-in-screen'); else if (typeof showSignInScreen === 'function') showSignInScreen();">
+                                    Get Started Free
+                                </button>
+                                <button class="about-page-btn-secondary" onclick="if (typeof Navigation !== 'undefined') Navigation.showMainScreen(); else if (typeof showMainScreen === 'function') showMainScreen();">
+                                    Explore Platform
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ Screen -->
+        <div id="faq-screen" class="screen hidden">
+            <div class="faq-page">
+                <div class="faq-hero">
+                    <div class="faq-icon">❓</div>
+                    <h1>Frequently Asked Questions</h1>
+                    <p class="faq-subtitle">Find answers to common questions about AWS Lahavda and the SAA-C03 exam</p>
+                </div>
+
+                <div class="faq-content">
+                    <!-- Platform Questions -->
+                    <section class="faq-section">
+                        <div class="faq-section-header">
+                            <div class="faq-section-icon">🚀</div>
+                            <h2>Platform & Usage</h2>
+                        </div>
+                        <div class="faq-items">
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>Is AWS Lahavda free to use?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>Yes! AWS Lahavda is completely free to use. Simply sign in with your Google account to access all features, including practice exams, progress tracking, and detailed explanations.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>How do I save my progress?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>Your progress is automatically saved to Firebase when you sign in with Google. Your data is synced across all your devices, so you can study on your phone, tablet, or computer seamlessly.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>What's the difference between Review Mode and Test Mode?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p><strong>Review Mode:</strong> Get immediate feedback after each answer with detailed explanations. Perfect for learning and understanding concepts.</p>
+                                    <p><strong>Test Mode:</strong> Simulates the real exam with a 130-minute timer. You'll see your results and explanations only after completing the entire test.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>Can I practice by specific AWS domain?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>Yes! Select "By Domain" from the main menu to practice questions from a specific domain (Design Secure Architectures, Design Resilient Architectures, etc.) across all available tests.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>How do I mark questions for review?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>Click the "Mark" button while viewing a question. Marked questions are highlighted in the question navigation bar, making it easy to review them later.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>Can I export my progress data?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>Yes! Go to Settings → Data Management → Export Data to download your progress as a JSON file. You can import it later or use it to sync across different browsers.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Exam Questions -->
+                    <section class="faq-section">
+                        <div class="faq-section-header">
+                            <div class="faq-section-icon">📝</div>
+                            <h2>About the SAA-C03 Exam</h2>
+                        </div>
+                        <div class="faq-items">
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>What is the AWS SAA-C03 exam?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>The AWS Certified Solutions Architect - Associate (SAA-C03) exam validates your ability to design and deploy scalable, highly available, and fault-tolerant systems on AWS. It's one of the most popular AWS certifications.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>How long is the exam?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>The exam is 130 minutes long and consists of 65 questions. That's approximately 2 minutes per question, so time management is crucial.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>What score do I need to pass?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>The passing score is 720 out of 1000 points (72%). However, AWS doesn't reveal the exact scoring methodology, so it's best to aim for consistent scores above 80% on practice exams.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>What topics are covered in the exam?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>The exam covers four domains:</p>
+                                    <ul>
+                                        <li><strong>Design Secure Architectures (30%):</strong> Security, IAM, encryption, compliance</li>
+                                        <li><strong>Design Resilient Architectures (26%):</strong> Availability, backups, disaster recovery</li>
+                                        <li><strong>Design High-Performing Architectures (24%):</strong> Performance, scaling, caching</li>
+                                        <li><strong>Design Cost-Optimized Architectures (20%):</strong> Cost optimization, pricing models</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>How much does the exam cost?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>The exam fee is $150 USD. You can schedule your exam through the AWS Certification portal or at a Pearson VUE test center.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>How should I prepare for the exam?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>We recommend:</p>
+                                    <ol>
+                                        <li>Get hands-on experience with AWS services</li>
+                                        <li>Take multiple practice exams (aim for 80%+ consistently)</li>
+                                        <li>Review AWS documentation and best practices</li>
+                                        <li>Focus on weak domains using our domain-specific practice</li>
+                                        <li>Understand the AWS Well-Architected Framework</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Technical Questions -->
+                    <section class="faq-section">
+                        <div class="faq-section-header">
+                            <div class="faq-section-icon">🔧</div>
+                            <h2>Technical & Support</h2>
+                        </div>
+                        <div class="faq-items">
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>Do I need to create an account?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>Yes, you need to sign in with your Google account to save your progress and access all features. This is free and only takes a few seconds.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>Is my data secure?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>Yes! We use Firebase (Google's secure cloud platform) to store your data. Your progress is encrypted and only accessible through your Google account. We don't share your data with third parties.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>Can I use this on mobile devices?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>Absolutely! AWS Lahavda is fully responsive and works great on smartphones, tablets, and desktops. Your progress syncs across all devices automatically.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>What browsers are supported?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>We support all modern browsers including Chrome, Firefox, Safari, and Edge. For the best experience, we recommend using the latest version of your browser.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>Can I reset my progress?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>Yes, you can reset your progress from Settings → Danger Zone → Reset All Progress. <strong>Warning:</strong> This action cannot be undone and will permanently delete all your progress data.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h3>Where do the practice questions come from?</h3>
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 9l6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="faq-answer">
+                                    <p>Our practice questions come from multiple trusted sources including Stephane Maarek, Tutorials Dojo, and Sergey. These are widely recognized as high-quality practice materials for AWS certification exams.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Still Have Questions -->
+                    <section class="faq-section faq-cta">
+                        <div class="faq-cta-content">
+                            <h2>Still Have Questions?</h2>
+                            <p>If you can't find the answer you're looking for, feel free to explore our platform or check out our Study Guide for more detailed information about the exam.</p>
+                            <div class="faq-cta-buttons">
+                                <button class="faq-btn-primary" onclick="if (typeof Navigation !== 'undefined') Navigation.showScreen('sign-in-screen'); else if (typeof showSignInScreen === 'function') showSignInScreen();">
+                                    Start Practicing
+                                </button>
+                                <button class="faq-btn-secondary" onclick="if (typeof Navigation !== 'undefined') Navigation.showScreen('study-guide-screen'); else if (typeof showStudyGuide === 'function') showStudyGuide();">
+                                    View Study Guide
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
         <!-- Domain Selection Screen (for By Domain) -->
         <div id="domain-selection" class="screen hidden">
             <h2>Select Domain to Review</h2>
@@ -163,8 +1041,8 @@
                     <span id="question-domain" class="domain-badge"></span>
                 </div>
                 <div class="question-actions">
-                    <button class="mark-btn" id="mark-btn" onclick="toggleMarkQuestion()" title="Mark for review">
-                        <span id="mark-icon">☆</span> Mark
+                    <button class="mark-btn" id="mark-btn" type="button" title="Mark for review">
+                        <span id="mark-icon">☆</span><span> Mark</span>
                     </button>
                     <button class="dashboard-btn" onclick="showDashboardDialog()" title="Return to dashboard">
                         🏠 Dashboard
@@ -254,36 +1132,149 @@
 
         <!-- User Settings Dialog -->
         <div id="user-settings-dialog" class="modal hidden">
-            <div class="modal-content">
-                <h3>User Settings</h3>
+            <div class="modal-content settings-modal-content">
+                <div class="settings-header">
+                    <h3>User Settings</h3>
+                    <button class="settings-close-btn" onclick="closeUserSettings()" aria-label="Close settings">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
                 <div class="user-settings-form">
-                    <div class="form-group">
-                        <label for="user-name-input">Your Name:</label>
-                        <input type="text" id="user-name-input" placeholder="Enter your name" />
-                    </div>
-                    <div class="user-stats-info">
-                        <h4>Your Statistics</h4>
-                        <p><strong>Questions Answered:</strong> <span id="settings-questions-answered">0</span></p>
-                        <p><strong>Accuracy:</strong> <span id="settings-accuracy">0%</span></p>
-                        <p><strong>Tests Completed:</strong> <span id="settings-tests-completed">0</span></p>
-                        <p><strong>Domains Practiced:</strong> <span id="settings-domains-practiced">0</span></p>
-                    </div>
-                    <div class="user-switch-section">
-                        <h4>Switch User</h4>
-                        <button class="modal-btn" onclick="signOut()">Sign Out</button>
-                    </div>
-                    <div class="user-sync-section">
-                        <h4>Sync Across Browsers</h4>
-                        <p class="sync-description">Export your data to sync across different browsers or devices</p>
-                        <div class="sync-buttons">
-                            <button class="modal-btn" onclick="exportUserData()">📥 Export Data</button>
-                            <button class="modal-btn" onclick="importUserData()">📤 Import Data</button>
+                    <!-- Profile Section -->
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <svg class="settings-section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <h4>Profile</h4>
+                        </div>
+                        <div class="form-group">
+                            <label for="user-name-input">Your Name</label>
+                            <input type="text" id="user-name-input" placeholder="Enter your name" />
                         </div>
                     </div>
-                    <div class="modal-buttons">
-                        <button class="modal-btn primary" onclick="saveUserSettings()">Save</button>
-                        <button class="modal-btn danger" onclick="resetUserData()">Reset Progress</button>
-                        <button class="modal-btn" onclick="closeUserSettings()">Cancel</button>
+
+                    <!-- Statistics Section -->
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <svg class="settings-section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="20" x2="12" y2="10"></line>
+                                <line x1="18" y1="20" x2="18" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="16"></line>
+                            </svg>
+                            <h4>Your Statistics</h4>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon stat-icon-questions">📝</div>
+                                <div class="stat-content">
+                                    <div class="stat-label">Questions Answered</div>
+                                    <div class="stat-value" id="settings-questions-answered">0</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon stat-icon-accuracy">🎯</div>
+                                <div class="stat-content">
+                                    <div class="stat-label">Accuracy</div>
+                                    <div class="stat-value" id="settings-accuracy">0%</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon stat-icon-tests">📊</div>
+                                <div class="stat-content">
+                                    <div class="stat-label">Tests Completed</div>
+                                    <div class="stat-value" id="settings-tests-completed">0</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon stat-icon-domains">📚</div>
+                                <div class="stat-content">
+                                    <div class="stat-label">Domains Practiced</div>
+                                    <div class="stat-value" id="settings-domains-practiced">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Actions -->
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <svg class="settings-section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            <h4>Account</h4>
+                        </div>
+                        <div class="account-actions">
+                            <button class="account-action-btn" onclick="signOut()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                <span>Sign Out</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Data Management -->
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <svg class="settings-section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                            </svg>
+                            <h4>Data Management</h4>
+                        </div>
+                        <p class="sync-description">Export or import your progress data to sync across different browsers or devices</p>
+                        <div class="data-actions">
+                            <button class="data-action-btn data-action-export" onclick="exportUserData()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>Export Data</span>
+                            </button>
+                            <button class="data-action-btn data-action-import" onclick="importUserData()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                <span>Import Data</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Danger Zone -->
+                    <div class="settings-section settings-section-danger">
+                        <div class="settings-section-header">
+                            <svg class="settings-section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            <h4>Danger Zone</h4>
+                        </div>
+                        <p class="danger-description">This action cannot be undone. All your progress will be permanently deleted.</p>
+                        <button class="danger-action-btn" onclick="resetUserData()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            <span>Reset All Progress</span>
+                        </button>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="settings-footer">
+                        <button class="settings-footer-btn settings-footer-btn-primary" onclick="saveUserSettings()">Save Changes</button>
+                        <button class="settings-footer-btn" onclick="closeUserSettings()">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -313,6 +1304,7 @@
     <script src="js/modules/results.js"></script>
     <script src="js/modules/test.js"></script>
     <script src="js/modules/ui.js"></script>
+    <script src="js/modules/insights.js"></script>
     <script src="js/modules/navigation.js"></script>
     
     <!-- Firebase (must load before app.js) -->
@@ -320,5 +1312,122 @@
     
     <!-- Main Application -->
     <script src="app.js"></script>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="footer-logo-wrapper">
+                    <img src="Website-logo.png" alt="AWS Lahavda Logo" class="footer-logo" />
+                </div>
+                <div class="footer-brand-info">
+                    <h3>AWS Lahavda</h3>
+                    <p>Your trusted partner for AWS certification success</p>
+                </div>
+            </div>
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a href="#" onclick="showMainScreen(); return false;">Practice Exams</a></li>
+                        <li><a href="#" onclick="showAboutUs(); return false;">About Us</a></li>
+                        <li><a href="#" onclick="showUserSettings(); return false;">Settings</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#" onclick="showStudyGuide(); return false;">Study Guide</a></li>
+                        <li><a href="#" onclick="showAboutUs(); return false;">Tips & Tricks</a></li>
+                        <li><a href="#" onclick="showFAQ(); return false;">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="#" onclick="showAboutUs(); return false;">Contact</a></li>
+                        <li><a href="#" onclick="showAboutUs(); return false;">Support</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 AWS Lahavda. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- About Us Modal -->
+    <div id="about-us-modal" class="modal hidden">
+        <div class="modal-content about-modal-content">
+            <div class="about-header">
+                <div class="about-logo-wrapper">
+                    <img src="Website-logo.png" alt="AWS Lahavda Logo" class="about-logo" />
+                </div>
+                <h2>About AWS Lahavda</h2>
+                <button class="settings-close-btn" onclick="closeAboutUs()" aria-label="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="about-content">
+                <div class="about-section">
+                    <h3>Our Mission</h3>
+                    <p>AWS Lahavda is dedicated to helping aspiring cloud professionals achieve their AWS Solutions Architect Associate (SAA-C03) certification. We provide comprehensive practice exams, detailed explanations, and progress tracking to ensure your success.</p>
+                </div>
+                <div class="about-section">
+                    <h3>What We Offer</h3>
+                    <div class="about-features">
+                        <div class="about-feature">
+                            <div class="about-feature-icon">📚</div>
+                            <div>
+                                <h4>650+ Practice Questions</h4>
+                                <p>Comprehensive question bank covering all exam domains</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">📊</div>
+                            <div>
+                                <h4>Performance Analytics</h4>
+                                <p>Track your progress and identify areas for improvement</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">🎯</div>
+                            <div>
+                                <h4>Domain-Specific Practice</h4>
+                                <p>Focus on specific AWS domains that need attention</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">💡</div>
+                            <div>
+                                <h4>Detailed Explanations</h4>
+                                <p>Learn from comprehensive explanations for every question</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-section">
+                    <h3>Why Choose AWS Lahavda?</h3>
+                    <ul class="about-list">
+                        <li>✅ Questions from multiple trusted sources (Stephane Maarek, Tutorials Dojo, Sergey)</li>
+                        <li>✅ Real-time progress tracking across all devices</li>
+                        <li>✅ Review mode and timed test mode for flexible practice</li>
+                        <li>✅ Free access with Google account sign-in</li>
+                        <li>✅ Mobile-responsive design for studying anywhere</li>
+                    </ul>
+                </div>
+                <div class="about-section">
+                    <h3>Get Started</h3>
+                    <p>Sign in with your Google account to start practicing and track your progress. Your data is securely synced across all your devices, so you can study anywhere, anytime.</p>
+                    <button class="about-cta-btn" onclick="closeAboutUs(); if (typeof showSignInScreen === 'function') showSignInScreen(); else if (typeof Navigation !== 'undefined') Navigation.showScreen('sign-in-screen');">
+                        Start Practicing Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

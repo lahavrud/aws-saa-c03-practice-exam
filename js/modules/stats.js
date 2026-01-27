@@ -23,11 +23,13 @@ const Stats = (function() {
             // Process current session answers only if includeCurrentSession is true
             if (includeCurrentSession && currentQuestions && currentQuestions.length > 0) {
                 currentQuestions.forEach(question => {
-                    const questionKey = question.id.toString();
+                    // Use uniqueId for retrieving answers
+                    const questionKey = (question.uniqueId || question.id).toString();
                     const selectedAnswers = userAnswers[questionKey] || [];
                     
                     if (selectedAnswers.length > 0) {
-                        const questionId = currentTest ? `test${currentTest}-q${question.id}` : `domain-${selectedDomain}-q${question.id}`;
+                        // Use uniqueId for tracking, fallback to generated ID
+                        const questionId = question.uniqueId || (currentTest ? `test${currentTest}-q${question.id}` : `domain-${selectedDomain}-q${question.id}`);
                         
                         // Check if answer is correct
                         const selectedSet = new Set(selectedAnswers.sort());
@@ -67,12 +69,16 @@ const Stats = (function() {
                                 const testKey = `test${testNum}`;
                                 const testQuestions = questions[testKey];
                                 if (testQuestions && testQuestions.length > 0) {
-                                    testQuestions.forEach(question => {
-                                        const questionKey = question.id.toString();
-                                        const selectedAnswers = progress.answers[questionKey] || [];
+                                    testQuestions.forEach((question, qIndex) => {
+                                        // Try to match by uniqueId first, then by id
+                                        const questionUniqueId = question.uniqueId || `test${testNum}-q${qIndex + 1}`;
+                                        const questionKey = questionUniqueId.toString();
+                                        const oldQuestionKey = question.id.toString();
+                                        const selectedAnswers = progress.answers[questionKey] || progress.answers[oldQuestionKey] || [];
                                         
                                         if (selectedAnswers.length > 0) {
-                                            const questionId = `test${testNum}-q${question.id}`;
+                                            // Use uniqueId for tracking
+                                            const questionId = questionUniqueId;
                                             
                                             if (!questionsAnsweredSet.has(questionId)) {
                                                 const selectedSet = new Set(selectedAnswers.sort());
@@ -129,11 +135,15 @@ const Stats = (function() {
                                 
                                 if (filteredDomainQuestions && filteredDomainQuestions.length > 0) {
                                     filteredDomainQuestions.forEach(question => {
-                                        const questionKey = question.id.toString();
-                                        const selectedAnswers = progress.answers[questionKey] || [];
+                                        // Try to match by uniqueId first, then by id
+                                        const questionUniqueId = question.uniqueId || question.id;
+                                        const questionKey = questionUniqueId.toString();
+                                        const oldQuestionKey = question.id.toString();
+                                        const selectedAnswers = progress.answers[questionKey] || progress.answers[oldQuestionKey] || [];
                                         
                                         if (selectedAnswers.length > 0) {
-                                            const questionId = `domain-${progress.selectedDomain}-q${question.id}`;
+                                            // Use uniqueId for tracking
+                                            const questionId = questionUniqueId;
                                             
                                             if (!questionsAnsweredSet.has(questionId)) {
                                                 const selectedSet = new Set(selectedAnswers.sort());
@@ -183,24 +193,16 @@ const Stats = (function() {
                 ? Math.round((currentUser.stats.totalCorrectAnswers / currentUser.stats.totalQuestionsAnswered) * 100)
                 : 0;
             
-            // Update dashboard stats
-            const statCards = document.querySelectorAll('.stat-card');
-            if (statCards.length >= 3) {
-                statCards[0].querySelector('.stat-number').textContent = currentUser.stats.totalQuestionsAnswered;
-                statCards[0].querySelector('.stat-label').textContent = 'Questions Answered';
-                
-                statCards[1].querySelector('.stat-number').textContent = `${accuracy}%`;
-                statCards[1].querySelector('.stat-label').textContent = 'Accuracy';
-                
-                statCards[2].querySelector('.stat-number').textContent = currentUser.stats.testsCompleted;
-                statCards[2].querySelector('.stat-label').textContent = 'Tests Completed';
-            }
-            
             // Update user name in header
             const userNameElement = document.getElementById('user-name');
             if (userNameElement && currentUser) {
                 const currentUserEmail = AppState.getCurrentUserEmail();
                 userNameElement.textContent = currentUser.name || currentUser.displayName || currentUserEmail?.split('@')[0] || 'Student';
+            }
+            
+            // Update insights if available
+            if (typeof Insights !== 'undefined' && Insights.displayInsights) {
+                Insights.displayInsights();
             }
         }
     };

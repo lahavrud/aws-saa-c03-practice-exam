@@ -271,8 +271,47 @@ const TestManager = (function() {
         
         // Load saved progress
         loadSavedProgress: (testNumber) => {
+            // Load questions first before loading progress
+            const selectedDomain = AppState.getSelectedDomain();
+            
+            if (testNumber) {
+                // Load test questions first
+                const testQuestions = QuestionHandler.getTestQuestions(testNumber);
+                if (!testQuestions || testQuestions.length === 0) {
+                    console.error('Cannot load saved progress: Test questions not available');
+                    alert('Questions not loaded. Please try again.');
+                    return;
+                }
+                AppState.setCurrentQuestions(testQuestions);
+                AppState.setCurrentTest(testNumber);
+            } else if (selectedDomain) {
+                // Load domain questions first
+                const domainQuestions = QuestionHandler.getDomainQuestions(selectedDomain);
+                if (domainQuestions.length > 0) {
+                    AppState.setCurrentQuestions(domainQuestions);
+                } else {
+                    console.error('Cannot load saved progress: Domain questions not available');
+                    return;
+                }
+            }
+            
+            // Now load the saved progress (answers, marked questions, etc.)
             if (ProgressManager.loadSavedProgress(testNumber)) {
+                // Ensure questions are still loaded (they should be, but double-check)
+                const currentQuestions = AppState.getCurrentQuestions();
+                if (!currentQuestions || currentQuestions.length === 0) {
+                    console.error('Questions lost after loading progress, reloading...');
+                    if (testNumber) {
+                        const testQuestions = QuestionHandler.getTestQuestions(testNumber);
+                        AppState.setCurrentQuestions(testQuestions);
+                    } else if (selectedDomain) {
+                        const domainQuestions = QuestionHandler.getDomainQuestions(selectedDomain);
+                        AppState.setCurrentQuestions(domainQuestions);
+                    }
+                }
+                
                 Navigation.hideScreen('mode-selection');
+                Navigation.hideScreen('test-selection');
                 Navigation.showScreen('question-screen');
                 
                 QuestionHandler.buildQuestionNavbar();
@@ -289,6 +328,8 @@ const TestManager = (function() {
                 if (currentMode === Config.MODES.TEST) {
                     Timer.start();
                 }
+            } else {
+                console.error('Failed to load saved progress');
             }
         },
         
@@ -349,7 +390,8 @@ const TestManager = (function() {
                 return;
             }
             
-            const questionKey = question.id.toString();
+            // Use uniqueId for saving answers
+            const questionKey = (question.uniqueId || question.id).toString();
             const selectedAnswers = userAnswers[questionKey] || [];
             
             const submitBtn = document.getElementById('submit-btn');
@@ -383,9 +425,17 @@ const TestManager = (function() {
             const question = currentQuestions[currentQuestionIndex];
             
             if (question) {
-                const questionKey = question.id.toString();
+                // Use uniqueId for marking questions
+                const questionKey = (question.uniqueId || question.id).toString();
                 AppState.toggleMarkedQuestion(questionKey);
+                
+                // Update UI immediately
                 QuestionHandler.loadQuestion();
+                UI.updateStats();
+                
+                console.log('Question marked/unmarked:', questionKey);
+            } else {
+                console.warn('Cannot mark question: No question found at index', currentQuestionIndex);
             }
         }
     };

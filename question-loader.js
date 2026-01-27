@@ -1,6 +1,41 @@
 // Question Loader - Extracts questions from various sources
 // This can be extended to load from PDF, text files, or JSON files
 
+// Add unique IDs to all questions
+function addUniqueIdsToQuestions(questions) {
+    if (!questions || typeof questions !== 'object') {
+        return questions;
+    }
+    
+    const processed = {};
+    for (const testKey in questions) {
+        if (questions.hasOwnProperty(testKey) && testKey.startsWith('test')) {
+            const testQuestions = questions[testKey];
+            if (Array.isArray(testQuestions)) {
+                processed[testKey] = testQuestions.map((q, index) => {
+                    // Only add uniqueId if it doesn't already exist
+                    // Use original question ID (not index) for stability
+                    if (!q.uniqueId) {
+                        const testNum = testKey.replace('test', '');
+                        return {
+                            ...q,
+                            uniqueId: `test${testNum}-q${q.id}`,
+                            originalId: q.id // Keep original for reference
+                        };
+                    }
+                    return q;
+                });
+            } else {
+                processed[testKey] = testQuestions;
+            }
+        } else {
+            processed[testKey] = questions[testKey];
+        }
+    }
+    
+    return processed;
+}
+
 async function loadQuestionsFromFile(filePath) {
     // Ensure path is relative (works for both local dev and GitHub Pages)
     // Remove leading slash if present to ensure relative path
@@ -108,18 +143,18 @@ async function autoLoadQuestions() {
     // Check both window.examQuestions and global examQuestions
     const existingQuestions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
     if (existingQuestions) {
-        // Ensure it's on window for module access
-        window.examQuestions = existingQuestions;
-        return existingQuestions;
+        // Ensure it's on window for module access and add unique IDs
+        window.examQuestions = addUniqueIdsToQuestions(existingQuestions);
+        return window.examQuestions;
     }
     
     // Try to load from combined JSON file first
     try {
         const combinedData = await loadQuestionsFromFile('questions/all_tests.json');
         if (combinedData && typeof combinedData === 'object') {
-            // Assign to global examQuestions
-            window.examQuestions = combinedData;
-            return combinedData;
+            // Assign to global examQuestions and add unique IDs
+            window.examQuestions = addUniqueIdsToQuestions(combinedData);
+            return window.examQuestions;
         }
     } catch (error) {
         // Silently continue to try individual files
@@ -144,9 +179,9 @@ async function autoLoadQuestions() {
     }
     
     if (foundAny) {
-        // Assign to global examQuestions
-        window.examQuestions = loadedTests;
-        return loadedTests;
+        // Assign to global examQuestions and add unique IDs
+        window.examQuestions = addUniqueIdsToQuestions(loadedTests);
+        return window.examQuestions;
     }
     
     // Fallback: Try to load from text files
@@ -160,9 +195,9 @@ async function autoLoadQuestions() {
         try {
             const data = await loadQuestionsFromFile(file);
             if (data) {
-                // Assign to global examQuestions
-                window.examQuestions = data;
-                return data;
+                // Assign to global examQuestions and add unique IDs
+                window.examQuestions = addUniqueIdsToQuestions(data);
+                return window.examQuestions;
             }
         } catch (error) {
             // Continue to next file

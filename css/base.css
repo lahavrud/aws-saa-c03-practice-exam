@@ -1,0 +1,84 @@
+/* Base Styles - Reset, HTML, Body, Container, Screen, Typography */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+body {
+    font-family: 'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #F5F5F5;
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+    color: #16191F;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 20px auto;
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(35, 47, 62, 0.1);
+    overflow: hidden;
+    border: 1px solid #D5DBDB;
+    flex: 1;
+}
+
+header, .page-header {
+    background: #232F3E;
+    color: #FFFFFF;
+    padding: 30px;
+    text-align: center;
+    position: relative;
+    border-bottom: 3px solid #FF9900;
+}
+
+header h1 {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+.timer {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.timer.warning {
+    background: rgba(255, 87, 34, 0.9);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.screen {
+    padding: 40px;
+}
+
+.screen.hidden {
+    display: none;
+}
+
+h2 {
+    color: #232F3E;
+    margin-bottom: 30px;
+    font-size: 1.8em;
+    font-weight: 600;
+}
