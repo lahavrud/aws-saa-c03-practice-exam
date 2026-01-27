@@ -197,6 +197,11 @@ const TestManager = (function() {
             QuestionHandler.loadQuestion();
             Stats.updateDashboard();
             Stats.recalculateUserStats();
+            
+            // Ensure navbar toggle is attached
+            if (typeof window.attachNavbarToggleListener === 'function') {
+                setTimeout(() => window.attachNavbarToggleListener(), 100);
+            }
         },
         
         // Select domain for review
@@ -225,6 +230,11 @@ const TestManager = (function() {
             QuestionHandler.loadQuestion();
             Stats.updateDashboard();
             Stats.recalculateUserStats();
+            
+            // Ensure navbar toggle is attached
+            if (typeof window.attachNavbarToggleListener === 'function') {
+                setTimeout(() => window.attachNavbarToggleListener(), 100);
+            }
         },
         
         // Load saved progress
@@ -236,6 +246,11 @@ const TestManager = (function() {
                 QuestionHandler.buildQuestionNavbar();
                 QuestionHandler.loadQuestion();
                 Stats.updateDashboard();
+                
+                // Ensure navbar toggle is attached
+                if (typeof window.attachNavbarToggleListener === 'function') {
+                    setTimeout(() => window.attachNavbarToggleListener(), 100);
+                }
                 
                 // Restore timer if in test mode
                 const currentMode = AppState.getCurrentMode();

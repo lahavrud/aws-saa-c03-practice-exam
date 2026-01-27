@@ -175,19 +175,71 @@ window.submitTest = TestManager.submitTest;
 window.toggleMarkQuestion = TestManager.toggleMarkQuestion;
 
 // Additional utility functions
+// Function to attach navbar toggle listener
+function attachNavbarToggleListener() {
+    const navbarToggle = document.getElementById('navbar-toggle');
+    if (navbarToggle && !navbarToggle.hasAttribute('data-toggle-attached')) {
+        navbarToggle.removeAttribute('onclick');
+        navbarToggle.type = 'button';
+        navbarToggle.setAttribute('data-toggle-attached', 'true');
+        
+        navbarToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Navbar toggle clicked (attached listener)');
+            if (typeof window.toggleNavbar === 'function') {
+                window.toggleNavbar();
+            }
+        });
+        console.log('✓ Navbar toggle listener attached');
+    }
+}
+
+// Additional utility functions
 window.toggleNavbar = function() {
     console.log('toggleNavbar called');
     const questionGrid = document.getElementById('question-grid');
+    const questionScreen = document.getElementById('question-screen');
+    
+    // Check if question screen is visible
+    if (questionScreen && questionScreen.classList.contains('hidden')) {
+        console.warn('Question screen is hidden, cannot toggle navbar');
+        return false;
+    }
+    
     if (questionGrid) {
+        const wasCollapsed = questionGrid.classList.contains('collapsed');
         questionGrid.classList.toggle('collapsed');
         const isCollapsed = questionGrid.classList.contains('collapsed');
-        console.log('✓ Toggled question grid, collapsed:', isCollapsed);
+        console.log('✓ Toggled question grid:', wasCollapsed ? 'expanded' : 'collapsed', '→', isCollapsed ? 'collapsed' : 'expanded');
+        
+        // Force a reflow to ensure the change is visible
+        void questionGrid.offsetHeight;
+        
+        // Dispatch a custom event for any listeners
+        questionGrid.dispatchEvent(new CustomEvent('gridToggled', { 
+            detail: { collapsed: isCollapsed } 
+        }));
+        
         return isCollapsed;
     } else {
         console.error('question-grid element not found');
+        // Try to find it again after a short delay (in case DOM isn't ready)
+        setTimeout(() => {
+            const retryGrid = document.getElementById('question-grid');
+            if (retryGrid) {
+                console.log('Found question-grid on retry, toggling...');
+                retryGrid.classList.toggle('collapsed');
+            } else {
+                console.error('question-grid still not found after retry');
+            }
+        }, 100);
         return false;
     }
 };
+
+// Expose attach function
+window.attachNavbarToggleListener = attachNavbarToggleListener;
 
 window.restartTest = () => {
     AppState.resetTestState();

@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         newBtn.addEventListener('click', function() {
             if (typeof signInWithGoogle === 'function') {
                 signInWithGoogle();
-        } else {
+    } else {
                 console.error('signInWithGoogle function not available');
                 alert('Google Sign-In is not available. Please check Firebase configuration.');
             }
@@ -97,15 +97,25 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Next button (shown after answer in review mode)
         const nextBtn = document.getElementById('next-btn');
         if (nextBtn) {
-            nextBtn.addEventListener('click', (e) => {
+            // Remove onclick attribute to prevent double-firing
+            nextBtn.removeAttribute('onclick');
+            nextBtn.type = 'button';
+            
+            // Remove existing listeners by cloning
+            const newNextBtn = nextBtn.cloneNode(true);
+            nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+            
+            newNextBtn.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
+                console.log('Next button clicked');
                 if (typeof window.nextQuestion === 'function') {
                     window.nextQuestion();
                 } else if (typeof TestManager !== 'undefined' && TestManager.nextQuestion) {
                     TestManager.nextQuestion();
+                }
+            });
         }
-    });
-}
 
         // Mark question button
     const markBtn = document.getElementById('mark-btn');
@@ -136,37 +146,56 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Navbar toggle button - use event delegation to catch clicks
         const handleNavbarToggleClick = (e) => {
             const target = e.target;
-            if (target && (target.id === 'navbar-toggle' || (target.closest && target.closest('#navbar-toggle')))) {
+            const toggleBtn = target.closest('#navbar-toggle');
+            if (toggleBtn || target.id === 'navbar-toggle') {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Navbar toggle clicked');
+                console.log('Navbar toggle clicked (event delegation)');
                 if (typeof window.toggleNavbar === 'function') {
                     window.toggleNavbar();
-                } else {
+    } else {
                     console.error('toggleNavbar function not available');
                 }
             }
         };
         
-        // Use event delegation on document
-        document.addEventListener('click', handleNavbarToggleClick);
+        // Use event delegation on document (catches dynamically added elements)
+        document.addEventListener('click', handleNavbarToggleClick, true); // Use capture phase
         
         // Also try direct attachment if button exists
-        const navbarToggle = document.getElementById('navbar-toggle');
-        if (navbarToggle) {
-            navbarToggle.removeAttribute('onclick'); // Remove onclick to avoid conflicts
-            navbarToggle.type = 'button';
-            navbarToggle.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Navbar toggle clicked via direct listener');
-                if (typeof window.toggleNavbar === 'function') {
-                    window.toggleNavbar();
-                }
-            });
-            console.log('✓ Navbar toggle button event listener attached');
-        } else {
+        const attachNavbarToggle = () => {
+            const navbarToggle = document.getElementById('navbar-toggle');
+            if (navbarToggle) {
+                // Remove any existing listeners by cloning
+                const newToggle = navbarToggle.cloneNode(true);
+                navbarToggle.parentNode.replaceChild(newToggle, navbarToggle);
+                
+                // Remove onclick to avoid conflicts
+                newToggle.removeAttribute('onclick');
+                newToggle.type = 'button';
+                
+                newToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Navbar toggle clicked (direct listener)');
+                    if (typeof window.toggleNavbar === 'function') {
+                        window.toggleNavbar();
+    } else {
+                        console.error('toggleNavbar function not available');
+                    }
+                });
+                console.log('✓ Navbar toggle button event listener attached');
+                return true;
+            }
+            return false;
+        };
+        
+        if (!attachNavbarToggle()) {
             console.warn('Navbar toggle button not found on initial load (will use event delegation)');
+            // Retry after a delay
+            setTimeout(() => {
+                attachNavbarToggle();
+            }, 500);
         }
         
         console.log('✓ Question screen button event listeners attached');

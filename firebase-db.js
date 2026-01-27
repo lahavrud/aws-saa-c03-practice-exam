@@ -1,6 +1,18 @@
 // Firebase Database Integration - Optimized for minimal reads/writes
 // Database-first approach with intelligent caching and batching
 
+// Suppress harmless Cross-Origin-Opener-Policy warnings from Firebase popup
+const originalWarn = console.warn;
+console.warn = function(...args) {
+    const message = args.join(' ');
+    if (message.includes('Cross-Origin-Opener-Policy') || 
+        message.includes('window.closed call')) {
+        // Suppress harmless Firebase popup warnings
+        return;
+    }
+    originalWarn.apply(console, args);
+};
+
 let firebaseInitialized = false;
 let db = null;
 let auth = null;
@@ -127,71 +139,59 @@ async function syncLocalToFirestoreOnce() {
     }
     
     try {
-        // Check Firestore first - if it has data, use it as source of truth
-        const userListRef = db.collection('userList').doc('list');
-        const userListDoc = await userListRef.get();
-        
-        if (userListDoc.exists) {
-            const firestoreUsers = userListDoc.data().users || [];
-            
-            // Firestore has data - sync FROM Firestore TO localStorage (one-way)
-            if (firestoreUsers.length > 0) {
-                const localUsers = UserManager.getAllUsers();
-                const mergedUsers = [...new Set([...localUsers, ...firestoreUsers])];
-                
-                // Update localStorage with Firestore data
-                if (JSON.stringify(mergedUsers) !== JSON.stringify(localUsers)) {
-                    window.saveUsersList(mergedUsers);
-                    console.log('✓ Synced users from Firestore to localStorage');
-                }
-                
-                // Load user data from Firestore
-                for (const userName of firestoreUsers) {
-                    const userKey = (typeof UserManager !== 'undefined' && UserManager.getUserKey) 
-                        ? UserManager.getUserKey(userName)
-                        : userName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-                    const userDoc = await db.collection('users').doc(userKey).get();
-                    
-                    if (userDoc.exists) {
-                        const firestoreUserData = userDoc.data();
-                        // Convert arrays to Sets for runtime
-                        if (Array.isArray(firestoreUserData.stats?.domainsPracticed)) {
-                            firestoreUserData.stats.domainsPracticed = new Set(firestoreUserData.stats.domainsPracticed);
-                        }
-                        if (Array.isArray(firestoreUserData.stats?.questionsAnswered)) {
-                            firestoreUserData.stats.questionsAnswered = new Set(firestoreUserData.stats.questionsAnswered);
-                        }
-                        
-                        // Update localStorage with Firestore data
-                        localStorage.setItem(`saa-c03-user-${userKey}`, JSON.stringify({
-                            ...firestoreUserData,
-                            stats: {
-                                ...firestoreUserData.stats,
-                                domainsPracticed: Array.from(firestoreUserData.stats.domainsPracticed || []),
-                                questionsAnswered: Array.from(firestoreUserData.stats.questionsAnswered || [])
-                            }
-                        }));
-                    }
-                }
-                
-                localCache.lastSync.initial = true;
-                console.log('✓ Synced from Firestore (source of truth)');
-                return;
-            }
+        // With email-based auth, sync current user's data from Firestore
+        const userEmail = auth.currentUser.email;
+        if (!userEmail) {
+            localCache.lastSync.initial = true;
+            return;
         }
         
-        // Firestore is empty - don't sync localStorage to Firestore
-        // This keeps Firestore clean even if localStorage has cached data
-        localCache.lastSync.initial = true;
-        console.log('✓ Firestore is empty - keeping it clean (not syncing localStorage)');
+        // Get user data from Firestore using email as key
+        const userKey = userEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
+        const userDoc = await db.collection('users').doc(userKey).get();
+        
+        if (userDoc.exists) {
+            const firestoreUserData = userDoc.data();
+            
+            // Convert arrays to Sets for runtime
+            if (Array.isArray(firestoreUserData.stats?.domainsPracticed)) {
+                firestoreUserData.stats.domainsPracticed = new Set(firestoreUserData.stats.domainsPracticed);
+            }
+            if (Array.isArray(firestoreUserData.stats?.questionsAnswered)) {
+                firestoreUserData.stats.questionsAnswered = new Set(firestoreUserData.stats.questionsAnswered);
+            }
+            
+            // Update localStorage with Firestore data
+            localStorage.setItem(`saa-c03-user-${userKey}`, JSON.stringify({
+                ...firestoreUserData,
+                stats: {
+                    ...firestoreUserData.stats,
+                    domainsPracticed: Array.from(firestoreUserData.stats.domainsPracticed || []),
+                    questionsAnswered: Array.from(firestoreUserData.stats.questionsAnswered || [])
+                }
+            }));
+            
+            localCache.lastSync.initial = true;
+            console.log('✓ Synced user data from Firestore');
+        } else {
+            // No Firestore data yet - will be created when user saves data
+            localCache.lastSync.initial = true;
+        }
         
     } catch (error) {
-        console.error('Error in sync check:', error);
-        localCache.lastSync.initial = true; // Mark as attempted to prevent retries
+        // Handle permissions errors gracefully (expected for disabled collections)
+        if (error.code === 'permission-denied' || error.message?.includes('permissions')) {
+            // This is expected - userList collection is disabled, which is fine
+            localCache.lastSync.initial = true;
+        } else {
+            console.error('Error in sync check:', error);
+            localCache.lastSync.initial = true; // Mark as attempted to prevent retries
+        }
     }
 }
 
 // Optimized: Load users list with caching
+// Note: With email-based auth, userList collection is disabled - this function is kept for compatibility
 async function loadUsersListFromFirestore() {
     if (!isFirebaseAvailable()) return null;
     
@@ -211,6 +211,11 @@ async function loadUsersListFromFirestore() {
             }
         }
     } catch (error) {
+        // Handle permissions errors gracefully (userList is disabled for email-based auth)
+        if (error.code === 'permission-denied' || error.message?.includes('permissions')) {
+            // Expected - userList collection is disabled
+            return null;
+        }
         console.error('Error loading users list:', error);
     }
     
