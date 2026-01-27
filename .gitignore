@@ -45,5 +45,5 @@ sergey tests/**/Zone.Identifier
 aws exams.zip
 *.zip
 
-# Firebase config (contains sensitive keys)
-firebase-config.js
+# Firebase config - Note: API keys are public by design, security comes from restrictions
+# firebase-config.js - Now tracked in git for GitHub Pages deployment
