@@ -147,7 +147,7 @@ const Results = (function() {
                 const correctText = question.options.filter((opt, idx) => correctAnswers.includes(idx)).map(opt => opt.text).join(', ');
                 
                 reviewItem.innerHTML = `
-                    <div class="review-question">Q${index + 1}: ${question.question.substring(0, 100)}...</div>
+                    <div class="review-question">Q${index + 1}: ${(question.text || question.question || 'Question').substring(0, 100)}...</div>
                     <div class="review-answer"><strong>Your answer:</strong> ${selectedText}</div>
                     <div class="review-answer"><strong>Correct answer:</strong> ${correctText}</div>
                 `;

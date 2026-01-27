@@ -84,7 +84,9 @@ const UserManager = (function() {
             
             // Show main screen
             Navigation.showMainScreen();
-            Stats.updateDashboard();
+            if (typeof Stats !== 'undefined' && Stats.updateDashboard) {
+                Stats.updateDashboard();
+            }
         },
         
         // Initialize user system

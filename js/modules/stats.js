@@ -49,9 +49,12 @@ const Stats = (function() {
             }
             
             // Process all saved progress from other tests
-            if (typeof examQuestions !== 'undefined' && currentUserName) {
+            // Check both window.examQuestions and global examQuestions
+            const questions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
+            
+            if (questions && currentUserName) {
                 const userKey = UserManager.getUserKey(currentUserName);
-                const allTestKeys = Object.keys(examQuestions).filter(key => key.startsWith('test'));
+                const allTestKeys = Object.keys(questions).filter(key => key.startsWith('test'));
                 const maxTestNum = Math.max(...allTestKeys.map(key => parseInt(key.replace('test', ''))));
                 
                 for (let testNum = 1; testNum <= maxTestNum; testNum++) {
@@ -62,7 +65,7 @@ const Stats = (function() {
                             const progress = JSON.parse(saved);
                             if (progress.answers && progress.test === testNum) {
                                 const testKey = `test${testNum}`;
-                                const testQuestions = examQuestions[testKey];
+                                const testQuestions = questions[testKey];
                                 if (testQuestions && testQuestions.length > 0) {
                                     testQuestions.forEach(question => {
                                         const questionKey = question.id.toString();
@@ -113,17 +116,19 @@ const Stats = (function() {
                             const progress = JSON.parse(saved);
                             if (progress.answers && progress.selectedDomain) {
                                 const allQuestions = [];
-                                if (typeof examQuestions !== 'undefined') {
-                                    for (const testKey in examQuestions) {
-                                        if (examQuestions.hasOwnProperty(testKey) && testKey.startsWith('test')) {
-                                            allQuestions.push(...examQuestions[testKey]);
+                                // Check both window.examQuestions and global examQuestions
+                                const domainQuestions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
+                                if (domainQuestions) {
+                                    for (const testKey in domainQuestions) {
+                                        if (domainQuestions.hasOwnProperty(testKey) && testKey.startsWith('test')) {
+                                            allQuestions.push(...domainQuestions[testKey]);
                                         }
                                     }
                                 }
-                                const domainQuestions = allQuestions.filter(q => q.domain === progress.selectedDomain);
+                                const filteredDomainQuestions = allQuestions.filter(q => q.domain === progress.selectedDomain);
                                 
-                                if (domainQuestions && domainQuestions.length > 0) {
-                                    domainQuestions.forEach(question => {
+                                if (filteredDomainQuestions && filteredDomainQuestions.length > 0) {
+                                    filteredDomainQuestions.forEach(question => {
                                         const questionKey = question.id.toString();
                                         const selectedAnswers = progress.answers[questionKey] || [];
                                         

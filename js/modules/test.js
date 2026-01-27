@@ -5,13 +5,16 @@ const TestManager = (function() {
     return {
         // Organize tests by source
         organizeTestsBySource: () => {
-            if (typeof examQuestions === 'undefined') {
+            // Check both window.examQuestions and global examQuestions
+            const questions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
+            
+            if (!questions) {
                 console.error('organizeTestsBySource: examQuestions is undefined');
                 return { stephane: [], dojo: [], sergey: [] };
             }
             
             const organized = { stephane: [], dojo: [], sergey: [] };
-            const allTests = Object.keys(examQuestions)
+            const allTests = Object.keys(questions)
                 .filter(key => key.startsWith('test'))
                 .sort((a, b) => {
                     const numA = parseInt(a.replace('test', ''));
@@ -35,7 +38,10 @@ const TestManager = (function() {
         
         // Load available tests for selected source
         loadAvailableTests: () => {
-            if (typeof examQuestions === 'undefined') {
+            // Check both window.examQuestions and global examQuestions
+            const questions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
+            
+            if (!questions) {
                 console.error('examQuestions not loaded');
                 return;
             }
@@ -70,8 +76,8 @@ const TestManager = (function() {
             
             // Create buttons for each test
             testsForSource.forEach(({ key, number }, index) => {
-                const questions = examQuestions[key] || [];
-                const questionCount = questions.length;
+                const testQuestions = questions[key] || [];
+                const questionCount = testQuestions.length;
                 const displayNumber = index + 1;
                 const actualTestNumber = number;
                 
@@ -133,11 +139,11 @@ const TestManager = (function() {
             });
             
             // Update stats on main screen
-            const totalQuestions = Object.keys(examQuestions)
+            const totalQuestions = Object.keys(questions)
                 .filter(key => key.startsWith('test'))
-                .reduce((sum, testKey) => sum + (examQuestions[testKey]?.length || 0), 0);
+                .reduce((sum, testKey) => sum + (questions[testKey]?.length || 0), 0);
             
-            const totalTests = Object.keys(examQuestions)
+            const totalTests = Object.keys(questions)
                 .filter(key => key.startsWith('test')).length;
             
             const totalStat = document.getElementById('total-questions-stat');
@@ -205,22 +211,48 @@ const TestManager = (function() {
         },
         
         // Select domain for review
-        selectDomainForReview: (domain) => {
+        selectDomainForReview: async (domain) => {
             AppState.setSelectedDomain(domain);
             AppState.setCurrentMode(Config.MODES.REVIEW);
             AppState.setCurrentQuestionIndex(0);
             AppState.setUserAnswers({});
             AppState.setMarkedQuestions(new Set());
             
-            const questions = QuestionHandler.getDomainQuestions(domain);
+            // Ensure questions are loaded
+            let questions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
             
-            if (questions.length === 0) {
+            if (!questions) {
+                console.log('Questions not loaded yet, attempting to load...');
+                if (typeof autoLoadQuestions === 'function') {
+                    try {
+                        const loadedQuestions = await autoLoadQuestions();
+                        if (loadedQuestions) {
+                            window.examQuestions = loadedQuestions;
+                            questions = loadedQuestions;
+                        } else {
+                            alert('Failed to load questions. Please refresh the page.');
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('Error loading questions:', error);
+                        alert('Failed to load questions. Please refresh the page.');
+                        return;
+                    }
+                } else {
+                    alert('Questions are not loaded. Please refresh the page.');
+                    return;
+                }
+            }
+            
+            const domainQuestions = QuestionHandler.getDomainQuestions(domain);
+            
+            if (domainQuestions.length === 0) {
                 alert(`No questions found for domain: ${domain}`);
                 Navigation.goBackToMainSelection();
                 return;
             }
             
-            AppState.setCurrentQuestions(questions);
+            AppState.setCurrentQuestions(domainQuestions);
             AppState.setCurrentTest(null);
             
             Navigation.hideScreen('domain-selection');

@@ -190,37 +190,7 @@ async function syncLocalToFirestoreOnce() {
     }
 }
 
-// Optimized: Load users list with caching
-// Note: With email-based auth, userList collection is disabled - this function is kept for compatibility
-async function loadUsersListFromFirestore() {
-    if (!isFirebaseAvailable()) return null;
-    
-    // Return cached if recent (within 5 minutes)
-    if (localCache.users && Date.now() - localCache.lastSync.users < 300000) {
-        return localCache.users;
-    }
-    
-    try {
-        const doc = await db.collection('userList').doc('list').get();
-        if (doc.exists) {
-            const data = doc.data();
-            if (data.users) {
-                localCache.users = data.users;
-                localCache.lastSync.users = Date.now();
-                return data.users;
-            }
-        }
-    } catch (error) {
-        // Handle permissions errors gracefully (userList is disabled for email-based auth)
-        if (error.code === 'permission-denied' || error.message?.includes('permissions')) {
-            // Expected - userList collection is disabled
-            return null;
-        }
-        console.error('Error loading users list:', error);
-    }
-    
-    return null;
-}
+// Legacy function removed - userList collection is disabled with email-based auth
 
 // Optimized: Load single user with caching
 async function loadUserFromFirestore(userName) {
@@ -540,20 +510,7 @@ async function addUserToFirestoreList(userName) {
     }
 }
 
-// Sync users list from Firestore (cached)
-async function syncUsersListFromFirestore() {
-    if (!isFirebaseAvailable()) return;
-    
-    const firestoreUsers = await loadUsersListFromFirestore();
-    if (firestoreUsers) {
-        const existingUsers = getAllUsers();
-        const newUsers = firestoreUsers.filter(u => !existingUsers.includes(u));
-        if (newUsers.length > 0) {
-            existingUsers.push(...newUsers);
-            saveUsersList(existingUsers);
-        }
-    }
-}
+// Legacy function removed - userList collection is disabled with email-based auth
 
 // Force flush queue (call before page unload)
 function flushSaveQueueSync() {

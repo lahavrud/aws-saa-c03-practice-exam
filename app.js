@@ -57,9 +57,21 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
     
-    // Auto-load questions
+    // Auto-load questions and ensure examQuestions is set
     if (typeof autoLoadQuestions === 'function') {
-        autoLoadQuestions();
+        try {
+            const loadedQuestions = await autoLoadQuestions();
+            if (loadedQuestions && typeof examQuestions === 'undefined') {
+                window.examQuestions = loadedQuestions;
+                console.log('✓ Questions loaded and assigned to examQuestions');
+            } else if (typeof examQuestions !== 'undefined') {
+                console.log('✓ examQuestions already available');
+            }
+        } catch (error) {
+            console.error('Error loading questions:', error);
+        }
+    } else {
+        console.warn('autoLoadQuestions function not available');
     }
     
     // Expose state to window for backward compatibility

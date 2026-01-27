@@ -106,14 +106,22 @@ function parseQuestionsFromText(text) {
 // Auto-detect and load questions from questions directory
 async function autoLoadQuestions() {
     // Try to load from questions.js first (for backward compatibility)
-    if (typeof examQuestions !== 'undefined') {
-        return examQuestions;
+    // Check both window.examQuestions and global examQuestions
+    const existingQuestions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
+    if (existingQuestions) {
+        console.log('✓ Using examQuestions from questions.js');
+        // Ensure it's on window for module access
+        window.examQuestions = existingQuestions;
+        return existingQuestions;
     }
     
     // Try to load from combined JSON file first
     try {
         const combinedData = await loadQuestionsFromFile('questions/all_tests.json');
         if (combinedData && typeof combinedData === 'object') {
+            console.log('✓ Loaded questions from all_tests.json');
+            // Assign to global examQuestions
+            window.examQuestions = combinedData;
             return combinedData;
         }
     } catch (error) {
@@ -124,15 +132,15 @@ async function autoLoadQuestions() {
     const loadedTests = {};
     let foundAny = false;
     
-    // Try to load test1.json, test2.json, etc. up to test20.json
-    for (let i = 1; i <= 20; i++) {
+    // Try to load test1.json, test2.json, etc. up to test26.json (extend range)
+    for (let i = 1; i <= 26; i++) {
         const testFile = `questions/test${i}.json`;
         try {
             const data = await loadQuestionsFromFile(testFile);
             if (data && Array.isArray(data)) {
                 loadedTests[`test${i}`] = data;
                 foundAny = true;
-                console.log(`Loaded ${testFile}: ${data.length} questions`);
+                console.log(`✓ Loaded ${testFile}: ${data.length} questions`);
             }
         } catch (error) {
             // Continue to next file
@@ -140,6 +148,9 @@ async function autoLoadQuestions() {
     }
     
     if (foundAny) {
+        console.log(`✓ Loaded ${Object.keys(loadedTests).length} test files`);
+        // Assign to global examQuestions
+        window.examQuestions = loadedTests;
         return loadedTests;
     }
     
@@ -154,6 +165,9 @@ async function autoLoadQuestions() {
         try {
             const data = await loadQuestionsFromFile(file);
             if (data) {
+                console.log(`✓ Loaded questions from ${file}`);
+                // Assign to global examQuestions
+                window.examQuestions = data;
                 return data;
             }
         } catch (error) {
@@ -161,6 +175,7 @@ async function autoLoadQuestions() {
         }
     }
     
+    console.error('✗ No questions loaded from any source');
     return null;
 }
 

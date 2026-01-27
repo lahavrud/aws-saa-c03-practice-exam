@@ -21601,6 +21601,11 @@ const examQuestions = {
     ],
 };
 
+// Ensure examQuestions is accessible globally via window
+if (typeof window !== 'undefined') {
+    window.examQuestions = examQuestions;
+}
+
 // Function to get all questions for a test
 function getTestQuestions(testNumber) {
     const testKey = `test${testNumber}`;

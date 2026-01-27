@@ -35,7 +35,8 @@ const QuestionHandler = (function() {
             // Update question text
             const questionTextEl = document.getElementById('question-text');
             if (questionTextEl) {
-                questionTextEl.textContent = question.question;
+                // Support both 'text' (JSON) and 'question' (legacy) properties
+                questionTextEl.textContent = question.text || question.question || 'Question text not available';
             }
             
             // Update domain badge
@@ -459,29 +460,39 @@ const QuestionHandler = (function() {
         
         // Get test questions
         getTestQuestions: (testNumber) => {
-            if (typeof examQuestions === 'undefined') {
+            // Check both window.examQuestions and global examQuestions
+            const questions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
+            
+            if (!questions) {
                 console.error('examQuestions not loaded');
                 return [];
             }
             
             const testKey = `test${testNumber}`;
-            return examQuestions[testKey] || [];
+            return questions[testKey] || [];
         },
         
         // Get domain questions
         getDomainQuestions: (domain) => {
-            if (typeof examQuestions === 'undefined') {
+            // Check both window.examQuestions and global examQuestions
+            const questions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
+            
+            if (!questions) {
+                console.error('getDomainQuestions: examQuestions is undefined');
+                console.error('window.examQuestions:', window.examQuestions);
+                console.error('typeof examQuestions:', typeof examQuestions);
                 return [];
             }
             
             const allQuestions = [];
-            for (const testKey in examQuestions) {
-                if (examQuestions.hasOwnProperty(testKey) && testKey.startsWith('test')) {
-                    allQuestions.push(...examQuestions[testKey]);
+            for (const testKey in questions) {
+                if (questions.hasOwnProperty(testKey) && testKey.startsWith('test')) {
+                    allQuestions.push(...questions[testKey]);
                 }
             }
             
-            return allQuestions.filter(q => q.domain === domain);
+            const domainQuestions = allQuestions.filter(q => q.domain === domain);
+            return domainQuestions;
         }
     };
 })();

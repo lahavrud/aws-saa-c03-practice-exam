@@ -53,7 +53,11 @@ const Navigation = (function() {
             
             // Small delay to ensure screen is visible before loading tests
             setTimeout(() => {
-                TestManager.loadAvailableTests();
+                if (typeof TestManager !== 'undefined' && TestManager.loadAvailableTests) {
+                    TestManager.loadAvailableTests();
+                } else {
+                    console.error('TestManager not available');
+                }
             }, 100);
         },
         
@@ -99,8 +103,10 @@ const Navigation = (function() {
             
             if (currentUser && currentUserName) {
                 Navigation.showScreen('main-selection');
-                Stats.recalculateUserStats(false);
-                Stats.updateDashboard();
+                if (typeof Stats !== 'undefined') {
+                    Stats.recalculateUserStats(false);
+                    Stats.updateDashboard();
+                }
             }
             
             AppState.resetTestState();
@@ -111,37 +117,47 @@ const Navigation = (function() {
             ProgressManager.saveProgress();
             
             const testTimer = AppState.getTestTimer();
-            if (testTimer) {
+            if (testTimer && typeof Timer !== 'undefined' && Timer.stop) {
                 Timer.stop();
             }
             
-            Stats.recalculateUserStats(true);
-            UI.closeDashboardDialog();
+            if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
+                Stats.recalculateUserStats(true);
+            }
+            if (typeof UI !== 'undefined' && UI.closeDashboardDialog) {
+                UI.closeDashboardDialog();
+            }
             Navigation.returnToDashboard();
         },
         
         // Return to dashboard without saving
         returnToDashboardWithoutSaving: () => {
             const testTimer = AppState.getTestTimer();
-            if (testTimer) {
+            if (testTimer && typeof Timer !== 'undefined' && Timer.stop) {
                 Timer.stop();
             }
             
             // Restore to last saved progress
             const currentTest = AppState.getCurrentTest();
             if (currentTest) {
-                const saved = ProgressManager.getSavedProgressForTest(currentTest);
-                if (saved) {
-                    ProgressManager.loadSavedProgress(currentTest);
-                    Stats.recalculateUserStats(false);
+                    const saved = ProgressManager.getSavedProgressForTest(currentTest);
+                    if (saved) {
+                        ProgressManager.loadSavedProgress(currentTest);
+                        if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
+                            Stats.recalculateUserStats(false);
+                        }
+                    } else {
+                        AppState.resetTestState();
+                        if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
+                            Stats.recalculateUserStats(false);
+                        }
+                    }
                 } else {
                     AppState.resetTestState();
-                    Stats.recalculateUserStats(false);
+                    if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
+                        Stats.recalculateUserStats(false);
+                    }
                 }
-            } else {
-                AppState.resetTestState();
-                Stats.recalculateUserStats(false);
-            }
             
             UI.closeDashboardDialog();
             Navigation.returnToDashboard();
@@ -152,27 +168,39 @@ const Navigation = (function() {
 // Make functions globally accessible
 window.selectSource = Navigation.selectSource;
 window.selectPracticeMode = Navigation.selectPracticeMode;
-window.selectMode = TestManager.selectMode;
-window.selectTest = TestManager.selectTest;
-window.selectDomainForReview = TestManager.selectDomainForReview;
+
+// Safely assign TestManager functions (may not be loaded yet)
+if (typeof TestManager !== 'undefined') {
+    window.selectMode = TestManager.selectMode;
+    window.selectTest = TestManager.selectTest;
+    window.selectDomainForReview = TestManager.selectDomainForReview;
+    window.nextQuestion = TestManager.nextQuestion;
+    window.previousQuestion = TestManager.previousQuestion;
+    window.submitAnswer = TestManager.submitAnswer;
+    window.submitTest = TestManager.submitTest;
+    window.toggleMarkQuestion = TestManager.toggleMarkQuestion;
+}
+
 window.goBackToMainSelection = Navigation.goBackToMainSelection;
 window.goBackToSourceSelection = Navigation.goBackToSourceSelection;
 window.goBackToTestSelection = Navigation.goBackToTestSelection;
-window.showUserSettings = UI.showUserSettings;
-window.closeUserSettings = UI.closeUserSettings;
-window.saveUserSettings = UI.saveUserSettings;
-window.resetUserData = UserManager.resetUserData;
-window.exportUserData = UserManager.exportUserData;
-window.importUserData = UserManager.importUserData;
-window.showDashboardDialog = UI.showDashboardDialog;
-window.closeDashboardDialog = UI.closeDashboardDialog;
+
+if (typeof UI !== 'undefined') {
+    window.showUserSettings = UI.showUserSettings;
+    window.closeUserSettings = UI.closeUserSettings;
+    window.saveUserSettings = UI.saveUserSettings;
+    window.showDashboardDialog = UI.showDashboardDialog;
+    window.closeDashboardDialog = UI.closeDashboardDialog;
+}
+
+if (typeof UserManager !== 'undefined') {
+    window.resetUserData = UserManager.resetUserData;
+    window.exportUserData = UserManager.exportUserData;
+    window.importUserData = UserManager.importUserData;
+}
+
 window.saveAndReturnToDashboard = Navigation.saveAndReturnToDashboard;
 window.returnToDashboardWithoutSaving = Navigation.returnToDashboardWithoutSaving;
-window.nextQuestion = TestManager.nextQuestion;
-window.previousQuestion = TestManager.previousQuestion;
-window.submitAnswer = TestManager.submitAnswer;
-window.submitTest = TestManager.submitTest;
-window.toggleMarkQuestion = TestManager.toggleMarkQuestion;
 
 // Additional utility functions
 // Function to attach navbar toggle listener (prevents duplicate listeners)
@@ -191,18 +219,15 @@ function attachNavbarToggleListener() {
         newToggle.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Navbar toggle clicked');
             if (typeof window.toggleNavbar === 'function') {
                 window.toggleNavbar();
             }
         });
-        console.log('✓ Navbar toggle listener attached');
     }
 }
 
 // Additional utility functions
 window.toggleNavbar = function() {
-    console.log('toggleNavbar called');
     const questionGrid = document.getElementById('question-grid');
     const questionScreen = document.getElementById('question-screen');
     
@@ -216,7 +241,6 @@ window.toggleNavbar = function() {
         const wasCollapsed = questionGrid.classList.contains('collapsed');
         questionGrid.classList.toggle('collapsed');
         const isCollapsed = questionGrid.classList.contains('collapsed');
-        console.log('✓ Toggled question grid:', wasCollapsed ? 'expanded' : 'collapsed', '→', isCollapsed ? 'collapsed' : 'expanded');
         
         // Force a reflow to ensure the change is visible
         void questionGrid.offsetHeight;
@@ -248,11 +272,15 @@ window.attachNavbarToggleListener = attachNavbarToggleListener;
 
 window.restartTest = () => {
     AppState.resetTestState();
-    Timer.stop();
+    if (typeof Timer !== 'undefined' && Timer.stop) {
+        Timer.stop();
+    }
     Navigation.hideScreen('results-screen');
     Navigation.showScreen('test-selection');
     if (AppState.getSelectedSource()) {
-        TestManager.loadAvailableTests();
+        if (typeof TestManager !== 'undefined' && TestManager.loadAvailableTests) {
+            TestManager.loadAvailableTests();
+        }
     }
 };
 
@@ -264,9 +292,14 @@ window.reviewAnswers = () => {
 };
 
 // Make question handler functions globally accessible
-window.loadQuestion = QuestionHandler.loadQuestion;
-window.updateStats = UI.updateStats;
-window.buildQuestionNavbar = QuestionHandler.buildQuestionNavbar;
+if (typeof QuestionHandler !== 'undefined') {
+    window.loadQuestion = QuestionHandler.loadQuestion;
+    window.buildQuestionNavbar = QuestionHandler.buildQuestionNavbar;
+}
+
+if (typeof UI !== 'undefined') {
+    window.updateStats = UI.updateStats;
+}
 
 // Keyboard shortcuts handler
 function handleKeyboardShortcuts(e) {
@@ -279,10 +312,14 @@ function handleKeyboardShortcuts(e) {
     // Arrow keys for navigation
     if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
-        TestManager.previousQuestion();
+        if (typeof TestManager !== 'undefined' && TestManager.previousQuestion) {
+            TestManager.previousQuestion();
+        }
     } else if (e.key === 'ArrowRight' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
-        TestManager.nextQuestion();
+        if (typeof TestManager !== 'undefined' && TestManager.nextQuestion) {
+            TestManager.nextQuestion();
+        }
     }
 }
 
