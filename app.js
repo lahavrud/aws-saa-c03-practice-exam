@@ -58,21 +58,23 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     // Auto-load questions and ensure examQuestions is set
-    if (typeof autoLoadQuestions === 'function') {
-        try {
-            const loadedQuestions = await autoLoadQuestions();
-            if (loadedQuestions && typeof examQuestions === 'undefined') {
-                window.examQuestions = loadedQuestions;
-                console.log('✓ Questions loaded and assigned to examQuestions');
-            } else if (typeof examQuestions !== 'undefined') {
-                console.log('✓ examQuestions already available');
+    // Wait a bit longer for questions.js to load (important for GitHub Pages)
+    setTimeout(async () => {
+        if (typeof autoLoadQuestions === 'function') {
+            try {
+                const loadedQuestions = await autoLoadQuestions();
+                if (loadedQuestions) {
+                    window.examQuestions = loadedQuestions;
+                } else if (typeof examQuestions === 'undefined') {
+                    console.error('Failed to load questions. Please check that questions.js exists or JSON files are available.');
+                }
+            } catch (error) {
+                console.error('Error loading questions:', error);
             }
-        } catch (error) {
-            console.error('Error loading questions:', error);
+        } else {
+            console.error('autoLoadQuestions function not available');
         }
-    } else {
-        console.warn('autoLoadQuestions function not available');
-    }
+    }, 200);
     
     // Expose state to window for backward compatibility
     AppState.exposeToWindow();
