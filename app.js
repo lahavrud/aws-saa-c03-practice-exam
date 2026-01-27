@@ -134,6 +134,11 @@ function selectUser(userName) {
 
 function createNewUser() {
     const nameInput = document.getElementById('new-user-name');
+    if (!nameInput) {
+        console.error('createNewUser: new-user-name input not found');
+        return;
+    }
+    
     const userName = nameInput.value.trim();
     
     if (!userName) {
@@ -163,6 +168,9 @@ function createNewUser() {
     // Select the new user
     selectUser(userName);
 }
+
+// Make function globally accessible for inline handlers (fallback)
+window.createNewUser = createNewUser;
 
 function getUserData(userName) {
     const userKey = getUserKey(userName);
@@ -518,6 +526,22 @@ const DOMAINS = [
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize user system first
     initUserSystem();
+    
+    // Set up create user button event listener
+    const createUserBtn = document.getElementById('create-user-btn');
+    if (createUserBtn) {
+        createUserBtn.addEventListener('click', createNewUser);
+    }
+    
+    // Set up create user input enter key handler
+    const newUserNameInput = document.getElementById('new-user-name');
+    if (newUserNameInput) {
+        newUserNameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                createNewUser();
+            }
+        });
+    }
     
     // Try to load questions from JSON files first (preferred method)
     if (typeof autoLoadQuestions !== 'undefined') {
