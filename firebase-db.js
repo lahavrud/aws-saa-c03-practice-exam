@@ -2,15 +2,46 @@
 // Database-first approach with intelligent caching and batching
 
 // Suppress harmless Cross-Origin-Opener-Policy warnings from Firebase popup
+// These warnings are harmless and appear in some browsers due to COOP headers
 const originalWarn = console.warn;
+const originalError = console.error;
+const originalLog = console.log;
+
+// Suppress COOP warnings from all console methods
+function shouldSuppressCOOPWarning(message) {
+    return message.includes('Cross-Origin-Opener-Policy') || 
+           message.includes('COOP') ||
+           message.includes('window.closed call') ||
+           message.includes('popup.ts') ||
+           (message.includes('policy would block') && message.includes('window'));
+}
+
 console.warn = function(...args) {
     const message = args.join(' ');
-    if (message.includes('Cross-Origin-Opener-Policy') || 
-        message.includes('window.closed call')) {
+    if (shouldSuppressCOOPWarning(message)) {
         // Suppress harmless Firebase popup warnings
         return;
     }
     originalWarn.apply(console, args);
+};
+
+console.error = function(...args) {
+    const message = args.join(' ');
+    if (shouldSuppressCOOPWarning(message)) {
+        // Suppress harmless Firebase popup warnings
+        return;
+    }
+    originalError.apply(console, args);
+};
+
+// Also suppress from console.log for consistency
+console.log = function(...args) {
+    const message = args.join(' ');
+    if (shouldSuppressCOOPWarning(message)) {
+        // Suppress harmless Firebase popup warnings
+        return;
+    }
+    originalLog.apply(console, args);
 };
 
 let firebaseInitialized = false;
@@ -84,6 +115,9 @@ function initFirebase() {
                 showSignInScreen();
             }
         });
+        
+        // Handle redirect result if user came back from Google sign-in
+        handleAuthRedirect();
         
         // Check initial auth state and show appropriate screen
         // Use a longer timeout to ensure DOM is ready on GitHub Pages
@@ -532,16 +566,53 @@ async function signInWithGoogle() {
     
     try {
         const provider = window.googleProvider || new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(provider);
-        console.log('✓ Signed in with Google');
+        
+        // Try popup first (better UX), fallback to redirect if popup is blocked
+        try {
+            await auth.signInWithPopup(provider);
+            // Success - auth state change will handle the rest
+        } catch (popupError) {
+            // If popup is blocked or fails due to COOP, use redirect
+            if (popupError.code === 'auth/popup-blocked' || 
+                popupError.code === 'auth/popup-closed-by-user' ||
+                popupError.message?.includes('popup') ||
+                popupError.message?.includes('blocked')) {
+                
+                // Use redirect method as fallback (no COOP issues)
+                await auth.signInWithRedirect(provider);
+                // Page will redirect, so we don't need to do anything else
+                return;
+            } else {
+                // Re-throw other errors
+                throw popupError;
+            }
+        }
     } catch (error) {
         console.error('Google Sign-In error:', error);
         if (error.code === 'auth/popup-closed-by-user') {
-            console.log('Sign-in popup was closed by user');
+            // User closed popup - not an error
+            return;
         } else {
             alert('Sign-in failed: ' + error.message);
         }
     }
+}
+
+// Handle redirect result (called after redirect back from Google)
+function handleAuthRedirect() {
+    if (!isFirebaseInitialized()) return;
+    
+    auth.getRedirectResult().then((result) => {
+        if (result.user) {
+            // User signed in via redirect
+            const userEmail = result.user.email;
+            initializeUserForEmail(userEmail, result.user.displayName || userEmail.split('@')[0]);
+        }
+    }).catch((error) => {
+        if (error.code !== 'auth/popup-closed-by-user') {
+            console.error('Redirect sign-in error:', error);
+        }
+    });
 }
 
 // Sign out
