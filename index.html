@@ -14,7 +14,7 @@
         </header>
 
         <!-- Sign-In Screen (shown by default when not authenticated) -->
-        <div id="sign-in-screen" class="screen hidden">
+        <div id="sign-in-screen" class="screen">
             <div class="dashboard-header">
                 <h1>AWS SAA-C03 Practice Exam</h1>
                 <p class="dashboard-subtitle">Sign in with your Google account to continue</p>
@@ -148,7 +148,7 @@
             <div class="question-navbar" id="question-navbar">
                 <div class="navbar-header">
                     <span>Questions</span>
-                    <button class="navbar-toggle" id="navbar-toggle" onclick="toggleNavbar()">☰</button>
+                    <button class="navbar-toggle" id="navbar-toggle" type="button">☰</button>
                 </div>
                 <div class="question-grid" id="question-grid"></div>
             </div>
@@ -301,7 +301,24 @@
     <!-- Application Scripts -->
     <script src="question-loader.js"></script>
     <script src="questions.js"></script>
+    
+    <!-- Modules (load in dependency order) -->
+    <script src="js/modules/config.js"></script>
+    <script src="js/modules/state.js"></script>
+    <script src="js/modules/user.js"></script>
+    <script src="js/modules/stats.js"></script>
+    <script src="js/modules/progress.js"></script>
+    <script src="js/modules/timer.js"></script>
+    <script src="js/modules/questions.js"></script>
+    <script src="js/modules/results.js"></script>
+    <script src="js/modules/test.js"></script>
+    <script src="js/modules/ui.js"></script>
+    <script src="js/modules/navigation.js"></script>
+    
+    <!-- Firebase (must load before app.js) -->
     <script src="firebase-db.js"></script>
+    
+    <!-- Main Application -->
     <script src="app.js"></script>
 </body>
 </html>

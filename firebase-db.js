@@ -74,30 +74,55 @@ function initFirebase() {
         });
         
         // Check initial auth state and show appropriate screen
+        // Use a longer timeout to ensure DOM is ready on GitHub Pages
         setTimeout(() => {
             if (!auth.currentUser) {
                 showSignInScreen();
             }
-        }, 100);
+        }, 500);
     } catch (error) {
         console.error('Firebase initialization error:', error);
     }
 }
 
 // Auto-initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFirebase);
-} else {
-    setTimeout(initFirebase, 100);
+// Use multiple initialization strategies for GitHub Pages compatibility
+function initializeFirebaseWhenReady() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initFirebase, 100);
+        });
+    } else {
+        setTimeout(initFirebase, 100);
+    }
+    
+    // Also try immediate initialization as fallback
+    if (typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined') {
+        initFirebase();
+    }
 }
+
+initializeFirebaseWhenReady();
+
+// Additional fallback: show sign-in screen if Firebase fails to initialize
+setTimeout(() => {
+    if (!firebaseInitialized && typeof firebaseConfig !== 'undefined') {
+        console.warn('Firebase initialization may have failed, showing sign-in screen');
+        showSignInScreen();
+    } else if (!firebaseInitialized) {
+        // No Firebase config, show sign-in screen anyway
+        console.log('No Firebase config found, showing sign-in screen');
+        showSignInScreen();
+    }
+}, 1000);
 
 // One-time sync: Check Firestore first, only sync FROM Firestore TO localStorage
 // This keeps Firestore as source of truth and prevents localStorage from overwriting clean Firestore
 async function syncLocalToFirestoreOnce() {
     if (!auth.currentUser || localCache.lastSync.initial) return;
     
-    // Wait for app.js functions to be available
-    if (typeof window.getAllUsers === 'undefined' || typeof window.getUserData === 'undefined' || typeof window.getUserKey === 'undefined') {
+    // Wait for modules to be available
+    if (typeof UserManager === 'undefined' || typeof UserManager.getAllUsers === 'undefined') {
         return;
     }
     
@@ -111,7 +136,7 @@ async function syncLocalToFirestoreOnce() {
             
             // Firestore has data - sync FROM Firestore TO localStorage (one-way)
             if (firestoreUsers.length > 0) {
-                const localUsers = window.getAllUsers();
+                const localUsers = UserManager.getAllUsers();
                 const mergedUsers = [...new Set([...localUsers, ...firestoreUsers])];
                 
                 // Update localStorage with Firestore data
@@ -122,7 +147,9 @@ async function syncLocalToFirestoreOnce() {
                 
                 // Load user data from Firestore
                 for (const userName of firestoreUsers) {
-                    const userKey = window.getUserKey(userName);
+                    const userKey = (typeof UserManager !== 'undefined' && UserManager.getUserKey) 
+                        ? UserManager.getUserKey(userName)
+                        : userName.toLowerCase().replace(/[^a-z0-9]/g, '-');
                     const userDoc = await db.collection('users').doc(userKey).get();
                     
                     if (userDoc.exists) {
@@ -248,10 +275,11 @@ function getUserKeyFromProgressKey(progressKey) {
 // Helper: Get userKey from userName (uses app.js function if available)
 // Note: This is a wrapper - actual function is in app.js
 function getUserKey(userName) {
-    if (typeof window.getUserKey === 'function') {
-        return window.getUserKey(userName);
+    // Use UserManager if available, otherwise fallback
+    if (typeof UserManager !== 'undefined' && typeof UserManager.getUserKey === 'function') {
+        return UserManager.getUserKey(userName);
     }
-    // Fallback if app.js not loaded yet
+    // Fallback if modules not loaded yet
     return userName.toLowerCase().replace(/[^a-z0-9]/g, '-');
 }
 
@@ -659,21 +687,53 @@ async function initializeUserForEmail(email, displayName) {
 
 // Show sign-in screen
 function showSignInScreen() {
+    console.log('showSignInScreen called');
+    
+    // Ensure DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', showSignInScreen);
+        return;
+    }
+    
     // Hide all screens
-    document.querySelectorAll('.screen').forEach(screen => screen.classList.add('hidden'));
+    const allScreens = document.querySelectorAll('.screen');
+    console.log('Found screens:', allScreens.length);
+    allScreens.forEach(screen => {
+        screen.classList.add('hidden');
+        console.log('Hiding screen:', screen.id);
+    });
     
     // Show sign-in screen
     const signInScreen = document.getElementById('sign-in-screen');
     if (signInScreen) {
         signInScreen.classList.remove('hidden');
         console.log('✓ Showing sign-in screen');
-    } else {
-        console.warn('Sign-in screen not found in DOM');
-        // Fallback: show user selection (legacy)
-        const userSelection = document.getElementById('user-selection');
-        if (userSelection) {
-            userSelection.classList.remove('hidden');
+        
+        // Ensure button is set up
+        const googleSignInBtn = document.getElementById('google-sign-in-btn');
+        if (googleSignInBtn && !googleSignInBtn.hasAttribute('data-listener-attached')) {
+            googleSignInBtn.addEventListener('click', function() {
+                if (typeof signInWithGoogle === 'function') {
+                    signInWithGoogle();
+                } else {
+                    console.error('signInWithGoogle function not available');
+                    alert('Google Sign-In is not available. Please check Firebase configuration.');
+                }
+            });
+            googleSignInBtn.setAttribute('data-listener-attached', 'true');
         }
+    } else {
+        console.error('Sign-in screen not found in DOM');
+        // Try to find it again after a delay
+        setTimeout(() => {
+            const retryScreen = document.getElementById('sign-in-screen');
+            if (retryScreen) {
+                retryScreen.classList.remove('hidden');
+                console.log('✓ Sign-in screen found on retry');
+            } else {
+                console.error('Sign-in screen still not found after retry');
+            }
+        }, 500);
     }
 }
 
