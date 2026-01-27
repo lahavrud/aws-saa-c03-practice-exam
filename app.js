@@ -37,9 +37,78 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
+    // Dynamically load available tests
+    loadAvailableTests();
+    
     // Add keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcuts);
 });
+
+function loadAvailableTests() {
+    if (typeof examQuestions === 'undefined') return;
+    
+    const testButtonsContainer = document.querySelector('.test-buttons');
+    if (!testButtonsContainer) return;
+    
+    // Clear existing test buttons (except Review by Domain)
+    const existingButtons = testButtonsContainer.querySelectorAll('.test-btn');
+    existingButtons.forEach(btn => {
+        if (!btn.onclick || !btn.onclick.toString().includes('goToDomainReview')) {
+            btn.remove();
+        }
+    });
+    
+    // Get all available tests
+    const availableTests = Object.keys(examQuestions)
+        .filter(key => key.startsWith('test'))
+        .sort((a, b) => {
+            const numA = parseInt(a.replace('test', ''));
+            const numB = parseInt(b.replace('test', ''));
+            return numA - numB;
+        });
+    
+    // Update stats
+    const totalQuestions = availableTests.reduce((sum, testKey) => {
+        return sum + (examQuestions[testKey]?.length || 0);
+    }, 0);
+    
+    const statNumber = document.querySelector('.stat-number');
+    if (statNumber && statNumber.textContent === '130') {
+        // Update total questions stat
+        const totalStat = document.querySelectorAll('.stat-number')[0];
+        if (totalStat) totalStat.textContent = totalQuestions;
+        
+        // Update test count stat
+        const testCountStat = document.querySelectorAll('.stat-number')[1];
+        if (testCountStat) testCountStat.textContent = availableTests.length;
+    }
+    
+    // Create buttons for each test
+    availableTests.forEach(testKey => {
+        const testNumber = parseInt(testKey.replace('test', ''));
+        const questions = examQuestions[testKey] || [];
+        const questionCount = questions.length;
+        
+        const testBtn = document.createElement('button');
+        testBtn.className = 'test-btn';
+        testBtn.onclick = () => selectTest(testNumber);
+        testBtn.innerHTML = `
+            <div class="test-btn-header">
+                <h3>Test ${testNumber}</h3>
+                <span class="test-count">${questionCount} Questions</span>
+            </div>
+            <p>Comprehensive practice exam covering all domains</p>
+        `;
+        
+        // Insert before Review by Domain button
+        const reviewBtn = testButtonsContainer.querySelector('button[onclick*="goToDomainReview"]');
+        if (reviewBtn) {
+            testButtonsContainer.insertBefore(testBtn, reviewBtn);
+        } else {
+            testButtonsContainer.appendChild(testBtn);
+        }
+    });
+}
 
 function selectTest(testNumber) {
     currentTest = testNumber;
