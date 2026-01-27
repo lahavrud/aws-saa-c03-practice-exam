@@ -1,0 +1,36 @@
+<div id="main-selection" class="screen hidden">
+            <div class="hero-section hero-section-compact">
+                <div class="hero-content">
+                    <div class="hero-logo-wrapper">
+                        <img src="Website-logo.png" alt="AWS Lahavda Logo" class="hero-logo hero-logo-compact" />
+                    </div>
+                    <div class="hero-badge">Welcome back</div>
+                    <h1 class="hero-title">Ready to practice, <span id="user-name">Student</span>?</h1>
+                    <p class="hero-subtitle">Continue your journey to AWS certification success</p>
+                </div>
+                <button class="user-settings-btn" onclick="showUserSettings()" title="User Settings">⚙️</button>
+                <div class="hero-decoration">
+                    <div class="hero-circle hero-circle-1"></div>
+                    <div class="hero-circle hero-circle-2"></div>
+                </div>
+            </div>
+            <!-- Insights Section -->
+            <div id="insights-container" class="insights-section">
+                <h2>Performance Insights</h2>
+                <div class="insights-loading">Loading insights...</div>
+            </div>
+            
+            <h2>Choose Your Practice Mode</h2>
+            <div class="mode-buttons">
+                <button class="mode-btn large" onclick="selectPracticeMode('domain')">
+                    <h3>By Domain</h3>
+                    <p>Practice all questions from a specific AWS domain across all tests</p>
+                </button>
+                <button class="mode-btn large" onclick="selectPracticeMode('test')">
+                    <h3>By Test</h3>
+                    <p>Take a complete practice exam with review or test mode</p>
+                </button>
+            </div>
+        </div>
+
+        

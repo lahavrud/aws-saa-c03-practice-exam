@@ -501,37 +501,6 @@
     "domain": "Design Resilient Architectures"
   },
   {
-    "id": 16,
-    "text": "A company has 150 TB of archived image data stored on-premises that needs to be moved to the \nAWS Cloud within the next month. The company's current network connection allows up to 100 \nMbps uploads for this purpose during the night only. \n \nWhat is the MOST cost-effective mechanism to move this data and meet the migration deadline?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Use AWS Snowmobile to ship the data to AWS.",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Order multiple AWS Snowball devices to ship the data to AWS.",
-        "correct": true
-      },
-      {
-        "id": 2,
-        "text": "Enable Amazon S3 Transfer Acceleration and securely upload the data.",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Create an Amazon S3 VPC endpoint and establish a VPN to upload the data.",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      1
-    ],
-    "explanation": "Explanation not available.",
-    "domain": "Design Cost-Optimized Architectures"
-  },
-  {
     "id": 17,
     "text": "A company wants to migrate its three-tier application from on premises to AWS. The web tier and \nthe application tier are running on third-party virtual machines (VMs). The database tier is running \non MySQL. \n \nThe company needs to migrate the application by making the fewest possible changes to the \narchitecture. The company also needs a database solution that can restore data to a specific \npoint in time. \n \nWhich solution will meet these requirements with the LEAST operational overhead?",
     "options": [

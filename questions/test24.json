@@ -397,37 +397,6 @@
     "domain": "Design Resilient Architectures"
   },
   {
-    "id": 12,
-    "text": "A global company runs its workloads on AWS. The company's application uses Amazon S3 \nbuckets across AWS Regions for sensitive data storage and analysis. The company stores \nmillions of objects in multiple S3 buckets daily. The company wants to identify all S3 buckets that \nare not versioning-enabled. \n \nWhich solution will meet these requirements?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Set up an AWS CloudTrail event that has a rule to identify all S3 buckets that are not versioning-",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Use Amazon S3 Storage Lens to identify all S3 buckets that are not versioning-enabled across",
-        "correct": true
-      },
-      {
-        "id": 2,
-        "text": "Enable IAM Access Analyzer for S3 to identify all S3 buckets that are not versioning-enabled",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Create an S3 Multi-Region Access Point to identify all S3 buckets that are not versioning-enabled",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      1
-    ],
-    "explanation": "**Why option 1 is correct:**\nS3 Sorage Lens \"can also identify buckets that aren't following data-protection best practices, such as using S3 Replication or S3 Versioning. \" https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage_lens_basics_metrics_recomm endations.html\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design Resilient Architectures"
-  },
-  {
     "id": 13,
     "text": "A company needs to optimize its Amazon S3 storage costs for an application that generates \nmany files that cannot be recreated. Each file is approximately 5 MB and is stored in Amazon S3 \nStandard storage. \n \nThe company must store the files for 4 years before the files can be deleted. The files must be \nimmediately accessible. The files are frequently accessed in the first 30 days of object creation, \nbut they are rarely accessed after the first 30 days. \n \nWhich solution will meet these requirements MOST cost-effectively?",
     "options": [

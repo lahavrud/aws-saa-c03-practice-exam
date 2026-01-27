@@ -1348,37 +1348,6 @@
     "domain": "Design Cost-Optimized Architectures"
   },
   {
-    "id": 43,
-    "text": "A company stores user data in AWS. The data is used continuously with peak usage during \nbusiness hours. Access patterns vary, with some data not being used for months at a time. A \nsolutions architect must choose a cost-effective solution that maintains the highest level of \ndurability while maintaining high availability. \n \nWhich storage solution meets these requirements?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Amazon S3 Standard",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Amazon S3 Intelligent-Tiering",
-        "correct": true
-      },
-      {
-        "id": 2,
-        "text": "Amazon S3 Glacier Deep Archive",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Amazon S3 One Zone-Infrequent Access (S3 One Zone-IA)",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      1
-    ],
-    "explanation": "Explanation not available.",
-    "domain": "Design Resilient Architectures"
-  },
-  {
     "id": 44,
     "text": "A company is testing an application that runs on an Amazon EC2 Linux instance. A single 500 \nGB Amazon Elastic Block Store (Amazon EBS) General Purpose SSO (gp2) volume is attached \nto the EC2 instance. \n \nThe company will deploy the application on multiple EC2 instances in an Auto Scaling group. All \ninstances require access to the data that is stored in the EBS volume. The company needs a \nhighly available and resilient solution that does not introduce significant changes to the \napplication's code. \n \nWhich solution will meet these requirements?",
     "options": [
@@ -1601,68 +1570,6 @@
     ],
     "correctAnswers": [
       1
-    ],
-    "explanation": "Explanation not available.",
-    "domain": "Design Secure Architectures"
-  },
-  {
-    "id": 51,
-    "text": "A solutions architect is creating an application that will handle batch processing of large amounts \nof data. The input data will be held in Amazon S3 and the output data will be stored in a different \nS3 bucket. For processing, the application will transfer the data over the network between \nmultiple Amazon EC2 instances. \n \nWhat should the solutions architect do to reduce the overall data transfer costs?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Place all the EC2 instances in an Auto Scaling group.",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Place all the EC2 instances in the same AWS Region.",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Place all the EC2 instances in the same Availability Zone.",
-        "correct": true
-      },
-      {
-        "id": 3,
-        "text": "Place all the EC2 instances in private subnets in multiple Availability Zones.",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      2
-    ],
-    "explanation": "Explanation not available.",
-    "domain": "Design Cost-Optimized Architectures"
-  },
-  {
-    "id": 52,
-    "text": "A company hosts a multi-tier web application that uses an Amazon Aurora MySQL DB cluster for \nstorage. The application tier is hosted on Amazon EC2 instances. The company's IT security \nguidelines mandate that the database credentials be encrypted and rotated every 14 days. \n \nWhat should a solutions architect do to meet this requirement with the LEAST operational effort?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Create a new AWS Key Management Service (AWS KMS) encryption key. Use AWS Secrets",
-        "correct": true
-      },
-      {
-        "id": 1,
-        "text": "Create two parameters in AWS Systems Manager Parameter Store: one for the user name as a",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Store a file that contains the credentials in an AWS Key Management Service (AWS KMS)",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Store a file that contains the credentials in an AWS Key Management Service (AWS KMS)",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      0
     ],
     "explanation": "Explanation not available.",
     "domain": "Design Secure Architectures"

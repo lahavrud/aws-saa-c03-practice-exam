@@ -764,68 +764,6 @@
     "domain": "Design Secure Architectures"
   },
   {
-    "id": 24,
-    "text": "A company wants to monitor its AWS costs for financial review. The cloud operations team is \ndesigning an architecture in the AWS Organizations management account to query AWS Cost \nand Usage Reports for all member accounts. The team must run this query once a month and \nprovide a detailed analysis of the bill. \n \nWhich solution is the MOST scalable and cost-effective way to meet these requirements?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Enable Cost and Usage Reports in the management account. Deliver reports to Amazon Kinesis.",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Enable Cost and Usage Reports in the management account. Deliver the reports to Amazon S3",
-        "correct": true
-      },
-      {
-        "id": 2,
-        "text": "Enable Cost and Usage Reports for member accounts. Deliver the reports to Amazon S3 Use",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Enable Cost and Usage Reports for member accounts. Deliver the reports to Amazon Kinesis.",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      1
-    ],
-    "explanation": "**Why option 1 is correct:**\nhttps://aws.amazon.com/blogs/big-data/analyze-amazon-s3-storage-costs-using-aws-cost-and- usage-reports-amazon-s3-inventory-and-amazon-athena/\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design Cost-Optimized Architectures"
-  },
-  {
-    "id": 25,
-    "text": "A company wants to run a gaming application on Amazon EC2 instances that are part of an Auto \nScaling group in the AWS Cloud. The application will transmit data by using UDP packets. The \ncompany wants to ensure that the application can scale out and in as traffic increases and \ndecreases. \n \nWhat should a solutions architect do to meet these requirements?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Attach a Network Load Balancer to the Auto Scaling group.",
-        "correct": true
-      },
-      {
-        "id": 1,
-        "text": "Attach an Application Load Balancer to the Auto Scaling group.",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Deploy an Amazon Route 53 record set with a weighted policy to route traffic appropriately.",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Deploy a NAT instance that is configured with port forwarding to the EC2 instances in the Auto",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      0
-    ],
-    "explanation": "**Why option 0 is correct:**\nhttps://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-load-balancer.html\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design Resilient Architectures"
-  },
-  {
     "id": 26,
     "text": "A company runs several websites on AWS for its different brands. Each website generates tens \nof gigabytes of web traffic logs each day. A solutions architect needs to design a scalable solution \nto give the company's developers the ability to analyze traffic patterns across all the company's \nwebsites. This analysis by the developers will occur on demand once a week over the course of \nseveral months. The solution must support queries with standard SQL. \n\n \n                                                                                \nGet Latest & Actual SAA-C03 Exam's Question and Answers from Passleader.                                 \nhttps://www.passleader.com  \n355 \n \nWhich solution will meet these requirements MOST cost-effectively?",
     "options": [

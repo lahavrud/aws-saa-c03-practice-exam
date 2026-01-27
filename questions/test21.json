@@ -294,42 +294,6 @@
     "domain": "Design Cost-Optimized Architectures"
   },
   {
-    "id": 9,
-    "text": "A solutions architect is designing a shared storage solution for a web application that is deployed \nacross multiple Availability Zones. The web application runs on Amazon EC2 instances that are in \nan Auto Scaling group. The company plans to make frequent changes to the content. The \nsolution must have strong consistency in returning the new content as soon as the changes \noccur. \n \nWhich solutions meet these requirements? (Choose two.)",
-    "options": [
-      {
-        "id": 0,
-        "text": "Use AWS Storage Gateway Volume Gateway Internet Small Computer Systems Interface (iSCSI)",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Create an Amazon Elastic File System (Amazon EFS) file system. Mount the EFS file system on",
-        "correct": true
-      },
-      {
-        "id": 2,
-        "text": "Create a shared Amazon Elastic Block Store (Amazon EBS) volume. Mount the EBS volume on",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Use AWS DataSync to perform continuous synchronization of data between EC2 hosts in the",
-        "correct": false
-      },
-      {
-        "id": 4,
-        "text": "Create an Amazon S3 bucket to store the web content. Set the metadata for the Cache-Control",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      1
-    ],
-    "explanation": "Explanation not available.",
-    "domain": "Design Resilient Architectures"
-  },
-  {
     "id": 10,
     "text": "A company is deploying an application in three AWS Regions using an Application Load \nBalancer. Amazon Route 53 will be used to distribute traffic between these Regions. \n \nWhich Route 53 configuration should a solutions architect use to provide the MOST high-\nperforming experience?",
     "options": [
@@ -1461,37 +1425,6 @@
     "domain": "Design Resilient Architectures"
   },
   {
-    "id": 46,
-    "text": "A company has an on-premises data center that is running out of storage capacity. The company \nwants to migrate its storage infrastructure to AWS while minimizing bandwidth costs. The solution \nmust allow for immediate retrieval of data at no additional cost. \n \nHow can these requirements be met?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Deploy Amazon S3 Glacier Vault and enable expedited retrieval. Enable provisioned retrieval",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Deploy AWS Storage Gateway using cached volumes. Use Storage Gateway to store data in",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Deploy AWS Storage Gateway using stored volumes to store data locally. Use Storage Gateway",
-        "correct": true
-      },
-      {
-        "id": 3,
-        "text": "Deploy AWS Direct Connect to connect with the on-premises data center. Configure AWS",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      2
-    ],
-    "explanation": "Explanation not available.",
-    "domain": "Design Cost-Optimized Architectures"
-  },
-  {
     "id": 47,
     "text": "A company runs a three-tier web application in a VPC across multiple Availability Zones. Amazon \nEC2 instances run in an Auto Scaling group for the application tier. \n \nThe company needs to make an automated scaling plan that will analyze each resource's daily \nand weekly historical workload trends. The configuration must scale resources appropriately \naccording to both the forecast and live changes in utilization. \n \nWhich scaling strategy should a solutions architect recommend to meet these requirements?",
     "options": [
@@ -1673,37 +1606,6 @@
     ],
     "correctAnswers": [
       3
-    ],
-    "explanation": "Explanation not available.",
-    "domain": "Design Resilient Architectures"
-  },
-  {
-    "id": 53,
-    "text": "A company is developing a mobile game that streams score updates to a backend processor and \nthen posts results on a leaderboard. A solutions architect needs to design a solution that can \nhandle large traffic spikes, process the mobile game updates in order of receipt, and store the \nprocessed updates in a highly available database. The company also wants to minimize the \nmanagement overhead required to maintain the solution. \n \nWhat should the solutions architect do to meet these requirements?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Push score updates to Amazon Kinesis Data Streams. Process the updates in Kinesis Data",
-        "correct": true
-      },
-      {
-        "id": 1,
-        "text": "Push score updates to Amazon Kinesis Data Streams. Process the updates with a fleet of",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Push score updates to an Amazon Simple Notification Service (Amazon SNS) topic. Subscribe an",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Push score updates to an Amazon Simple Queue Service (Amazon SQS) queue. Use a fleet of",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      0
     ],
     "explanation": "Explanation not available.",
     "domain": "Design Resilient Architectures"

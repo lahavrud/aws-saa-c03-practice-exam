@@ -1792,37 +1792,6 @@
     "domain": "Design Resilient Architectures"
   },
   {
-    "id": 57,
-    "text": "A company is migrating a Linux-based web server group to AWS. The web servers must access \nfiles in a shared file store for some content. The company must not make any changes to the \napplication. \n \nWhat should a solutions architect do to meet these requirements?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Create an Amazon S3 Standard bucket with access to the web servers.",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Configure an Amazon CloudFront distribution with an Amazon S3 bucket as the origin.",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Create an Amazon Elastic File System (Amazon EFS) file system. Mount the EFS file system on",
-        "correct": true
-      },
-      {
-        "id": 3,
-        "text": "Configure a General Purpose SSD (gp3) Amazon Elastic Block Store (Amazon EBS) volume.",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      2
-    ],
-    "explanation": "Explanation not available.",
-    "domain": "Design Secure Architectures"
-  },
-  {
     "id": 58,
     "text": "A company wants to migrate a Windows-based application from on premises to the AWS Cloud. \nThe application has three tiers, a business tier, and a database tier with Microsoft SQL Server. \nThe company wants to use specific features of SQL Server such as native backups and Data \nQuality Services. The company also needs to share files for process between the tiers. \n \nHow should a solution architect design the architecture to meet these requirements?",
     "options": [
@@ -1883,37 +1852,6 @@
     ],
     "explanation": "**Why option 2 is correct:**\nBy purchasing a Compute Savings Plan, the company can save on the costs of running both EC2 instances and Lambda functions. The Lambda functions can be connected to the private subnet that contains the EC2 instances through a VPC endpoint for AWS services or a VPC peering connection. This provides direct network access to the EC2 instances while keeping the traffic within the private network, which helps to minimize network latency. Optimizing the Lambda functions’ duration, memory usage, number of invocations, and amount of data transferred can help to further minimize costs and improve performance. Additionally, using a private subnet helps to ensure that the EC2 instances are not directly accessible from the public internet, which is a security best practice.\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
     "domain": "Design Secure Architectures"
-  },
-  {
-    "id": 60,
-    "text": "A company is building a mobile app on AWS. The company wants to expand its reach to millions \nof users. The company needs to build a platform so that authorized users can watch the \ncompany's content on their mobile devices. \n \nWhat should a solutions architect recommend to meet these requirements?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Publish content to a public Amazon S3 bucket. Use AWS Key Management Service (AWS KMS)",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Set up IPsec VPN between the mobile app and the AWS environment to stream content.",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Use Amazon CloudFront Provide signed URLs to stream content.",
-        "correct": true
-      },
-      {
-        "id": 3,
-        "text": "Set up AWS Client VPN between the mobile app and the AWS environment to stream content.",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      2
-    ],
-    "explanation": "**Why option 2 is correct:**\nAmazon CloudFront is a content delivery network (CDN) that securely delivers data, videos, applications, and APIs to customers globally with low latency and high transfer speeds. CloudFront supports signed URLs that provide authorized access to your content. This feature allows the company to control who can access their content and for how long, providing a secure and scalable solution for millions of users. https://www.amazonaws.cn/en/cloudfront/\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design Resilient Architectures"
   },
   {
     "id": 61,
@@ -2007,36 +1945,5 @@
     ],
     "explanation": "Explanation not available.",
     "domain": "Design Cost-Optimized Architectures"
-  },
-  {
-    "id": 64,
-    "text": "A company recently created a disaster recovery site in a different AWS Region. The company \nneeds to transfer large amounts of data back and forth between NFS file systems in the two \nRegions on a periodic basis. \n \nWhich solution will meet these requirements with the LEAST operational overhead?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Use AWS DataSync.",
-        "correct": true
-      },
-      {
-        "id": 1,
-        "text": "Use AWS Snowball devices",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Set up an SFTP server on Amazon EC2",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Use AWS Database Migration Service (AWS DMS)",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      0
-    ],
-    "explanation": "**Why option 0 is correct:**\nAWS DataSync is a fully managed data transfer service that simplifies moving large amounts of data between on-premises storage systems and AWS services. It can also transfer data between different AWS services, including different AWS Regions. DataSync provides a simple, scalable, and automated solution to transfer data, and it minimizes the operational overhead because it is fully managed by AWS.\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design Resilient Architectures"
   }
 ]

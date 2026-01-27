@@ -1,0 +1,72 @@
+<div id="about-us-modal" class="modal hidden">
+        <div class="modal-content about-modal-content">
+            <div class="about-header">
+                <div class="about-logo-wrapper">
+                    <img src="Website-logo.png" alt="AWS Lahavda Logo" class="about-logo" />
+                </div>
+                <h2>About AWS Lahavda</h2>
+                <button class="settings-close-btn" onclick="closeAboutUs()" aria-label="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="about-content">
+                <div class="about-section">
+                    <h3>Our Mission</h3>
+                    <p>AWS Lahavda is dedicated to helping aspiring cloud professionals achieve their AWS Solutions Architect Associate (SAA-C03) certification. We provide comprehensive practice exams, detailed explanations, and progress tracking to ensure your success.</p>
+                </div>
+                <div class="about-section">
+                    <h3>What We Offer</h3>
+                    <div class="about-features">
+                        <div class="about-feature">
+                            <div class="about-feature-icon">📚</div>
+                            <div>
+                                <h4>650+ Practice Questions</h4>
+                                <p>Comprehensive question bank covering all exam domains</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">📊</div>
+                            <div>
+                                <h4>Performance Analytics</h4>
+                                <p>Track your progress and identify areas for improvement</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">🎯</div>
+                            <div>
+                                <h4>Domain-Specific Practice</h4>
+                                <p>Focus on specific AWS domains that need attention</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">💡</div>
+                            <div>
+                                <h4>Detailed Explanations</h4>
+                                <p>Learn from comprehensive explanations for every question</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-section">
+                    <h3>Why Choose AWS Lahavda?</h3>
+                    <ul class="about-list">
+                        <li>✅ Questions from multiple trusted sources (Stephane Maarek, Tutorials Dojo, Sergey)</li>
+                        <li>✅ Real-time progress tracking across all devices</li>
+                        <li>✅ Review mode and timed test mode for flexible practice</li>
+                        <li>✅ Free access with Google account sign-in</li>
+                        <li>✅ Mobile-responsive design for studying anywhere</li>
+                    </ul>
+                </div>
+                <div class="about-section">
+                    <h3>Get Started</h3>
+                    <p>Sign in with your Google account to start practicing and track your progress. Your data is securely synced across all your devices, so you can study anywhere, anytime.</p>
+                    <button class="about-cta-btn" onclick="closeAboutUs(); if (typeof showSignInScreen === 'function') showSignInScreen(); else if (typeof Navigation !== 'undefined') Navigation.showScreen('sign-in-screen');">
+                        Start Practicing Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>

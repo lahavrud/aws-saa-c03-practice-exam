@@ -1,0 +1,40 @@
+<div id="results-screen" class="screen hidden">
+            <h2>Test Results</h2>
+            <div class="score-summary">
+                <div class="score-circle">
+                    <div class="score-value" id="total-score">0%</div>
+                    <div class="score-label">Overall Score</div>
+                </div>
+                <div class="score-details">
+                    <div class="score-stat">
+                        <span class="stat-label">Correct:</span>
+                        <span class="stat-value" id="correct-count">0</span>
+                    </div>
+                    <div class="score-stat">
+                        <span class="stat-label">Incorrect:</span>
+                        <span class="stat-value" id="incorrect-count">0</span>
+                    </div>
+                    <div class="score-stat">
+                        <span class="stat-label">Unanswered:</span>
+                        <span class="stat-value" id="unanswered-count">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="domain-scores">
+                <h3>Score by Domain</h3>
+                <div id="domain-breakdown"></div>
+            </div>
+
+            <div class="review-section">
+                <h3>Review Answers</h3>
+                <div id="review-questions"></div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn primary" onclick="restartTest()">Take Another Test</button>
+                <button class="action-btn" onclick="reviewAnswers()">Review All Answers</button>
+            </div>
+        </div>
+
+        

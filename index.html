@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/screens.css">
     <link rel="stylesheet" href="css/responsive.css">
-</head>
+
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
@@ -40,8 +40,7 @@
             <div id="timer" class="timer hidden"></div>
         </header>
 
-        <!-- Sign-In Screen (shown by default when not authenticated) -->
-        <div id="sign-in-screen" class="screen">
+<div id="sign-in-screen" class="screen">
             <div class="hero-section">
                 <div class="hero-content">
                     <div class="hero-thumbnail-wrapper">
@@ -89,10 +88,8 @@
             </div>
         </div>
 
-        <!-- User Selection Screen (Legacy - Removed, using Google Sign-In) -->
-
-        <!-- Main Selection Screen -->
-        <div id="main-selection" class="screen hidden">
+        
+<div id="main-selection" class="screen hidden">
             <div class="hero-section hero-section-compact">
                 <div class="hero-content">
                     <div class="hero-logo-wrapper">
@@ -127,8 +124,8 @@
             </div>
         </div>
 
-        <!-- Source Selection Screen (for By Test) -->
-        <div id="source-selection" class="screen hidden">
+        
+<div id="source-selection" class="screen hidden">
             <h2>Select Test Source</h2>
             <div class="source-buttons">
                 <button class="source-btn" onclick="selectSource('stephane')">
@@ -147,8 +144,8 @@
             <button class="back-btn" onclick="goBackToMainSelection()">← Back</button>
         </div>
 
-        <!-- Test Selection Screen (for By Test) -->
-        <div id="test-selection" class="screen hidden">
+        
+<div id="test-selection" class="screen hidden">
             <h2>Select a Test</h2>
             <div class="test-buttons" id="test-buttons-container">
                 <!-- Test buttons will be dynamically loaded here by app.js -->
@@ -156,8 +153,8 @@
             <button class="back-btn" onclick="goBackToSourceSelection()">← Back</button>
         </div>
 
-        <!-- Mode Selection Screen (for By Test) -->
-        <div id="mode-selection" class="screen hidden">
+        
+<div id="mode-selection" class="screen hidden">
             <h2>Select Mode</h2>
             <div class="mode-buttons">
                 <button class="mode-btn" onclick="selectMode('review')">
@@ -172,8 +169,8 @@
             <button class="back-btn" onclick="goBackToTestSelection()">← Back to Tests</button>
         </div>
 
-        <!-- Study Guide Screen -->
-        <div id="study-guide-screen" class="screen hidden">
+        
+<div id="study-guide-screen" class="screen hidden">
             <div class="study-guide-page">
                 <div class="study-guide-hero">
                     <div class="study-guide-icon">📚</div>
@@ -513,8 +510,8 @@
             </div>
         </div>
 
-        <!-- About Us Screen -->
-        <div id="about-us-screen" class="screen hidden">
+        
+<div id="about-us-screen" class="screen hidden">
             <div class="about-page">
                 <div class="about-page-hero">
                     <div class="about-page-logo-wrapper">
@@ -674,8 +671,8 @@
             </div>
         </div>
 
-        <!-- FAQ Screen -->
-        <div id="faq-screen" class="screen hidden">
+        
+<div id="faq-screen" class="screen hidden">
             <div class="faq-page">
                 <div class="faq-hero">
                     <div class="faq-icon">❓</div>
@@ -996,8 +993,8 @@
             </div>
         </div>
 
-        <!-- Domain Selection Screen (for By Domain) -->
-        <div id="domain-selection" class="screen hidden">
+        
+<div id="domain-selection" class="screen hidden">
             <h2>Select Domain to Review</h2>
             <div class="domain-buttons">
                 <button class="domain-btn" onclick="selectDomainForReview('Design Secure Architectures')">
@@ -1020,8 +1017,8 @@
             <button class="back-btn" onclick="goBackToMainSelection()">← Back</button>
         </div>
 
-        <!-- Question Screen -->
-        <div id="question-screen" class="screen hidden">
+        
+<div id="question-screen" class="screen hidden">
             <!-- Question Navigation Bar -->
             <div class="question-navbar" id="question-navbar">
                 <div class="navbar-header">
@@ -1052,9 +1049,13 @@
             </div>
             
             <div class="stats-bar">
-                <span class="stat-item">Answered: <strong id="answered-count">0</strong></span>
-                <span class="stat-item">Remaining: <strong id="remaining-count">65</strong></span>
-                <span class="stat-item">Marked: <strong id="marked-count">0</strong></span>
+                <span class="stat-item" id="stat-item-1">Answered: <strong id="answered-count">0</strong></span>
+                <span class="stat-item" id="stat-item-2">Remaining: <strong id="remaining-count">65</strong></span>
+                <span class="stat-item" id="stat-item-3">Marked: <strong id="marked-count">0</strong></span>
+                <!-- Domain mode stats (hidden by default) -->
+                <span class="stat-item domain-stat" id="domain-stat-correct" style="display: none;">Correct: <strong id="domain-correct-count">0</strong></span>
+                <span class="stat-item domain-stat" id="domain-stat-incorrect" style="display: none;">Incorrect: <strong id="domain-incorrect-count">0</strong></span>
+                <span class="stat-item domain-stat" id="domain-stat-accuracy" style="display: none;">Accuracy: <strong id="domain-accuracy-percent">0%</strong></span>
             </div>
             
             <div class="question-content">
@@ -1077,8 +1078,8 @@
             </div>
         </div>
 
-        <!-- Results Screen -->
-        <div id="results-screen" class="screen hidden">
+        
+<div id="results-screen" class="screen hidden">
             <h2>Test Results</h2>
             <div class="score-summary">
                 <div class="score-circle">
@@ -1117,8 +1118,9 @@
             </div>
         </div>
 
-        <!-- Dashboard Dialog -->
-        <div id="dashboard-dialog" class="modal hidden">
+        
+    </div>
+<div id="dashboard-dialog" class="modal hidden">
             <div class="modal-content">
                 <h3>Return to Dashboard?</h3>
                 <p>Your progress will be saved. You can resume later.</p>
@@ -1130,6 +1132,7 @@
             </div>
         </div>
 
+        
         <!-- User Settings Dialog -->
         <div id="user-settings-dialog" class="modal hidden">
             <div class="modal-content settings-modal-content">
@@ -1279,6 +1282,78 @@
                 </div>
             </div>
         </div>
+
+<div id="about-us-modal" class="modal hidden">
+        <div class="modal-content about-modal-content">
+            <div class="about-header">
+                <div class="about-logo-wrapper">
+                    <img src="Website-logo.png" alt="AWS Lahavda Logo" class="about-logo" />
+                </div>
+                <h2>About AWS Lahavda</h2>
+                <button class="settings-close-btn" onclick="closeAboutUs()" aria-label="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="about-content">
+                <div class="about-section">
+                    <h3>Our Mission</h3>
+                    <p>AWS Lahavda is dedicated to helping aspiring cloud professionals achieve their AWS Solutions Architect Associate (SAA-C03) certification. We provide comprehensive practice exams, detailed explanations, and progress tracking to ensure your success.</p>
+                </div>
+                <div class="about-section">
+                    <h3>What We Offer</h3>
+                    <div class="about-features">
+                        <div class="about-feature">
+                            <div class="about-feature-icon">📚</div>
+                            <div>
+                                <h4>650+ Practice Questions</h4>
+                                <p>Comprehensive question bank covering all exam domains</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">📊</div>
+                            <div>
+                                <h4>Performance Analytics</h4>
+                                <p>Track your progress and identify areas for improvement</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">🎯</div>
+                            <div>
+                                <h4>Domain-Specific Practice</h4>
+                                <p>Focus on specific AWS domains that need attention</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">💡</div>
+                            <div>
+                                <h4>Detailed Explanations</h4>
+                                <p>Learn from comprehensive explanations for every question</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-section">
+                    <h3>Why Choose AWS Lahavda?</h3>
+                    <ul class="about-list">
+                        <li>✅ Questions from multiple trusted sources (Stephane Maarek, Tutorials Dojo, Sergey)</li>
+                        <li>✅ Real-time progress tracking across all devices</li>
+                        <li>✅ Review mode and timed test mode for flexible practice</li>
+                        <li>✅ Free access with Google account sign-in</li>
+                        <li>✅ Mobile-responsive design for studying anywhere</li>
+                    </ul>
+                </div>
+                <div class="about-section">
+                    <h3>Get Started</h3>
+                    <p>Sign in with your Google account to start practicing and track your progress. Your data is securely synced across all your devices, so you can study anywhere, anytime.</p>
+                    <button class="about-cta-btn" onclick="closeAboutUs(); if (typeof showSignInScreen === 'function') showSignInScreen(); else if (typeof Navigation !== 'undefined') Navigation.showScreen('sign-in-screen');">
+                        Start Practicing Now
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDK (loaded from CDN - no download needed) -->
@@ -1356,78 +1431,5 @@
         </div>
     </footer>
 
-    <!-- About Us Modal -->
-    <div id="about-us-modal" class="modal hidden">
-        <div class="modal-content about-modal-content">
-            <div class="about-header">
-                <div class="about-logo-wrapper">
-                    <img src="Website-logo.png" alt="AWS Lahavda Logo" class="about-logo" />
-                </div>
-                <h2>About AWS Lahavda</h2>
-                <button class="settings-close-btn" onclick="closeAboutUs()" aria-label="Close">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-            <div class="about-content">
-                <div class="about-section">
-                    <h3>Our Mission</h3>
-                    <p>AWS Lahavda is dedicated to helping aspiring cloud professionals achieve their AWS Solutions Architect Associate (SAA-C03) certification. We provide comprehensive practice exams, detailed explanations, and progress tracking to ensure your success.</p>
-                </div>
-                <div class="about-section">
-                    <h3>What We Offer</h3>
-                    <div class="about-features">
-                        <div class="about-feature">
-                            <div class="about-feature-icon">📚</div>
-                            <div>
-                                <h4>650+ Practice Questions</h4>
-                                <p>Comprehensive question bank covering all exam domains</p>
-                            </div>
-                        </div>
-                        <div class="about-feature">
-                            <div class="about-feature-icon">📊</div>
-                            <div>
-                                <h4>Performance Analytics</h4>
-                                <p>Track your progress and identify areas for improvement</p>
-                            </div>
-                        </div>
-                        <div class="about-feature">
-                            <div class="about-feature-icon">🎯</div>
-                            <div>
-                                <h4>Domain-Specific Practice</h4>
-                                <p>Focus on specific AWS domains that need attention</p>
-                            </div>
-                        </div>
-                        <div class="about-feature">
-                            <div class="about-feature-icon">💡</div>
-                            <div>
-                                <h4>Detailed Explanations</h4>
-                                <p>Learn from comprehensive explanations for every question</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="about-section">
-                    <h3>Why Choose AWS Lahavda?</h3>
-                    <ul class="about-list">
-                        <li>✅ Questions from multiple trusted sources (Stephane Maarek, Tutorials Dojo, Sergey)</li>
-                        <li>✅ Real-time progress tracking across all devices</li>
-                        <li>✅ Review mode and timed test mode for flexible practice</li>
-                        <li>✅ Free access with Google account sign-in</li>
-                        <li>✅ Mobile-responsive design for studying anywhere</li>
-                    </ul>
-                </div>
-                <div class="about-section">
-                    <h3>Get Started</h3>
-                    <p>Sign in with your Google account to start practicing and track your progress. Your data is securely synced across all your devices, so you can study anywhere, anytime.</p>
-                    <button class="about-cta-btn" onclick="closeAboutUs(); if (typeof showSignInScreen === 'function') showSignInScreen(); else if (typeof Navigation !== 'undefined') Navigation.showScreen('sign-in-screen');">
-                        Start Practicing Now
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 </body>
 </html>

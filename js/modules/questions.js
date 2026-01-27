@@ -22,6 +22,13 @@ const QuestionHandler = (function() {
                 return;
             }
             
+            // Use uniqueId for saving answers, fallback to id for backward compatibility
+            const questionKey = (question.uniqueId || question.id).toString();
+            const selectedAnswers = userAnswers[questionKey] || [];
+            
+            console.log(`loadQuestion: index=${currentQuestionIndex}, questionKey=${questionKey}, uniqueId=${question.uniqueId}, id=${question.id}, selectedAnswers=[${selectedAnswers.join(', ')}]`);
+            console.log(`All userAnswers keys:`, Object.keys(userAnswers));
+            
             // Update question number display
             const questionNumberEl = document.getElementById('question-number');
             const questionCountEl = document.getElementById('question-count');
@@ -59,9 +66,6 @@ const QuestionHandler = (function() {
                 
                 const isMultipleChoice = question.correctAnswers && question.correctAnswers.length > 1;
                 const inputType = isMultipleChoice ? 'checkbox' : 'radio';
-                // Use uniqueId for saving answers, fallback to id for backward compatibility
-                const questionKey = (question.uniqueId || question.id).toString();
-                const selectedAnswers = userAnswers[questionKey] || [];
                 
                 question.options.forEach((option, index) => {
                     const optionDiv = document.createElement('div');
@@ -75,6 +79,10 @@ const QuestionHandler = (function() {
                     input.value = index;
                     input.id = `option-${questionUniqueId}-${index}`;
                     input.checked = selectedAnswers.includes(index);
+                    
+                    if (input.checked) {
+                        console.log(`  ✓ Option ${index} is checked for question ${questionKey}`);
+                    }
                     
                     if (currentMode === Config.MODES.REVIEW && selectedAnswers.length > 0) {
                         input.disabled = true;
@@ -166,8 +174,7 @@ const QuestionHandler = (function() {
             // Update submit/next button
             const submitBtn = document.getElementById('submit-btn');
             const nextBtn = document.getElementById('next-btn');
-            // Use uniqueId for checking answers
-            const questionKey = (question.uniqueId || question.id).toString();
+            // Use uniqueId for checking answers (questionKey already declared earlier)
             const hasAnswer = userAnswers[questionKey] && userAnswers[questionKey].length > 0;
             
             if (currentMode === Config.MODES.REVIEW) {
@@ -247,10 +254,22 @@ const QuestionHandler = (function() {
             QuestionHandler.updateQuestionNavbar();
             UI.updateStats();
             
-            // Recalculate user stats if answer changed (but don't auto-save)
+            // Recalculate user stats if answer changed
             if (answerChanged) {
                 Stats.recalculateUserStats();
-                // Note: Progress is only saved when returning to dashboard, not on each answer
+                
+                // Auto-save progress for domain practice mode
+                const selectedDomain = AppState.getSelectedDomain();
+                if (selectedDomain) {
+                    // Debounce save to avoid too frequent saves
+                    if (window.domainProgressSaveTimeout) {
+                        clearTimeout(window.domainProgressSaveTimeout);
+                    }
+                    window.domainProgressSaveTimeout = setTimeout(() => {
+                        ProgressManager.saveProgress();
+                        console.log('Domain progress auto-saved');
+                    }, 1000); // Save 1 second after last answer change
+                }
             }
         },
         
@@ -280,6 +299,13 @@ const QuestionHandler = (function() {
             
             // Recalculate user stats
             Stats.recalculateUserStats();
+            
+            // Auto-save progress for domain practice mode after showing feedback
+            const selectedDomain = AppState.getSelectedDomain();
+            if (selectedDomain) {
+                ProgressManager.saveProgress();
+                console.log('Domain progress auto-saved after answer feedback');
+            }
             
             options.forEach(opt => {
                 const input = opt.querySelector('input');

@@ -506,37 +506,6 @@
     "domain": "Design Cost-Optimized Architectures"
   },
   {
-    "id": 16,
-    "text": "A company operates an ecommerce website on Amazon EC2 instances behind an Application \nLoad Balancer (ALB) in an Auto Scaling group. The site is experiencing performance issues \nrelated to a high request rate from illegitimate external systems with changing IP addresses. The \nsecurity team is worried about potential DDoS attacks against the website. The company must \nblock the illegitimate incoming requests in a way that has a minimal impact on legitimate users. \n \nWhat should a solutions architect recommend?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Deploy Amazon Inspector and associate it with the ALB.",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Deploy AWS WAF, associate it with the ALB, and configure a rate-limiting rule.",
-        "correct": true
-      },
-      {
-        "id": 2,
-        "text": "Deploy rules to the network ACLs associated with the ALB to block the incomingtraffic.",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Deploy Amazon GuardDuty and enable rate-limiting protection when configuring GuardDuty.",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      1
-    ],
-    "explanation": "**Why option 1 is correct:**\nAWS WAF (Web Application Firewall) is a service that provides protection for web applications against common web exploits. By associating AWS WAF with the Application Load Balancer (ALB), you can inspect incoming traffic and define rules to allow or block requests based on various criteria.\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design Secure Architectures"
-  },
-  {
     "id": 17,
     "text": "A company wants to share accounting data with an external auditor. The data is stored in an \nAmazon RDS DB instance that resides in a private subnet. The auditor has its own AWS account \nand requires its own copy of the database. \n \nWhat is the MOST secure way for the company to share the database with the auditor?",
     "options": [
@@ -1582,37 +1551,6 @@
       3
     ],
     "explanation": "**Why option 3 is correct:**\nAn egress-only internet gateway (EIGW) is specifically designed for IPv6-only VPCs and provides outbound IPv6 internet access while blocking inbound IPv6 traffic. It satisfies the requirement of preventing external services from initiating connections to the EC2 instances while allowing the instances to initiate outbound communications.\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design Secure Architectures"
-  },
-  {
-    "id": 50,
-    "text": "A company is creating an application that runs on containers in a VPC. The application stores \nand accesses data in an Amazon S3 bucket. During the development phase, the application will \nstore and access 1 TB of data in Amazon S3 each day. The company wants to minimize costs \nand wants to prevent traffic from traversing the internet whenever possible. \n \nWhich solution will meet these requirements?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Enable S3 Intelligent-Tiering for the S3 bucket",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Enable S3 Transfer Acceleration for the S3 bucket",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Create a gateway VPC endpoint for Amazon S3. Associate this endpoint with all route tables in",
-        "correct": true
-      },
-      {
-        "id": 3,
-        "text": "Create an interface endpoint for Amazon S3 in the VPC. Associate this endpoint with all route",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      2
-    ],
-    "explanation": "**Why option 2 is correct:**\nPrevent traffic from traversing the internet = Gateway VPC endpoint for S3.\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
     "domain": "Design Secure Architectures"
   },
   {

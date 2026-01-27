@@ -137,7 +137,10 @@ const ProgressManager = (function() {
         // Load saved progress
         loadSavedProgress: (testNumber) => {
             const currentUserEmail = AppState.getCurrentUserEmail();
-            if (!currentUserEmail) return false;
+            if (!currentUserEmail) {
+                console.log('loadSavedProgress: No user email');
+                return false;
+            }
             
             const userKey = currentUserEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
             let progressKey;
@@ -145,13 +148,30 @@ const ProgressManager = (function() {
             if (testNumber) {
                 progressKey = `${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-test${testNumber}`;
             } else {
-                progressKey = localStorage.getItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`);
+                // For domain mode, try to get from current progress or construct from selected domain
+                const selectedDomain = AppState.getSelectedDomain();
+                if (selectedDomain) {
+                    // Construct domain progress key
+                    progressKey = `${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-domain-${selectedDomain.replace(/\s+/g, '-')}`;
+                    console.log('Loading domain progress with key:', progressKey);
+                } else {
+                    // Fallback to current progress key
+                    progressKey = localStorage.getItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`);
+                }
             }
             
-            if (!progressKey) return false;
+            if (!progressKey) {
+                console.log('No progress key found for testNumber:', testNumber, 'selectedDomain:', AppState.getSelectedDomain());
+                return false;
+            }
             
             const saved = localStorage.getItem(progressKey);
-            if (!saved) return false;
+            if (!saved) {
+                console.log('No saved progress found for key:', progressKey);
+                return false;
+            }
+            
+            console.log('Found saved progress, parsing...');
             
             try {
                 const progress = JSON.parse(saved);
@@ -164,28 +184,69 @@ const ProgressManager = (function() {
                 let answers = progress.answers || {};
                 if (progress.selectedDomain && !progress.test) {
                     // Domain review mode - need to map answers to new question IDs
-                    // If answers were saved with old IDs (just numbers), map them to new format (testX-id)
-                    const currentQuestions = AppState.getCurrentQuestions();
+                    // Answers might be saved with uniqueId (testX-qY) or just id (number)
+                    let currentQuestions = AppState.getCurrentQuestions();
+                    
+                    // If questions aren't loaded yet, try to load them
+                    if (!currentQuestions || currentQuestions.length === 0) {
+                        console.log('Questions not loaded, attempting to load domain questions...');
+                        const domainQuestions = QuestionHandler.getDomainQuestions(progress.selectedDomain);
+                        if (domainQuestions && domainQuestions.length > 0) {
+                            AppState.setCurrentQuestions(domainQuestions);
+                            currentQuestions = domainQuestions;
+                        }
+                    }
+                    
                     if (currentQuestions && currentQuestions.length > 0) {
+                        console.log(`Loading domain progress: ${Object.keys(answers).length} saved answers, ${currentQuestions.length} questions`);
+                        console.log('Sample saved answer keys:', Object.keys(answers).slice(0, 5));
+                        console.log('Sample question uniqueIds:', currentQuestions.slice(0, 5).map(q => ({ id: q.id, uniqueId: q.uniqueId, originalId: q.originalId })));
+                        
                         const mappedAnswers = {};
+                        let mappedCount = 0;
+                        let unmatchedCount = 0;
+                        
                         for (const [oldKey, answerValue] of Object.entries(answers)) {
-                            // Try to find matching question
+                            // Try to find matching question by multiple methods
                             const question = currentQuestions.find(q => {
-                                const qKey = q.id.toString();
+                                const qUniqueId = (q.uniqueId || '').toString();
+                                const qId = q.id.toString();
                                 const qOriginalId = q.originalId ? q.originalId.toString() : null;
-                                return qKey === oldKey || qOriginalId === oldKey;
+                                
+                                // Match by uniqueId (most common case - exact match)
+                                if (qUniqueId === oldKey) return true;
+                                
+                                // Match by id (for backward compatibility)
+                                if (qId === oldKey) return true;
+                                
+                                // Match by originalId
+                                if (qOriginalId && qOriginalId === oldKey) return true;
+                                
+                                return false;
                             });
                             
                             if (question) {
-                                // Use the current question's uniqueId format
+                                // Use the current question's uniqueId format (this is what we use for saving)
                                 const questionKey = (question.uniqueId || question.id).toString();
                                 mappedAnswers[questionKey] = answerValue;
+                                mappedCount++;
+                                if (mappedCount <= 5) { // Only log first 5 to avoid spam
+                                    console.log(`✓ Mapped answer: ${oldKey} -> ${questionKey} = [${answerValue.join(', ')}]`);
+                                }
                             } else {
                                 // Keep old key if no match found (might be from different session)
                                 mappedAnswers[oldKey] = answerValue;
+                                unmatchedCount++;
+                                if (unmatchedCount <= 5) { // Only log first 5 to avoid spam
+                                    console.warn(`✗ Could not map answer key: ${oldKey} (value: [${answerValue.join(', ')}])`);
+                                }
                             }
                         }
                         answers = mappedAnswers;
+                        console.log(`Domain progress loaded: ${mappedCount} mapped, ${unmatchedCount} unmatched, total: ${Object.keys(answers).length}`);
+                        console.log('Final mapped answers sample:', Object.entries(answers).slice(0, 3));
+                    } else {
+                        console.warn('Cannot map domain answers: No questions available');
                     }
                 }
                 
@@ -195,6 +256,9 @@ const ProgressManager = (function() {
                 AppState.setSelectedDomain(progress.selectedDomain);
                 AppState.setSelectedSource(progress.source);
                 AppState.setSavedProgress(progress);
+                
+                console.log('Progress loaded successfully. Answers:', Object.keys(answers).length, 'Marked:', progress.marked?.length || 0);
+                console.log('Sample answers:', Object.entries(answers).slice(0, 3));
                 
                 return true;
             } catch (error) {

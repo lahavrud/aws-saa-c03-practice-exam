@@ -8,11 +8,14 @@ const UI = (function() {
             const currentQuestions = AppState.getCurrentQuestions();
             const userAnswers = AppState.getUserAnswers();
             const currentQuestionIndex = AppState.getCurrentQuestionIndex();
+            const selectedDomain = AppState.getSelectedDomain();
+            const currentMode = AppState.getCurrentMode();
             
             if (!currentQuestions || currentQuestions.length === 0) return;
             
             let answered = 0;
             let correct = 0;
+            let incorrect = 0;
             
             currentQuestions.forEach(question => {
                 // Use uniqueId for retrieving answers
@@ -29,30 +32,75 @@ const UI = (function() {
                     
                     if (isCorrect) {
                         correct++;
+                    } else {
+                        incorrect++;
                     }
                 }
             });
             
             const accuracy = answered > 0 ? Math.round((correct / answered) * 100) : 0;
             
-            const answeredEl = document.getElementById('answered-count');
-            const correctEl = document.getElementById('correct-count');
-            const accuracyEl = document.getElementById('accuracy-percent');
+            // Check if we're in domain practice mode
+            const isDomainMode = selectedDomain && !AppState.getCurrentTest();
             
-            if (answeredEl) answeredEl.textContent = answered;
-            if (correctEl) correctEl.textContent = correct;
-            if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
-            
-            // Update remaining and marked counts
-            const remainingEl = document.getElementById('remaining-count');
-            const markedEl = document.getElementById('marked-count');
-            const markedQuestions = AppState.getMarkedQuestions();
-            
-            if (remainingEl) {
-                remainingEl.textContent = currentQuestions.length - answered;
-            }
-            if (markedEl) {
-                markedEl.textContent = markedQuestions.size;
+            if (isDomainMode) {
+                // Show domain-specific stats (Correct, Incorrect, Accuracy)
+                const statItem1 = document.getElementById('stat-item-1');
+                const statItem2 = document.getElementById('stat-item-2');
+                const statItem3 = document.getElementById('stat-item-3');
+                const domainCorrect = document.getElementById('domain-stat-correct');
+                const domainIncorrect = document.getElementById('domain-stat-incorrect');
+                const domainAccuracy = document.getElementById('domain-stat-accuracy');
+                const domainCorrectCount = document.getElementById('domain-correct-count');
+                const domainIncorrectCount = document.getElementById('domain-incorrect-count');
+                const domainAccuracyPercent = document.getElementById('domain-accuracy-percent');
+                
+                // Hide test mode stats
+                if (statItem1) statItem1.style.display = 'none';
+                if (statItem2) statItem2.style.display = 'none';
+                if (statItem3) statItem3.style.display = 'none';
+                
+                // Show domain mode stats
+                if (domainCorrect) domainCorrect.style.display = '';
+                if (domainIncorrect) domainIncorrect.style.display = '';
+                if (domainAccuracy) domainAccuracy.style.display = '';
+                
+                // Update domain stats values
+                if (domainCorrectCount) domainCorrectCount.textContent = correct;
+                if (domainIncorrectCount) domainIncorrectCount.textContent = incorrect;
+                if (domainAccuracyPercent) domainAccuracyPercent.textContent = `${accuracy}%`;
+            } else {
+                // Show test mode stats (Answered, Remaining, Marked)
+                const statItem1 = document.getElementById('stat-item-1');
+                const statItem2 = document.getElementById('stat-item-2');
+                const statItem3 = document.getElementById('stat-item-3');
+                const domainCorrect = document.getElementById('domain-stat-correct');
+                const domainIncorrect = document.getElementById('domain-stat-incorrect');
+                const domainAccuracy = document.getElementById('domain-stat-accuracy');
+                
+                // Show test mode stats
+                if (statItem1) statItem1.style.display = '';
+                if (statItem2) statItem2.style.display = '';
+                if (statItem3) statItem3.style.display = '';
+                
+                // Hide domain mode stats
+                if (domainCorrect) domainCorrect.style.display = 'none';
+                if (domainIncorrect) domainIncorrect.style.display = 'none';
+                if (domainAccuracy) domainAccuracy.style.display = 'none';
+                
+                // Update test mode stats
+                const answeredEl = document.getElementById('answered-count');
+                const remainingEl = document.getElementById('remaining-count');
+                const markedEl = document.getElementById('marked-count');
+                const markedQuestions = AppState.getMarkedQuestions();
+                
+                if (answeredEl) answeredEl.textContent = answered;
+                if (remainingEl) {
+                    remainingEl.textContent = currentQuestions.length - answered;
+                }
+                if (markedEl) {
+                    markedEl.textContent = markedQuestions.size;
+                }
             }
         },
         

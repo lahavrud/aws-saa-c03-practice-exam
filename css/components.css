@@ -494,6 +494,26 @@
     font-weight: 600;
 }
 
+.domain-stat {
+    display: none;
+}
+
+.domain-stat strong {
+    color: #FF9900;
+}
+
+#domain-correct-count {
+    color: #4caf50;
+}
+
+#domain-incorrect-count {
+    color: #f44336;
+}
+
+#domain-accuracy-percent {
+    color: #FF9900;
+}
+
 .question-content {
     margin-bottom: 30px;
 }

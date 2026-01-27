@@ -992,37 +992,6 @@
     "domain": "Design Resilient Architectures"
   },
   {
-    "id": 32,
-    "text": "A company has an on-premises business application that generates hundreds of files each day. \nThese files are stored on an SMB file share and require a low-latency connection to the \napplication servers. A new company policy states all application-generated files must be copied to \nAWS. There is already a VPN connection to AWS. \n \nThe application development team does not have time to make the necessary code modifications \nto move the application to AWS. \n \nWhich service should a solutions architect recommend to allow the application to copy files to \nAWS?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Amazon Elastic File System (Amazon EFS)",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Amazon FSx for Windows File Server",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "AWS Snowball",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "AWS Storage Gateway",
-        "correct": true
-      }
-    ],
-    "correctAnswers": [
-      3
-    ],
-    "explanation": "**Why option 3 is correct:**\nhttps://docs.aws.amazon.com/storagegateway/\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design High-Performing Architectures"
-  },
-  {
     "id": 33,
     "text": "A company has 15 employees. The company stores employee start dates in an Amazon \nDynamoDB table. The company wants to send an email message to each employee on the day \nof the employee's work anniversary. \n \nWhich solution will meet these requirements with the MOST operational efficiency?",
     "options": [
@@ -1080,37 +1049,6 @@
     ],
     "correctAnswers": [
       1
-    ],
-    "explanation": "Explanation not available.",
-    "domain": "Design High-Performing Architectures"
-  },
-  {
-    "id": 35,
-    "text": "A company uses Amazon RDS for PostgreSQL databases for its data tier. The company must \nimplement password rotation for the databases. \n \nWhich solution meets this requirement with the LEAST operational overhead?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Store the password in AWS Secrets Manager. Enable automatic rotation on the secret.",
-        "correct": true
-      },
-      {
-        "id": 1,
-        "text": "Store the password in AWS Systems Manager Parameter Store. Enable automatic rotation on the",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Store the password in AWS Systems Manager Parameter Store. Write an AWS Lambda function",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Store the password in AWS Key Management Service (AWS KMS). Enable automatic rotation on",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      0
     ],
     "explanation": "Explanation not available.",
     "domain": "Design High-Performing Architectures"
@@ -1300,37 +1238,6 @@
     ],
     "explanation": "Explanation not available.",
     "domain": "Design Secure Architectures"
-  },
-  {
-    "id": 42,
-    "text": "A company is planning to run a group of Amazon EC2 instances that connect to an Amazon \nAurora database. The company has built an AWS CloudFormation template to deploy the EC2 \ninstances and the Aurora DB cluster. The company wants to allow the instances to authenticate \nto the database in a secure way. The company does not want to maintain static database \ncredentials. \n \nWhich solution meets these requirements with the LEAST operational effort?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Create a database user with a user name and password. Add parameters for the database user",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Create a database user with a user name and password. Store the user name and password in",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Configure the DB cluster to use IAM database authentication. Create a database user to use with",
-        "correct": true
-      },
-      {
-        "id": 3,
-        "text": "Configure the DB cluster to use IAM database authentication with an IAM user. Create a",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      2
-    ],
-    "explanation": "Explanation not available.",
-    "domain": "Design High-Performing Architectures"
   },
   {
     "id": 43,

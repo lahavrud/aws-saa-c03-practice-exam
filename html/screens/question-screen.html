@@ -1,0 +1,61 @@
+<div id="question-screen" class="screen hidden">
+            <!-- Question Navigation Bar -->
+            <div class="question-navbar" id="question-navbar">
+                <div class="navbar-header">
+                    <span>Questions</span>
+                    <button class="navbar-toggle" id="navbar-toggle" type="button">☰</button>
+                </div>
+                <div class="question-grid" id="question-grid"></div>
+            </div>
+            
+            <div class="progress-bar">
+                <div id="progress" class="progress-fill"></div>
+            </div>
+            <div class="question-header">
+                <div class="question-title">
+                    <span id="question-number">Question 1</span>
+                    <span id="question-count">of 65</span>
+                    <span id="question-domain" class="domain-badge"></span>
+                </div>
+                <div class="question-actions">
+                    <button class="mark-btn" id="mark-btn" type="button" title="Mark for review">
+                        <span id="mark-icon">☆</span><span> Mark</span>
+                    </button>
+                    <button class="dashboard-btn" onclick="showDashboardDialog()" title="Return to dashboard">
+                        🏠 Dashboard
+                    </button>
+                    <span class="keyboard-hint">(← → to navigate)</span>
+                </div>
+            </div>
+            
+            <div class="stats-bar">
+                <span class="stat-item" id="stat-item-1">Answered: <strong id="answered-count">0</strong></span>
+                <span class="stat-item" id="stat-item-2">Remaining: <strong id="remaining-count">65</strong></span>
+                <span class="stat-item" id="stat-item-3">Marked: <strong id="marked-count">0</strong></span>
+                <!-- Domain mode stats (hidden by default) -->
+                <span class="stat-item domain-stat" id="domain-stat-correct" style="display: none;">Correct: <strong id="domain-correct-count">0</strong></span>
+                <span class="stat-item domain-stat" id="domain-stat-incorrect" style="display: none;">Incorrect: <strong id="domain-incorrect-count">0</strong></span>
+                <span class="stat-item domain-stat" id="domain-stat-accuracy" style="display: none;">Accuracy: <strong id="domain-accuracy-percent">0%</strong></span>
+            </div>
+            
+            <div class="question-content">
+                <p id="question-text"></p>
+                <div id="options" class="options"></div>
+            </div>
+
+            <div class="explanation hidden" id="explanation">
+                <h3>Explanation</h3>
+                <div id="explanation-content">
+                    <div id="correct-explanation" class="explanation-section"></div>
+                    <div id="incorrect-explanation" class="explanation-section"></div>
+                </div>
+            </div>
+
+            <div class="navigation">
+                <button id="prev-btn" class="nav-btn" type="button">Previous</button>
+                <button id="submit-btn" class="nav-btn primary" type="button">Submit Answer</button>
+                <button id="next-btn" class="nav-btn primary hidden" type="button">Next Question</button>
+            </div>
+        </div>
+
+        

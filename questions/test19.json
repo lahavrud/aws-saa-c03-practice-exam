@@ -284,37 +284,6 @@
     "domain": "Design Resilient Architectures"
   },
   {
-    "id": 9,
-    "text": "A company's website handles millions of requests each day, and the number of requests \ncontinues to increase. A solutions architect needs to improve the response time of the web \napplication. The solutions architect determines that the application needs to decrease latency \nwhen retrieving product details from the Amazon DynamoDB table. \n \nWhich solution will meet these requirements with the LEAST amount of operational overhead?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Set up a DynamoDB Accelerator (DAX) cluster. Route all read requests through DAX.",
-        "correct": true
-      },
-      {
-        "id": 1,
-        "text": "Set up Amazon ElastiCache for Redis between the DynamoDB table and the web application.",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Set up Amazon ElastiCache for Memcached between the DynamoDB table and the web",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Set up Amazon DynamoDB Streams on the table, and have AWS Lambda read from the table",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      0
-    ],
-    "explanation": "**Why option 0 is correct:**\nDAX provides a DynamoDB-compatible caching layer to reduce read latency. It is purpose-built for accelerating DynamoDB workloads. Using DAX requires minimal application changes - only read requests are routed through it. DAX handles caching logic automatically without needing complex integration code. ElastiCache Redis/Memcached (Options B/C) require more integration work to sync DynamoDB data. Using Lambda and Streams to populate ElastiCache (Option D) is a complex event-driven approach requiring ongoing maintenance. DAX plugs in seamlessly to accelerate DynamoDB with very little operational overhead.\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design High-Performing Architectures"
-  },
-  {
     "id": 10,
     "text": "A solutions architect needs to ensure that API calls to Amazon DynamoDB from Amazon EC2 \ninstances in a VPC do not travel across the internet. \n \nWhich combination of steps should the solutions architect take to meet this requirement? \n(Choose two.)",
     "options": [

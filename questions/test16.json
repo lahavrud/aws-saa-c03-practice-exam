@@ -1,36 +1,5 @@
 [
   {
-    "id": 0,
-    "text": "A company has an On-premises volume backup solution that has reached its end of life. The \ncompany wants to use AWS as part of a new backup solution and wants to maintain local access \nto all the data while it is backed up on AWS. The company wants to ensure that the data backed \nup on AWS is automatically and securely transferred. \n \nWhich solution meets these requirements?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Use AWS Snowball to migrate data out of the on-premises solution to Amazon S3. Configure on-",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Use AWS Snowball Edge to migrate data out of the on-premises solution to Amazon S3. Use the",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Use AWS Storage Gateway and configure a cached volume gateway. Run the Storage Gateway",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Use AWS Storage Gateway and configure a stored volume gateway. Run the Storage software",
-        "correct": true
-      }
-    ],
-    "correctAnswers": [
-      3
-    ],
-    "explanation": "**Why option 3 is correct:**\nhttps://docs.aws.amazon.com/storagegateway/latest/vgw/WhatIsStorageGateway.html\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design Secure Architectures"
-  },
-  {
     "id": 1,
     "text": "A company runs an application on Amazon EC2 instances. The company needs to implement a \ndisaster recovery (DR) solution for the application. The DR solution needs to have a recovery \ntime objective (RTO) of less than 4 hours. The DR solution also needs to use the fewest possible \nAWS resources during normal operations. \n \nWhich solution will meet these requirements in the MOST operationally efficient way?",
     "options": [
@@ -437,37 +406,6 @@
     ],
     "explanation": "**Why option 1 is correct:**\nWhen you create an EBS volume, you can specify whether to encrypt the volume. If you choose to encrypt the volume, all data written to the volume is automatically encrypted at rest using AWS-managed keys. You can also use customer-managed keys (CMKs) stored in AWS KMS to encrypt and protect your EBS volumes. You can create encrypted EBS volumes and attach them to EC2 instances to ensure that all data written to the volumes is encrypted at rest.\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
     "domain": "Design Secure Architectures"
-  },
-  {
-    "id": 14,
-    "text": "A company is moving its data management application to AWS. The company wants to transition \nto an event-driven architecture. The architecture needs to be more distributed and to use \nserverless concepts while performing the different aspects of the workflow. The company also \nwants to minimize operational overhead. \n \nWhich solution will meet these requirements?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Build out the workflow in AWS Glue. Use AWS Glue to invoke AWS Lambda functions to process",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Build out the workflow in AWS Step Functions. Deploy the application on Amazon EC2 Instances.",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Build out the workflow in Amazon EventBridge. Use EventBridge to invoke AWS Lambda",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Build out the workflow in AWS Step Functions. Use Step Functions to create a state machine.",
-        "correct": true
-      }
-    ],
-    "correctAnswers": [
-      3
-    ],
-    "explanation": "**Why option 3 is correct:**\nStep 3: Create a State Machine Use the Step Functions console to create a state machine that invokes the Lambda function that you created earlier in Step 1. https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-creating-lambda-state- machine.html In Step Functions, a workflow is called a state machine, which is a series of event-driven steps. Each step in a workflow is called a state.\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design Resilient Architectures"
   },
   {
     "id": 15,
@@ -1714,37 +1652,6 @@
     "domain": "Design Secure Architectures"
   },
   {
-    "id": 54,
-    "text": "A company is migrating an old application to AWS. The application runs a batch job every hour \nand is CPU intensive. The batch job takes 15 minutes on average with an on-premises server. \nThe server has 64 virtual CPU (vCPU) and 512 GiB of memory. \n \nWhich solution will run the batch job within 15 minutes with the LEAST operational overhead?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Use AWS Lambda with functional scaling",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Use Amazon Elastic Container Service (Amazon ECS) with AWS Fargate",
-        "correct": false
-      },
-      {
-        "id": 2,
-        "text": "Use Amazon Lightsail with AWS Auto Scaling",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Use AWS Batch on Amazon EC2",
-        "correct": true
-      }
-    ],
-    "correctAnswers": [
-      3
-    ],
-    "explanation": "**Why option 3 is correct:**\nUse AWS Batch on Amazon EC2. AWS Batch is a fully managed batch processing service that can be used to easily run batch jobs on Amazon EC2 instances. It can scale the number of instances to match the workload, allowing the batch job to be completed in the desired time frame with minimal operational overhead.\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design Resilient Architectures"
-  },
-  {
     "id": 55,
     "text": "A company hosts a frontend application that uses an Amazon API Gateway API backend that is \nintegrated with AWS Lambda. When the API receives requests, the Lambda function loads many \nlibraries. Then the Lambda function connects to an Amazon RDS database, processes the data, \nand returns the data to the frontend application. The company wants to ensure that response \nlatency is as low as possible for all its users with the fewest number of changes to the company's \noperations. \n \nWhich solution will meet these requirements?",
     "options": [
@@ -1805,37 +1712,6 @@
     ],
     "explanation": "Explanation not available.",
     "domain": "Design Secure Architectures"
-  },
-  {
-    "id": 57,
-    "text": "An ecommerce company is running a multi-tier application on AWS. The front-end and backend \ntiers both run on Amazon EC2, and the database runs on Amazon RDS for MySQL. The backend \ntier communicates with the RDS instance. There are frequent calls to return identical datasets \nfrom the database that are causing performance slowdowns. \n \nWhich action should be taken to improve the performance of the backend?",
-    "options": [
-      {
-        "id": 0,
-        "text": "Implement Amazon SNS to store the database calls.",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "Implement Amazon ElastiCache to cache the large datasets.",
-        "correct": true
-      },
-      {
-        "id": 2,
-        "text": "Implement an RDS for MySQL read replica to cache database calls.",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "Implement Amazon Kinesis Data Firehose to stream the calls to the database.",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      1
-    ],
-    "explanation": "**Why option 1 is correct:**\nKey term is identical datasets from the database it means caching can solve this issue by cached in frequently used dataset from DB.\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design High-Performing Architectures"
   },
   {
     "id": 58,

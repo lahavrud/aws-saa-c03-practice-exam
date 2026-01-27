@@ -1573,37 +1573,6 @@
     "domain": "Design Secure Architectures"
   },
   {
-    "id": 50,
-    "text": "What does this IAM policy do?",
-    "options": [
-      {
-        "id": 0,
-        "text": "It allows starting an Amazon EC2 instance only when they have a Private IP within the 34.50.31.0/24 CIDR block",
-        "correct": false
-      },
-      {
-        "id": 1,
-        "text": "It allows starting an Amazon EC2 instance only when the IP where the call originates is within the 34.50.31.0/24 CIDR block",
-        "correct": true
-      },
-      {
-        "id": 2,
-        "text": "It allows starting an Amazon EC2 instance only when they have an Elastic IP within the 34.50.31.0/24 CIDR block",
-        "correct": false
-      },
-      {
-        "id": 3,
-        "text": "It allows starting an Amazon EC2 instance only when they have a Public IP within the 34.50.31.0/24 CIDR block",
-        "correct": false
-      }
-    ],
-    "correctAnswers": [
-      1
-    ],
-    "explanation": "The correct answer is: It allows starting an Amazon EC2 instance only when the IP where the call originates is within the 34.50.31.0/24 CIDR block\n\nThis solution maintains security best practices, proper access controls, and data protection while addressing the functional requirements.\n\nWhy other options are incorrect:\n- It allows starting an Amazon EC2 instance only when they have a Private IP within the 34.50.31.0/24 CIDR block: This option does not fully address the requirements, introduces unnecessary complexity, or is not the most appropriate solution for this scenario.\n- It allows starting an Amazon EC2 instance only when they have an Elastic IP within the 34.50.31.0/24 CIDR block: This option does not fully address the requirements, introduces unnecessary complexity, or is not the most appropriate solution for this scenario.\n- It allows starting an Amazon EC2 instance only when they have a Public IP within the 34.50.31.0/24 CIDR block: This option does not fully address the requirements, introduces unnecessary complexity, or is not the most appropriate solution for this scenario.",
-    "domain": "Design Secure Architectures"
-  },
-  {
     "id": 51,
     "text": "A financial services company runs a Kubernetes-based microservices application in its on-premises data center. The application uses the Advanced Message Queuing Protocol (AMQP) to interact with a message queue. The company is experiencing rapid growth and its on-prem infrastructure cannot scale fast enough. The company wants to migrate the application to AWS with minimal code changes and reduce infrastructure management overhead. The messaging component must continue using AMQP, and the solution should offer high scalability and low operational effort. Which combination of options will together meet these requirements? (Select two)",
     "options": [

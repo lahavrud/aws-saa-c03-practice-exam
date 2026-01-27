@@ -214,9 +214,6 @@ const TestManager = (function() {
         selectDomainForReview: async (domain) => {
             AppState.setSelectedDomain(domain);
             AppState.setCurrentMode(Config.MODES.REVIEW);
-            AppState.setCurrentQuestionIndex(0);
-            AppState.setUserAnswers({});
-            AppState.setMarkedQuestions(new Set());
             
             // Ensure questions are loaded
             let questions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
@@ -255,13 +252,28 @@ const TestManager = (function() {
             AppState.setCurrentQuestions(domainQuestions);
             AppState.setCurrentTest(null);
             
-            Navigation.hideScreen('domain-selection');
-            Navigation.showScreen('question-screen');
+            // Try to load saved progress for this domain BEFORE resetting answers
+            const progressLoaded = TestManager.loadSavedProgress(null);
             
-            QuestionHandler.buildQuestionNavbar();
-            QuestionHandler.loadQuestion();
-            Stats.updateDashboard();
-            Stats.recalculateUserStats();
+            if (progressLoaded) {
+                // Progress was loaded and screen/question already shown by loadSavedProgress
+                // Just update stats
+                Stats.updateDashboard();
+                Stats.recalculateUserStats();
+            } else {
+                // No saved progress, start fresh
+                AppState.setCurrentQuestionIndex(0);
+                AppState.setUserAnswers({});
+                AppState.setMarkedQuestions(new Set());
+                
+                Navigation.hideScreen('domain-selection');
+                Navigation.showScreen('question-screen');
+                
+                QuestionHandler.buildQuestionNavbar();
+                QuestionHandler.loadQuestion();
+                Stats.updateDashboard();
+                Stats.recalculateUserStats();
+            }
             
             // Ensure navbar toggle is attached
             if (typeof window.attachNavbarToggleListener === 'function') {
@@ -289,14 +301,17 @@ const TestManager = (function() {
                 const domainQuestions = QuestionHandler.getDomainQuestions(selectedDomain);
                 if (domainQuestions.length > 0) {
                     AppState.setCurrentQuestions(domainQuestions);
+                    console.log(`Loaded ${domainQuestions.length} domain questions for mapping`);
                 } else {
                     console.error('Cannot load saved progress: Domain questions not available');
-                    return;
+                    return false;
                 }
             }
             
             // Now load the saved progress (answers, marked questions, etc.)
-            if (ProgressManager.loadSavedProgress(testNumber)) {
+            const progressLoaded = ProgressManager.loadSavedProgress(testNumber);
+            if (progressLoaded) {
+                console.log('ProgressManager.loadSavedProgress returned true');
                 // Ensure questions are still loaded (they should be, but double-check)
                 const currentQuestions = AppState.getCurrentQuestions();
                 if (!currentQuestions || currentQuestions.length === 0) {
@@ -328,8 +343,11 @@ const TestManager = (function() {
                 if (currentMode === Config.MODES.TEST) {
                     Timer.start();
                 }
+                
+                return true; // Return true to indicate progress was loaded
             } else {
-                console.error('Failed to load saved progress');
+                console.error('Failed to load saved progress - ProgressManager.loadSavedProgress returned false');
+                return false; // Return false to indicate no progress was loaded
             }
         },
         

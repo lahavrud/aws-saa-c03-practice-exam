@@ -114,6 +114,9 @@ const Insights = (function() {
             }
             
             // Process domain review progress
+            // Track which questions we've already counted to avoid double-counting
+            const countedQuestionIds = new Set();
+            
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key && key.startsWith(`${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-domain-`)) {
@@ -132,24 +135,36 @@ const Insights = (function() {
                                         const oldQuestionKey = question.id.toString();
                                         const selectedAnswers = progress.answers[questionKey] || progress.answers[oldQuestionKey] || [];
                                         
-                                        // Only count if not already counted in test progress
-                                        // We'll use a simple heuristic: if domain stats total is less than domain questions, add it
+                                        // Count all answered questions, avoiding duplicates
                                         if (selectedAnswers.length > 0) {
-                                            // Check if we've already counted this question
-                                            // For simplicity, we'll just update if domain total is 0
-                                            if (domainStats[domain].total === 0) {
-                                                domainStats[domain].total++;
-                                                domainStats[domain].answered++;
+                                            // Use uniqueId to avoid counting same question twice
+                                            const questionId = questionUniqueId.toString();
+                                            
+                                            if (!countedQuestionIds.has(questionId)) {
+                                                countedQuestionIds.add(questionId);
                                                 
-                                                const selectedSet = new Set(selectedAnswers.sort());
-                                                const correctSet = new Set(question.correctAnswers.sort());
-                                                const isCorrect = selectedSet.size === correctSet.size && 
-                                                                [...selectedSet].every(id => correctSet.has(id));
+                                                // Only count if not already counted from test progress
+                                                // Check if this question was already counted in test progress
+                                                let alreadyCounted = false;
+                                                if (question.testNumber) {
+                                                    // This question might have been counted in test progress
+                                                    // We'll count it anyway for domain-specific practice
+                                                    alreadyCounted = false;
+                                                }
                                                 
-                                                if (isCorrect) {
-                                                    domainStats[domain].correct++;
-                                                } else {
-                                                    domainStats[domain].incorrect++;
+                                                if (!alreadyCounted) {
+                                                    domainStats[domain].answered++;
+                                                    
+                                                    const selectedSet = new Set(selectedAnswers.sort());
+                                                    const correctSet = new Set(question.correctAnswers.sort());
+                                                    const isCorrect = selectedSet.size === correctSet.size && 
+                                                                    [...selectedSet].every(id => correctSet.has(id));
+                                                    
+                                                    if (isCorrect) {
+                                                        domainStats[domain].correct++;
+                                                    } else {
+                                                        domainStats[domain].incorrect++;
+                                                    }
                                                 }
                                             }
                                         }
@@ -264,7 +279,7 @@ const Insights = (function() {
                             <div class="progress-fill" style="width: ${progressPercent}%"></div>
                         </div>
                         <div class="domain-details">
-                            <span>Answered: ${stats.answered}/${stats.total}</span>
+                            <span>Answered: ${stats.answered}</span>
                             <span>Correct: ${stats.correct}</span>
                             <span>Incorrect: ${stats.incorrect}</span>
                         </div>
