@@ -10,11 +10,13 @@ ENV/
 .venv
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
 *~
+# Keep .vscode for project settings but ignore user-specific settings
+.vscode/settings.json.user
+.vscode/launch.json.user
 
 # OS
 .DS_Store
@@ -24,6 +26,7 @@ Thumbs.db
 questions.js.backup*
 *.backup
 *.bak
+*.zip
 
 # Logs
 *.log
@@ -31,3 +34,13 @@ questions.js.backup*
 # Temporary files
 *.tmp
 temp/
+
+# Large source files (keep structure but ignore content)
+stephane tests/exams_pdf_files/*.pdf
+dojo tests/*.pdf
+sergey tests/*.pdf
+sergey tests/**/*.zip
+sergey tests/**/*.vce
+sergey tests/**/Zone.Identifier
+aws exams.zip
+*.zip

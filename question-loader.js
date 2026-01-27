@@ -6,10 +6,17 @@ async function loadQuestionsFromFile(filePath) {
     // For now, it's a placeholder for future functionality
     console.log('Loading questions from:', filePath);
     
+    // Ensure path is relative (works for both local dev and GitHub Pages)
+    // Remove leading slash if present to ensure relative path
+    const normalizedPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+    
     // If it's a JSON file
-    if (filePath.endsWith('.json')) {
+    if (normalizedPath.endsWith('.json')) {
         try {
-            const response = await fetch(filePath);
+            const response = await fetch(normalizedPath);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const data = await response.json();
             return data;
         } catch (error) {
@@ -19,9 +26,12 @@ async function loadQuestionsFromFile(filePath) {
     }
     
     // If it's a text file, parse it
-    if (filePath.endsWith('.txt')) {
+    if (normalizedPath.endsWith('.txt')) {
         try {
-            const response = await fetch(filePath);
+            const response = await fetch(normalizedPath);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const text = await response.text();
             return parseQuestionsFromText(text);
         } catch (error) {

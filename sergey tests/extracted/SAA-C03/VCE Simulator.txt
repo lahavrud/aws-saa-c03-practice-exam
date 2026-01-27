@@ -1,0 +1,8 @@
+VCE Exam Simulator functions as a realistic simulation of the actual certification exam.
+
+You need to use the "VCE Player" software to run .vce format files on Windows operating systems.
+
+1. Download the "VCE Player" software from https://passleader.com/tool/vceplayer.zip or https://passleader.com/tool/vcemanager.zip
+2. First unzip the "VCEPlayer.zip" file to a new folder on your desktop, then run "player.exe" to add the .vce format file.
+
+* Download VCE Mobile for Android via https://passleader.com/tool/vce-android.zip

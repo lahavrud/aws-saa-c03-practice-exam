@@ -62,15 +62,27 @@ AWS-SAA-C03/
    cd AWS-SAA-C03
    ```
 
-2. **Open in browser**
-   - Simply open `index.html` in your web browser
-   - No server required - works as a static site
+2. **Run locally** (required for local development)
+   - **Option A: Use Live Server in VS Code**
+     - Install "Live Server" extension
+     - Right-click `index.html` → "Open with Live Server"
+   - **Option B: Use Python HTTP Server**
+     ```bash
+     python3 -m http.server 8000
+     # Then open http://localhost:8000
+     ```
+   - **Option C: Use the provided script**
+     ```bash
+     ./start-server.sh
+     ```
 
 3. **Start practicing!**
    - Choose "By Domain" or "By Test"
    - Select your preferred test source
    - Choose Review or Test mode
    - Begin answering questions
+
+**Note:** You cannot open `index.html` directly in the browser (file:// protocol) because the app uses `fetch()` to load JSON files, which requires HTTP. Use one of the server options above for local development.
 
 ### For Developers
 
@@ -155,10 +167,14 @@ Questions are stored in JSON format with the following structure:
 
 ### GitHub Pages
 
-1. Push to GitHub repository
-2. Go to Settings → Pages
-3. Select source branch (usually `main`)
-4. Your site will be available at `https://<username>.github.io/AWS-SAA-C03/`
+The app is fully configured for GitHub Pages! See **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** for detailed instructions.
+
+**Quick Start:**
+1. Push to GitHub: `git push origin main`
+2. Enable Pages: Settings → Pages → Source: `main` branch
+3. Your site will be live at: `https://<username>.github.io/<repository-name>/`
+
+**Note:** The app uses relative paths and works automatically on GitHub Pages. No configuration needed!
 
 ### Other Static Hosting
 
@@ -167,10 +183,39 @@ Questions are stored in JSON format with the following structure:
 - AWS S3 + CloudFront
 - Any static file hosting service
 
+## 🔧 Troubleshooting
+
+### "Go Live" Button Not Working in VS Code
+
+**Quick Fix - Use VS Code Task:**
+1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
+2. Type "Tasks: Run Task"
+3. Select "Start Local Server"
+4. Open browser to `http://localhost:8000`
+
+**Other Solutions:**
+- Trust the workspace: Click gear icon → "Trust Workspace"
+- Install Live Server extension: `Ctrl+Shift+X` → Search "Live Server"
+- Right-click `index.html` → "Open with Live Server"
+- Use Python server: `python3 -m http.server 8000`
+
+### Questions Not Loading
+- Make sure you're accessing via `http://localhost` or `http://127.0.0.1`
+- Do NOT open `index.html` directly (file:// protocol won't work)
+- Check browser console (F12) for error messages
+- Verify `questions.js` exists or JSON files are in `questions/` directory
+
+### Port Already in Use
+- Live Server will try the next available port automatically
+- Or change the port in `.vscode/settings.json`
+- Or use a different port: `python3 -m http.server 8001`
+
 ## 📚 Documentation
 
 - **[DEVELOPMENT.md](docs/DEVELOPMENT.md)** - Development guide and future steps
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Architecture and code structure
+- **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** - GitHub Pages deployment guide
+- **[FUTURE_STEPS.md](docs/FUTURE_STEPS.md)** - Planned features and improvements
 
 ## 🤝 Contributing
 

@@ -14,15 +14,27 @@ def regenerate_questions_js():
     questions_dir = os.path.join(project_root, 'questions')
     questions_js_path = os.path.join(project_root, 'questions.js')
     
-    # Load all test JSON files
+    # Load all test JSON files (automatically detect how many exist)
     all_tests = {}
-    for i in range(1, 21):  # Check test1.json through test20.json
-        test_file = os.path.join(questions_dir, f'test{i}.json')
-        if os.path.exists(test_file):
-            with open(test_file, 'r', encoding='utf-8') as f:
-                questions = json.load(f)
-                all_tests[f'test{i}'] = questions
-                print(f"Loaded test{i}.json: {len(questions)} questions")
+    # Find all test files dynamically
+    test_files = [f for f in os.listdir(questions_dir) if f.startswith('test') and f.endswith('.json')]
+    test_files.sort(key=lambda x: int(x.replace('test', '').replace('.json', '')))
+    
+    for test_file in test_files:
+        test_num = test_file.replace('test', '').replace('.json', '')
+        file_path = os.path.join(questions_dir, test_file)
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    questions = json.load(f)
+                    all_tests[f'test{test_num}'] = questions
+                    print(f"Loaded test{test_num}.json: {len(questions)} questions")
+            except Exception as e:
+                print(f"Error loading {test_file}: {e}")
+    
+    if not all_tests:
+        print("No test JSON files found!")
+        return
     
     if not all_tests:
         print("No test JSON files found!")

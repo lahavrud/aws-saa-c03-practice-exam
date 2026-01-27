@@ -13,8 +13,32 @@
             <div id="timer" class="timer hidden"></div>
         </header>
 
+        <!-- User Selection Screen -->
+        <div id="user-selection" class="screen">
+            <div class="dashboard-header">
+                <h1>AWS SAA-C03 Practice Exam</h1>
+                <p class="dashboard-subtitle">Select or create a user profile</p>
+            </div>
+            <div class="user-selection-container">
+                <h2>Select User</h2>
+                <div id="users-list" class="users-list">
+                    <!-- Users will be dynamically loaded here -->
+                </div>
+                <div class="user-selection-divider">
+                    <span>OR</span>
+                </div>
+                <div class="create-user-form">
+                    <h3>Create New User</h3>
+                    <div class="form-group">
+                        <input type="text" id="new-user-name" placeholder="Enter your name" maxlength="50" onkeypress="if(event.key==='Enter') createNewUser()" />
+                        <button class="modal-btn primary" onclick="createNewUser()">Create User</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Selection Screen -->
-        <div id="main-selection" class="screen">
+        <div id="main-selection" class="screen hidden">
             <div class="dashboard-header">
                 <h1>AWS SAA-C03 Practice Exam</h1>
                 <p class="dashboard-subtitle">Welcome back, <span id="user-name">Student</span>!</p>
@@ -58,6 +82,10 @@
                 <button class="source-btn" onclick="selectSource('dojo')">
                     <h3>Dojo</h3>
                     <p>Practice tests from Tutorials Dojo</p>
+                </button>
+                <button class="source-btn" onclick="selectSource('sergey')">
+                    <h3>Sergey</h3>
+                    <p>Practice tests from Sergey</p>
                 </button>
             </div>
             <button class="back-btn" onclick="goBackToMainSelection()">← Back</button>
@@ -237,6 +265,10 @@
                         <p><strong>Accuracy:</strong> <span id="settings-accuracy">0%</span></p>
                         <p><strong>Tests Completed:</strong> <span id="settings-tests-completed">0</span></p>
                         <p><strong>Domains Practiced:</strong> <span id="settings-domains-practiced">0</span></p>
+                    </div>
+                    <div class="user-switch-section">
+                        <h4>Switch User</h4>
+                        <button class="modal-btn" onclick="switchUser()">Switch to Another User</button>
                     </div>
                     <div class="modal-buttons">
                         <button class="modal-btn primary" onclick="saveUserSettings()">Save</button>

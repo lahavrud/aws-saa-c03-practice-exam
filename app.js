@@ -9,20 +9,91 @@ let testStartTime = null;
 let testTimer = null;
 let savedProgress = null;
 let selectedDomain = null;
-let selectedSource = null; // 'stephane' or 'dojo'
+let selectedSource = null; // 'stephane', 'dojo', or 'sergey'
+let currentTestDisplayNumber = null; // Display number (1, 2, 3...) for current test
 let currentUser = null; // Current user object
+let currentUserName = null; // Current user name (for localStorage keys)
 let previousAnswers = {}; // Track previous answers to detect changes
 const TEST_DURATION = 130 * 60 * 1000; // 130 minutes in milliseconds
 
-// User System
+// User System - Multi-User Support
+function getAllUsers() {
+    const usersJson = localStorage.getItem('saa-c03-users');
+    return usersJson ? JSON.parse(usersJson) : [];
+}
+
+function saveUsersList(users) {
+    localStorage.setItem('saa-c03-users', JSON.stringify(users));
+}
+
+function getUserKey(userName) {
+    // Create a safe key from username (remove special chars, lowercase)
+    return userName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+}
+
 function initUserSystem() {
-    // Check if user exists in localStorage
-    const savedUser = localStorage.getItem('saa-c03-user');
+    // Show user selection screen first
+    showUserSelection();
+}
+
+function showUserSelection() {
+    // Hide all screens
+    document.querySelectorAll('.screen').forEach(screen => screen.classList.add('hidden'));
+    
+    // Show user selection screen
+    document.getElementById('user-selection').classList.remove('hidden');
+    
+    // Load and display users
+    loadUsersList();
+}
+
+function loadUsersList() {
+    const users = getAllUsers();
+    const usersList = document.getElementById('users-list');
+    usersList.innerHTML = '';
+    
+    if (users.length === 0) {
+        usersList.innerHTML = '<p class="no-users">No users yet. Create one below!</p>';
+        return;
+    }
+    
+    users.forEach(userName => {
+        const userDiv = document.createElement('div');
+        userDiv.className = 'user-item';
+        
+        // Get user stats for display
+        const userKey = getUserKey(userName);
+        const userData = getUserData(userName);
+        const stats = userData ? userData.stats : null;
+        const questionsAnswered = stats ? stats.totalQuestionsAnswered : 0;
+        const accuracy = stats && stats.totalQuestionsAnswered > 0
+            ? Math.round((stats.totalCorrectAnswers / stats.totalQuestionsAnswered) * 100)
+            : 0;
+        
+        userDiv.innerHTML = `
+            <div class="user-item-content">
+                <div class="user-item-name">${userName}</div>
+                <div class="user-item-stats">
+                    <span>${questionsAnswered} questions</span>
+                    <span>${accuracy}% accuracy</span>
+                </div>
+            </div>
+            <button class="user-select-btn" onclick="selectUser('${userName}')">Select</button>
+        `;
+        
+        usersList.appendChild(userDiv);
+    });
+}
+
+function selectUser(userName) {
+    currentUserName = userName;
+    const userKey = getUserKey(userName);
+    const savedUser = localStorage.getItem(`saa-c03-user-${userKey}`);
+    
     if (savedUser) {
         currentUser = JSON.parse(savedUser);
     } else {
-        // Create new user
-        const userName = prompt('Welcome! Please enter your name:') || 'Student';
+        // Create new user data
         currentUser = {
             name: userName,
             createdAt: new Date().toISOString(),
@@ -31,14 +102,14 @@ function initUserSystem() {
                 totalCorrectAnswers: 0,
                 testsCompleted: 0,
                 domainsPracticed: new Set(),
-                questionsAnswered: new Set(), // Track unique questions answered
+                questionsAnswered: new Set(),
                 lastActivity: new Date().toISOString()
             }
         };
         saveUser();
     }
     
-    // Convert Set to Array for JSON storage
+    // Convert Sets from storage
     if (currentUser.stats.domainsPracticed && !Array.isArray(currentUser.stats.domainsPracticed)) {
         currentUser.stats.domainsPracticed = Array.from(currentUser.stats.domainsPracticed);
     }
@@ -54,10 +125,59 @@ function initUserSystem() {
         currentUser.stats.questionsAnswered = new Set(currentUser.stats.questionsAnswered);
     }
     
+    // Hide user selection, show main selection
+    document.getElementById('user-selection').classList.add('hidden');
+    document.getElementById('main-selection').classList.remove('hidden');
+    
     updateDashboardStats();
 }
 
+function createNewUser() {
+    const nameInput = document.getElementById('new-user-name');
+    const userName = nameInput.value.trim();
+    
+    if (!userName) {
+        alert('Please enter a name');
+        return;
+    }
+    
+    if (userName.length > 50) {
+        alert('Name must be 50 characters or less');
+        return;
+    }
+    
+    // Check if user already exists
+    const users = getAllUsers();
+    if (users.includes(userName)) {
+        alert('User already exists! Please select them from the list.');
+        return;
+    }
+    
+    // Add to users list
+    users.push(userName);
+    saveUsersList(users);
+    
+    // Clear input
+    nameInput.value = '';
+    
+    // Select the new user
+    selectUser(userName);
+}
+
+function getUserData(userName) {
+    const userKey = getUserKey(userName);
+    const savedUser = localStorage.getItem(`saa-c03-user-${userKey}`);
+    return savedUser ? JSON.parse(savedUser) : null;
+}
+
+function switchUser() {
+    closeUserSettings();
+    showUserSelection();
+}
+
 function saveUser() {
+    if (!currentUser || !currentUserName) return;
+    
     // Convert Sets to Arrays for JSON storage
     const userToSave = {
         ...currentUser,
@@ -67,11 +187,15 @@ function saveUser() {
             questionsAnswered: Array.from(currentUser.stats.questionsAnswered || [])
         }
     };
-    localStorage.setItem('saa-c03-user', JSON.stringify(userToSave));
+    
+    const userKey = getUserKey(currentUserName);
+    localStorage.setItem(`saa-c03-user-${userKey}`, JSON.stringify(userToSave));
 }
 
-function recalculateUserStats() {
-    // Recalculate stats based on ALL current answers (current session + saved progress)
+function recalculateUserStats(includeCurrentSession = true) {
+    // Recalculate stats based on saved progress
+    // If includeCurrentSession is true, also count current session answers (for real-time feedback during session)
+    // If false, only count saved progress (for dashboard display when returning without saving)
     if (!currentUser) return;
     
     // Reset counters
@@ -80,8 +204,9 @@ function recalculateUserStats() {
     const questionsAnsweredSet = new Set();
     const domainsPracticedSet = new Set();
     
-    // First, process current session answers
-    if (currentQuestions && currentQuestions.length > 0) {
+    // Process current session answers only if includeCurrentSession is true
+    // This allows real-time stats during session, but excludes unsaved answers when returning to dashboard
+    if (includeCurrentSession && currentQuestions && currentQuestions.length > 0) {
         currentQuestions.forEach(question => {
             const questionKey = question.id.toString();
             const selectedAnswers = userAnswers[questionKey] || [];
@@ -115,9 +240,15 @@ function recalculateUserStats() {
     
     // Then, process all saved progress from other tests
     // This ensures we count questions from all tests, not just current one
-    if (typeof examQuestions !== 'undefined') {
-        for (let testNum = 1; testNum <= 20; testNum++) {
-            const progressKey = `saa-c03-progress-test${testNum}`;
+    if (typeof examQuestions !== 'undefined' && currentUserName) {
+        const userKey = getUserKey(currentUserName);
+        // Check all tests: test1-test7 (Stephane), test8 (Dojo), test9-test26+ (Sergey)
+        // Find max test number dynamically
+        const allTestKeys = Object.keys(examQuestions).filter(key => key.startsWith('test'));
+        const maxTestNum = Math.max(...allTestKeys.map(key => parseInt(key.replace('test', ''))));
+        
+        for (let testNum = 1; testNum <= maxTestNum; testNum++) {
+            const progressKey = `saa-c03-progress-${userKey}-test${testNum}`;
             const saved = localStorage.getItem(progressKey);
             if (saved) {
                 try {
@@ -162,6 +293,71 @@ function recalculateUserStats() {
                 }
             }
         }
+        
+        // Also process domain review saved progress
+        // Get all domain progress keys
+        const domainProgressKeys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(`saa-c03-progress-${userKey}-domain-`)) {
+                domainProgressKeys.push(key);
+            }
+        }
+        
+        // Process each domain review saved progress
+        domainProgressKeys.forEach(progressKey => {
+            const saved = localStorage.getItem(progressKey);
+            if (saved) {
+                try {
+                    const progress = JSON.parse(saved);
+                    if (progress.answers && progress.selectedDomain) {
+                        // Get all questions from all tests for this domain
+                        const allQuestions = [];
+                        if (typeof examQuestions !== 'undefined') {
+                            for (const testKey in examQuestions) {
+                                if (examQuestions.hasOwnProperty(testKey) && testKey.startsWith('test')) {
+                                    allQuestions.push(...examQuestions[testKey]);
+                                }
+                            }
+                        }
+                        const domainQuestions = allQuestions.filter(q => q.domain === progress.selectedDomain);
+                        
+                        if (domainQuestions && domainQuestions.length > 0) {
+                            domainQuestions.forEach(question => {
+                                const questionKey = question.id.toString();
+                                const selectedAnswers = progress.answers[questionKey] || [];
+                                
+                                // Only count if question has an answer and not already counted
+                                if (selectedAnswers.length > 0) {
+                                    const questionId = `domain-${progress.selectedDomain}-q${question.id}`;
+                                    
+                                    // Skip if already counted from current session or other saved progress
+                                    if (!questionsAnsweredSet.has(questionId)) {
+                                        // Check if answer is correct
+                                        const selectedSet = new Set(selectedAnswers.sort());
+                                        const correctSet = new Set(question.correctAnswers.sort());
+                                        const isCorrect = selectedSet.size === correctSet.size && 
+                                                        [...selectedSet].every(id => correctSet.has(id));
+                                        
+                                        questionsAnsweredSet.add(questionId);
+                                        
+                                        if (isCorrect) {
+                                            totalCorrectAnswers++;
+                                        }
+                                        
+                                        if (question.domain) {
+                                            domainsPracticedSet.add(question.domain);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error processing saved domain progress:`, error);
+                }
+            }
+        });
     }
     
     // Count total questions answered
@@ -282,16 +478,17 @@ function resetUserData() {
     updateDashboardStats();
     closeUserSettings();
     
-    // Clear all saved progress for all tests
-    // Clear test progress - check all localStorage keys matching the pattern
+    // Clear all saved progress for current user only
+    if (!currentUserName) return;
+    
+    const userKey = getUserKey(currentUserName);
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && (
-            key.startsWith('saa-c03-progress-test') ||
-            key.startsWith('saa-c03-progress-domain-') ||
-            key === 'saa-c03-progress' ||
-            key === 'saa-c03-current-progress'
+            key.startsWith(`saa-c03-progress-${userKey}-test`) ||
+            key.startsWith(`saa-c03-progress-${userKey}-domain-`) ||
+            key === `saa-c03-current-progress-${userKey}`
         )) {
             keysToRemove.push(key);
         }
@@ -351,10 +548,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 function organizeTestsBySource() {
     if (typeof examQuestions === 'undefined') {
         console.error('organizeTestsBySource: examQuestions is undefined');
-        return { stephane: [], dojo: [] };
+        return { stephane: [], dojo: [], sergey: [] };
     }
     
-    const organized = { stephane: [], dojo: [] };
+    const organized = { stephane: [], dojo: [], sergey: [] };
     
     // Get all test keys
     const allTests = Object.keys(examQuestions)
@@ -367,14 +564,15 @@ function organizeTestsBySource() {
     
     console.log('All test keys found:', allTests);
     
-    // For now, assume test1-test7 are Stephane, test8+ are Dojo
-    // This can be adjusted based on actual file naming or metadata
+    // Organize tests: test1-test7 are Stephane, test8 is Dojo, test9-test26+ are Sergey
     allTests.forEach(testKey => {
         const testNumber = parseInt(testKey.replace('test', ''));
         if (testNumber <= 7) {
             organized.stephane.push({ key: testKey, number: testNumber });
-        } else {
+        } else if (testNumber === 8) {
             organized.dojo.push({ key: testKey, number: testNumber });
+        } else {
+            organized.sergey.push({ key: testKey, number: testNumber });
         }
     });
     
@@ -409,6 +607,8 @@ function loadAvailableTests() {
         testsForSource = organized.stephane || [];
     } else if (selectedSource === 'dojo') {
         testsForSource = organized.dojo || [];
+    } else if (selectedSource === 'sergey') {
+        testsForSource = organized.sergey || [];
     } else {
         testButtonsContainer.innerHTML = '<p>Please select a source first.</p>';
         return;
@@ -422,19 +622,21 @@ function loadAvailableTests() {
     
     console.log(`Loading ${testsForSource.length} tests for ${selectedSource}:`, testsForSource);
     
-    // Create buttons for each test
-    testsForSource.forEach(({ key, number }) => {
+    // Create buttons for each test with source-specific numbering (1, 2, 3... for each source)
+    testsForSource.forEach(({ key, number }, index) => {
         const questions = examQuestions[key] || [];
         const questionCount = questions.length;
+        const displayNumber = index + 1; // Display number: 1, 2, 3... for this source
+        const actualTestNumber = number; // Actual test number in examQuestions (e.g., 8 for first Dojo test)
         
-        console.log(`Creating button for ${key}: ${questionCount} questions`);
+        console.log(`Creating button for ${key}: ${questionCount} questions (display: Test ${displayNumber}, actual: test${actualTestNumber})`);
         
         if (questionCount === 0) {
             console.warn(`No questions found for ${key}`);
             return;
         }
         
-        const savedProgress = getSavedProgressForTest(number);
+        const savedProgress = getSavedProgressForTest(actualTestNumber);
         
         const testBtn = document.createElement('div');
         testBtn.className = 'test-btn-wrapper';
@@ -442,20 +644,22 @@ function loadAvailableTests() {
         const buttonContent = document.createElement('button');
         buttonContent.className = 'test-btn';
         buttonContent.onclick = () => {
+            // Store display number for reference
+            currentTestDisplayNumber = displayNumber;
             if (savedProgress) {
                 if (confirm(`You have saved progress for this test (${savedProgress.mode} mode). Resume?`)) {
-                    loadSavedProgress(number);
+                    loadSavedProgress(actualTestNumber);
                 } else {
-                    selectTest(number);
+                    selectTest(actualTestNumber);
                 }
             } else {
-                selectTest(number);
+                selectTest(actualTestNumber);
             }
         };
         
         buttonContent.innerHTML = `
             <div class="test-btn-header">
-                <h3>Test ${number}</h3>
+                <h3>Test ${displayNumber}</h3>
                 <span class="test-count">${questionCount} Questions</span>
             </div>
             <p>Comprehensive practice exam covering all domains</p>
@@ -471,15 +675,16 @@ function loadAvailableTests() {
             restartBtn.textContent = '🔄 Restart';
             restartBtn.onclick = (e) => {
                 e.stopPropagation();
-                if (confirm('Are you sure you want to restart this test? Your saved progress will be lost.')) {
-                    clearSavedProgressForTest(number);
+                if (confirm(`Are you sure you want to restart Test ${displayNumber}? Your saved progress will be lost.`)) {
+                    clearSavedProgressForTest(actualTestNumber);
+                    loadAvailableTests(); // Refresh the list
                 }
             };
             testBtn.appendChild(restartBtn);
         }
         
         testButtonsContainer.appendChild(testBtn);
-        console.log(`Added test button for Test ${number}`);
+        console.log(`Added test button for Test ${displayNumber} (${key})`);
     });
     
     console.log(`Total buttons created: ${testButtonsContainer.children.length}`);
@@ -618,7 +823,8 @@ function selectMode(mode) {
     if (currentTest) {
         const saved = getSavedProgressForTest(currentTest);
         if (saved && saved.mode === mode) {
-            if (confirm(`You have saved progress for Test ${currentTest} (${saved.mode} mode, Q${saved.questionIndex + 1}). Would you like to resume?`)) {
+            const displayNum = currentTestDisplayNumber || currentTest;
+            if (confirm(`You have saved progress for Test ${displayNum} (${saved.mode} mode, Q${saved.questionIndex + 1}). Would you like to resume?`)) {
                 loadSavedProgress(currentTest);
                 return;
             } else {
@@ -1346,13 +1552,16 @@ function saveAndReturnToDashboard() {
             timestamp: new Date().toISOString()
         };
         
-        // Save progress with test-specific key
-        const progressKey = `saa-c03-progress-test${currentTest}`;
-        localStorage.setItem(progressKey, JSON.stringify(progress));
-        savedProgress = progress;
-        
-        // Also save a reference to the current test progress
-        localStorage.setItem('saa-c03-current-progress', progressKey);
+        // Save progress with test-specific key (user-specific)
+        if (currentUserName) {
+            const userKey = getUserKey(currentUserName);
+            const progressKey = `saa-c03-progress-${userKey}-test${currentTest}`;
+            localStorage.setItem(progressKey, JSON.stringify(progress));
+            savedProgress = progress;
+            
+            // Also save a reference to the current test progress
+            localStorage.setItem(`saa-c03-current-progress-${userKey}`, progressKey);
+        }
     } else if (selectedDomain) {
         // Save domain review progress
         const progress = {
@@ -1366,16 +1575,22 @@ function saveAndReturnToDashboard() {
             timestamp: new Date().toISOString()
         };
         
-        const progressKey = `saa-c03-progress-domain-${selectedDomain.replace(/\s+/g, '-')}`;
-        localStorage.setItem(progressKey, JSON.stringify(progress));
-        savedProgress = progress;
-        localStorage.setItem('saa-c03-current-progress', progressKey);
+        if (currentUserName) {
+            const userKey = getUserKey(currentUserName);
+            const progressKey = `saa-c03-progress-${userKey}-domain-${selectedDomain.replace(/\s+/g, '-')}`;
+            localStorage.setItem(progressKey, JSON.stringify(progress));
+            savedProgress = progress;
+            localStorage.setItem(`saa-c03-current-progress-${userKey}`, progressKey);
+        }
     }
     
     if (testTimer) {
         clearInterval(testTimer);
         testTimer = null;
     }
+    
+    // Recalculate stats after saving (include current session since it's now saved)
+    recalculateUserStats(true);
     
     closeDashboardDialog();
     returnToDashboard();
@@ -1399,22 +1614,28 @@ function returnToDashboardWithoutSaving() {
             testStartTime = saved.startTime ? new Date(saved.startTime) : Date.now();
             
             // Save the restored state back (to keep it as the current saved state)
-            const progressKey = `saa-c03-progress-test${currentTest}`;
-            localStorage.setItem(progressKey, JSON.stringify(savedProgress));
-            localStorage.setItem('saa-c03-current-progress', progressKey);
+            if (currentUserName) {
+                const userKey = getUserKey(currentUserName);
+                const progressKey = `saa-c03-progress-${userKey}-test${currentTest}`;
+                localStorage.setItem(progressKey, JSON.stringify(savedProgress));
+                localStorage.setItem(`saa-c03-current-progress-${userKey}`, progressKey);
+            }
             
-            // Recalculate stats based on restored answers
-            recalculateUserStats();
+            // Recalculate stats based on restored answers (only saved progress, not current session)
+            recalculateUserStats(false);
         } else {
             // No saved progress exists, clear everything
             userAnswers = {};
             markedQuestions = new Set();
             savedProgress = null;
             localStorage.removeItem('saa-c03-current-progress');
+            // Recalculate stats (only saved progress, not current session)
+            recalculateUserStats(false);
         }
-    } else if (selectedDomain) {
+    } else if (selectedDomain && currentUserName) {
         // For domain review, restore saved progress if it exists
-        const progressKey = `saa-c03-progress-domain-${selectedDomain.replace(/\s+/g, '-')}`;
+        const userKey = getUserKey(currentUserName);
+        const progressKey = `saa-c03-progress-${userKey}-domain-${selectedDomain.replace(/\s+/g, '-')}`;
         const saved = localStorage.getItem(progressKey);
         if (saved) {
             try {
@@ -1426,10 +1647,10 @@ function returnToDashboardWithoutSaving() {
                 
                 // Save the restored state back
                 localStorage.setItem(progressKey, JSON.stringify(progress));
-                localStorage.setItem('saa-c03-current-progress', progressKey);
+                localStorage.setItem(`saa-c03-current-progress-${userKey}`, progressKey);
                 
-                // Recalculate stats based on restored answers
-                recalculateUserStats();
+                // Recalculate stats based on restored answers (only saved progress, not current session)
+                recalculateUserStats(false);
             } catch (error) {
                 console.error('Error restoring domain progress:', error);
                 // Clear on error
@@ -1437,21 +1658,33 @@ function returnToDashboardWithoutSaving() {
                 markedQuestions = new Set();
                 savedProgress = null;
                 localStorage.removeItem(progressKey);
-                localStorage.removeItem('saa-c03-current-progress');
+                localStorage.removeItem(`saa-c03-current-progress-${userKey}`);
+                // Recalculate stats (only saved progress, not current session)
+                recalculateUserStats(false);
             }
         } else {
             // No saved progress exists, clear everything
             userAnswers = {};
             markedQuestions = new Set();
             savedProgress = null;
-            localStorage.removeItem('saa-c03-current-progress');
+            if (currentUserName) {
+                const userKey = getUserKey(currentUserName);
+                localStorage.removeItem(`saa-c03-current-progress-${userKey}`);
+            }
+            // Recalculate stats (only saved progress, not current session)
+            recalculateUserStats(false);
         }
     } else {
         // No test or domain, just clear
         userAnswers = {};
         markedQuestions = new Set();
         savedProgress = null;
-        localStorage.removeItem('saa-c03-current-progress');
+        if (currentUserName) {
+            const userKey = getUserKey(currentUserName);
+            localStorage.removeItem(`saa-c03-current-progress-${userKey}`);
+        }
+        // Recalculate stats (only saved progress, not current session)
+        recalculateUserStats(false);
     }
     
     closeDashboardDialog();
@@ -1466,10 +1699,18 @@ function returnToDashboard() {
     document.getElementById('domain-selection').classList.add('hidden');
     document.getElementById('source-selection').classList.add('hidden');
     document.getElementById('test-selection').classList.add('hidden');
+    document.getElementById('user-selection').classList.add('hidden');
     document.getElementById('timer').classList.add('hidden');
     
-    // Show main selection
-    document.getElementById('main-selection').classList.remove('hidden');
+    // Show main selection (only if user is logged in)
+    if (currentUser && currentUserName) {
+        document.getElementById('main-selection').classList.remove('hidden');
+        // Recalculate stats based only on saved progress (not current session)
+        recalculateUserStats(false);
+        updateDashboardStats();
+    } else {
+        showUserSelection();
+    }
     
     // Reset state
     currentTest = null;
@@ -1478,7 +1719,9 @@ function returnToDashboard() {
 }
 
 function getSavedProgressForTest(testNumber) {
-    const progressKey = `saa-c03-progress-test${testNumber}`;
+    if (!currentUserName) return null;
+    const userKey = getUserKey(currentUserName);
+    const progressKey = `saa-c03-progress-${userKey}-test${testNumber}`;
     const saved = localStorage.getItem(progressKey);
     if (!saved) return null;
     
@@ -1491,13 +1734,15 @@ function getSavedProgressForTest(testNumber) {
 }
 
 function clearSavedProgressForTest(testNumber) {
-    const progressKey = `saa-c03-progress-test${testNumber}`;
+    if (!currentUserName) return;
+    const userKey = getUserKey(currentUserName);
+    const progressKey = `saa-c03-progress-${userKey}-test${testNumber}`;
     localStorage.removeItem(progressKey);
     
     // Clear current progress reference if it matches
-    const currentProgressKey = localStorage.getItem('saa-c03-current-progress');
+    const currentProgressKey = localStorage.getItem(`saa-c03-current-progress-${userKey}`);
     if (currentProgressKey === progressKey) {
-        localStorage.removeItem('saa-c03-current-progress');
+        localStorage.removeItem(`saa-c03-current-progress-${userKey}`);
     }
     
     // Reload test buttons to update UI
@@ -1507,12 +1752,15 @@ function clearSavedProgressForTest(testNumber) {
 }
 
 function loadSavedProgress(testNumber) {
+    if (!currentUserName) return false;
+    const userKey = getUserKey(currentUserName);
+    
     // Load progress for specific test or current progress
     let progressKey;
     if (testNumber) {
-        progressKey = `saa-c03-progress-test${testNumber}`;
+        progressKey = `saa-c03-progress-${userKey}-test${testNumber}`;
     } else {
-        progressKey = localStorage.getItem('saa-c03-current-progress');
+        progressKey = localStorage.getItem(`saa-c03-current-progress-${userKey}`);
     }
     
     if (!progressKey) return false;
