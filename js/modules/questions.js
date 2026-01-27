@@ -400,18 +400,8 @@ const QuestionHandler = (function() {
                 questionGrid.appendChild(questionBtn);
             });
             
-            // Ensure navbar toggle button has event listener
-            const navbarToggle = document.getElementById('navbar-toggle');
-            if (navbarToggle && !navbarToggle.hasAttribute('data-listener-attached')) {
-                navbarToggle.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (typeof window.toggleNavbar === 'function') {
-                        window.toggleNavbar();
-                    }
-                });
-                navbarToggle.setAttribute('data-listener-attached', 'true');
-            }
+            // Navbar toggle listener is attached in app.js and navigation.js
+            // No need to attach here to prevent duplicate listeners
         },
         
         // Update question navbar

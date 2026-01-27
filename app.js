@@ -143,26 +143,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
         }
         
-        // Navbar toggle button - use event delegation to catch clicks
-        const handleNavbarToggleClick = (e) => {
-            const target = e.target;
-            const toggleBtn = target.closest('#navbar-toggle');
-            if (toggleBtn || target.id === 'navbar-toggle') {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Navbar toggle clicked (event delegation)');
-                if (typeof window.toggleNavbar === 'function') {
-                    window.toggleNavbar();
-    } else {
-                    console.error('toggleNavbar function not available');
-                }
-            }
-        };
-        
-        // Use event delegation on document (catches dynamically added elements)
-        document.addEventListener('click', handleNavbarToggleClick, true); // Use capture phase
-        
-        // Also try direct attachment if button exists
+        // Navbar toggle button - direct attachment only (no event delegation to prevent double calls)
         const attachNavbarToggle = () => {
             const navbarToggle = document.getElementById('navbar-toggle');
             if (navbarToggle) {
@@ -177,10 +158,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 newToggle.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Navbar toggle clicked (direct listener)');
+                    console.log('Navbar toggle clicked');
                     if (typeof window.toggleNavbar === 'function') {
                         window.toggleNavbar();
-    } else {
+                    } else {
                         console.error('toggleNavbar function not available');
                     }
                 });
@@ -191,7 +172,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         };
         
         if (!attachNavbarToggle()) {
-            console.warn('Navbar toggle button not found on initial load (will use event delegation)');
+            console.warn('Navbar toggle button not found on initial load, will retry');
             // Retry after a delay
             setTimeout(() => {
                 attachNavbarToggle();

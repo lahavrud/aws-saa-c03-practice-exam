@@ -175,18 +175,23 @@ window.submitTest = TestManager.submitTest;
 window.toggleMarkQuestion = TestManager.toggleMarkQuestion;
 
 // Additional utility functions
-// Function to attach navbar toggle listener
+// Function to attach navbar toggle listener (prevents duplicate listeners)
 function attachNavbarToggleListener() {
     const navbarToggle = document.getElementById('navbar-toggle');
-    if (navbarToggle && !navbarToggle.hasAttribute('data-toggle-attached')) {
-        navbarToggle.removeAttribute('onclick');
-        navbarToggle.type = 'button';
-        navbarToggle.setAttribute('data-toggle-attached', 'true');
+    if (navbarToggle) {
+        // Clone button to remove all existing listeners
+        const newToggle = navbarToggle.cloneNode(true);
+        navbarToggle.parentNode.replaceChild(newToggle, navbarToggle);
         
-        navbarToggle.addEventListener('click', function(e) {
+        // Remove onclick to avoid conflicts
+        newToggle.removeAttribute('onclick');
+        newToggle.type = 'button';
+        
+        // Attach single listener
+        newToggle.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Navbar toggle clicked (attached listener)');
+            console.log('Navbar toggle clicked');
             if (typeof window.toggleNavbar === 'function') {
                 window.toggleNavbar();
             }
