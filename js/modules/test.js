@@ -768,9 +768,36 @@ const TestManager = (function() {
             }
             
             // Now load the saved progress (answers, marked questions, etc.)
-            const progressLoaded = await ProgressManager.loadSavedProgress(testNumber);
-            if (progressLoaded) {
-                console.log('ProgressManager.loadSavedProgress returned true');
+            const progress = await ProgressManager.loadSavedProgress(testNumber);
+            if (progress) {
+                console.log('Progress loaded, applying to AppState...', progress);
+                
+                // Apply the loaded progress to AppState
+                if (progress.mode) {
+                    AppState.setCurrentMode(progress.mode);
+                }
+                if (progress.questionIndex !== undefined) {
+                    AppState.setCurrentQuestionIndex(progress.questionIndex || 0);
+                }
+                if (progress.answers) {
+                    AppState.setUserAnswers(progress.answers);
+                    console.log('Restored answers:', Object.keys(progress.answers).length, 'answers');
+                }
+                if (progress.marked) {
+                    AppState.setMarkedQuestions(new Set(progress.marked));
+                }
+                if (progress.startTime) {
+                    AppState.setTestStartTime(progress.startTime);
+                    console.log('Restored startTime:', progress.startTime);
+                }
+                if (progress.selectedDomain) {
+                    AppState.setSelectedDomain(progress.selectedDomain);
+                }
+                if (progress.source) {
+                    AppState.setSelectedSource(progress.source);
+                }
+                AppState.setSavedProgress(progress);
+                
                 // Ensure questions are still loaded (they should be, but double-check)
                 const currentQuestions = AppState.getCurrentQuestions();
                 if (!currentQuestions || currentQuestions.length === 0) {
@@ -797,15 +824,24 @@ const TestManager = (function() {
                     setTimeout(() => window.attachNavbarToggleListener(), 100);
                 }
                 
-                // Restore timer if in test mode
+                // Restore timer if in test mode - use saved startTime
                 const currentMode = AppState.getCurrentMode();
                 if (currentMode === Config.MODES.TEST) {
-                    Timer.start();
+                    const savedStartTime = AppState.getTestStartTime();
+                    if (savedStartTime) {
+                        // Restore timer with saved startTime
+                        Timer.restore(savedStartTime);
+                        console.log('Timer restored with saved startTime');
+                    } else {
+                        // No saved startTime, start fresh timer
+                        Timer.start();
+                        console.log('No saved startTime, starting fresh timer');
+                    }
                 }
                 
                 return true; // Return true to indicate progress was loaded
             } else {
-                console.error('Failed to load saved progress - ProgressManager.loadSavedProgress returned false');
+                console.error('Failed to load saved progress - ProgressManager.loadSavedProgress returned null');
                 return false; // Return false to indicate no progress was loaded
             }
         },

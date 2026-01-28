@@ -666,8 +666,18 @@ const QuestionHandler = (function() {
             
             // Add event listeners
             newInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' || e.keyCode === 13) {
                     e.preventDefault();
+                    e.stopPropagation();
+                    jumpToQuestion();
+                }
+            });
+            
+            // Also handle keypress as fallback
+            newInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     jumpToQuestion();
                 }
             });

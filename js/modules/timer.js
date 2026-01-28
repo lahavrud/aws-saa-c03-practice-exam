@@ -131,6 +131,89 @@ const Timer = (function() {
             }
         },
         
+        // Restore timer with saved startTime
+        restore: (savedStartTime) => {
+            const timerElement = document.getElementById('timer');
+            if (!timerElement) return;
+            
+            // Don't reset startTime if we're restoring
+            if (!AppState.getTestStartTime()) {
+                AppState.setTestStartTime(savedStartTime);
+            }
+            
+            timerElement.classList.remove('hidden');
+            timerElement.setAttribute('aria-live', 'polite');
+            audioAlertPlayed = false;
+            
+            // Clear any existing interval
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            // Start the timer interval
+            timerInterval = setInterval(() => {
+                const startTime = AppState.getTestStartTime();
+                if (!startTime) {
+                    Timer.stop();
+                    return;
+                }
+                
+                const elapsed = Date.now() - startTime;
+                const remaining = Config.TEST_DURATION - elapsed;
+                
+                if (remaining <= 0) {
+                    Timer.stop();
+                    TestManager.submitTest();
+                    return;
+                }
+                
+                const minutes = Math.floor(remaining / 60000);
+                const seconds = Math.floor((remaining % 60000) / 1000);
+                
+                const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                timerElement.textContent = timeString;
+                
+                // Update aria-label for screen readers
+                const timeText = minutes === 1 ? '1 minute' : `${minutes} minutes`;
+                timerElement.setAttribute('aria-label', `${timeText} ${seconds} seconds remaining`);
+                
+                // 10 minutes warning
+                if (remaining < 10 * 60 * 1000 && remaining >= 9 * 60 * 1000) {
+                    timerElement.classList.add('warning');
+                    timerElement.classList.remove('critical');
+                    if (!audioAlertPlayed) {
+                        playAlert(600, 300);
+                        audioAlertPlayed = true;
+                        // Announce to screen readers
+                        const announcement = document.createElement('div');
+                        announcement.setAttribute('role', 'alert');
+                        announcement.setAttribute('aria-live', 'assertive');
+                        announcement.className = 'sr-only';
+                        announcement.textContent = `Warning: 10 minutes remaining`;
+                        document.body.appendChild(announcement);
+                        setTimeout(() => announcement.remove(), 1000);
+                    }
+                }
+                
+                // 5 minutes critical warning
+                if (remaining < 5 * 60 * 1000) {
+                    timerElement.classList.add('critical');
+                    timerElement.classList.remove('warning');
+                    // Play alert every minute when under 5 minutes
+                    if (seconds === 0 && minutes > 0 && minutes <= 5) {
+                        playAlert(800, 400);
+                    }
+                }
+                
+                // Final minute - play alert every 10 seconds
+                if (remaining < 60 * 1000 && seconds % 10 === 0) {
+                    playAlert(1000, 200);
+                }
+            }, 1000);
+            
+            AppState.setTestTimer(timerInterval);
+        },
+        
         // Get remaining time in milliseconds
         getRemainingTime: () => {
             const startTime = AppState.getTestStartTime();
