@@ -381,28 +381,85 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
+        padding: 12px 0;
+    }
+    
+    .question-title {
+        font-size: 0.9em;
+    }
+    
+    .question-title #question-number {
+        font-size: 1em;
+    }
+    
+    .question-title #question-count {
+        font-size: 0.85em;
     }
 
     .question-actions {
         width: 100%;
         flex-wrap: wrap;
         gap: 8px;
+        justify-content: space-between;
     }
 
     .mark-btn, .dashboard-btn {
         min-height: 44px;
         padding: 10px 15px;
         font-size: 0.9em;
+        flex: 1;
+        min-width: auto;
+    }
+    
+    .question-close-btn {
+        display: none; /* Hide close button on mobile, use dashboard button instead */
     }
     
     .stats-bar {
-        flex-direction: column;
-        gap: 8px;
-        font-size: 0.85em;
+        display: none; /* Hide stats bar on mobile - use bottom nav instead */
     }
     
     .keyboard-hint {
         display: none;
+    }
+    
+    .question-navbar {
+        padding: 10px 15px;
+        margin: -20px -20px 15px -20px;
+    }
+    
+    .navbar-header {
+        margin-bottom: 10px;
+        font-size: 0.9em;
+    }
+    
+    .quick-jump-container {
+        display: none; /* Hide quick jump on mobile */
+    }
+    
+    .question-grid {
+        max-height: 150px;
+        gap: 6px;
+        padding: 8px;
+    }
+    
+    .question-nav-item {
+        width: 40px;
+        height: 40px;
+        font-size: 0.85em;
+    }
+    
+    .progress-bar {
+        margin: 10px 0;
+        height: 6px;
+    }
+    
+    .progress-percentage {
+        font-size: 0.75em;
+    }
+    
+    .domain-badge {
+        display: none; /* Hide domain badge on mobile to save space */
     }
 
     .option {
@@ -604,20 +661,35 @@
         margin-bottom: 15px;
     }
     
+    .stats-bar {
+        display: none; /* Completely hide stats bar on small mobile */
+    }
+    
     .stats-bar-content {
-        flex-direction: column;
-        gap: 12px;
+        display: none;
     }
     
-    .stat-item {
-        width: 100%;
-        justify-content: space-between;
+    .question-header {
         padding: 8px 0;
-        border-bottom: 1px solid #D5DBDB;
     }
     
-    .stat-item:last-child {
-        border-bottom: none;
+    .question-title {
+        font-size: 0.85em;
+    }
+    
+    .question-actions {
+        gap: 6px;
+    }
+    
+    .mark-btn span:not(#mark-icon),
+    .dashboard-btn span {
+        display: none; /* Hide text, show only icons on very small screens */
+    }
+    
+    .mark-btn, .dashboard-btn {
+        min-width: 44px;
+        padding: 10px;
+        justify-content: center;
     }
 
     .insights-section {

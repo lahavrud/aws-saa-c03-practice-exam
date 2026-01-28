@@ -609,8 +609,63 @@ const QuestionHandler = (function() {
                 questionGrid.appendChild(questionBtn);
             });
             
+            // Setup quick jump functionality
+            QuestionHandler.setupQuickJump();
+            
             // Navbar toggle listener is attached in app.js and navigation.js
             // No need to attach here to prevent duplicate listeners
+        },
+        
+        // Setup quick jump to question
+        setupQuickJump: () => {
+            const quickJumpInput = document.getElementById('quick-jump-input');
+            const quickJumpBtn = document.getElementById('quick-jump-btn');
+            
+            if (!quickJumpInput || !quickJumpBtn) return;
+            
+            const currentQuestions = AppState.getCurrentQuestions();
+            const maxQuestion = currentQuestions.length;
+            
+            // Set max attribute
+            quickJumpInput.setAttribute('max', maxQuestion);
+            quickJumpInput.setAttribute('placeholder', `1-${maxQuestion}`);
+            
+            const jumpToQuestion = () => {
+                const questionNum = parseInt(quickJumpInput.value);
+                if (questionNum >= 1 && questionNum <= maxQuestion) {
+                    AppState.setCurrentQuestionIndex(questionNum - 1);
+                    QuestionHandler.loadQuestion();
+                    quickJumpInput.value = '';
+                    quickJumpInput.blur();
+                } else {
+                    quickJumpInput.value = '';
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(`Please enter a number between 1 and ${maxQuestion}`, 'warning');
+                    }
+                }
+            };
+            
+            // Remove existing listeners by cloning
+            const newInput = quickJumpInput.cloneNode(true);
+            quickJumpInput.parentNode.replaceChild(newInput, quickJumpInput);
+            
+            const newBtn = quickJumpBtn.cloneNode(true);
+            quickJumpBtn.parentNode.replaceChild(newBtn, quickJumpBtn);
+            
+            // Add event listeners
+            newInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    jumpToQuestion();
+                }
+            });
+            
+            newBtn.addEventListener('click', jumpToQuestion);
+            
+            // Update max when questions change
+            newInput.addEventListener('focus', () => {
+                newInput.setAttribute('max', maxQuestion);
+            });
         },
         
         // Update question navbar

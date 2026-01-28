@@ -17,7 +17,10 @@ const AppState = (function() {
         currentUser: null,
         currentUserName: null,
         currentUserEmail: null,
-        previousAnswers: {}
+        previousAnswers: {},
+        lastAccessedTest: null,
+        lastAccessedDomain: null,
+        lastAccessedMode: null
     };
     
     // Public API
@@ -39,6 +42,9 @@ const AppState = (function() {
         getCurrentUserName: () => state.currentUserName,
         getCurrentUserEmail: () => state.currentUserEmail,
         getPreviousAnswers: () => state.previousAnswers,
+        getLastAccessedTest: () => state.lastAccessedTest,
+        getLastAccessedDomain: () => state.lastAccessedDomain,
+        getLastAccessedMode: () => state.lastAccessedMode,
         
         // Setters
         setCurrentTest: (value) => { state.currentTest = value; },
@@ -57,6 +63,9 @@ const AppState = (function() {
         setCurrentUserName: (value) => { state.currentUserName = value; },
         setCurrentUserEmail: (value) => { state.currentUserEmail = value; },
         setPreviousAnswers: (value) => { state.previousAnswers = value; },
+        setLastAccessedTest: (value) => { state.lastAccessedTest = value; },
+        setLastAccessedDomain: (value) => { state.lastAccessedDomain = value; },
+        setLastAccessedMode: (value) => { state.lastAccessedMode = value; },
         
         // Complex setters
         addUserAnswer: (questionId, answerIds) => {

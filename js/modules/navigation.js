@@ -30,17 +30,29 @@ const Navigation = (function() {
         showMainScreen: () => {
             Navigation.hideAllScreens();
             Navigation.showScreen('main-selection');
+            
+            // Load all tests on dashboard
+            if (typeof TestManager !== 'undefined' && TestManager.loadAllTestsOnDashboard) {
+                setTimeout(() => {
+                    TestManager.loadAllTestsOnDashboard();
+                }, 100);
+            }
+            
+            // Display continue section
+            if (typeof ResumeManager !== 'undefined' && ResumeManager.displayContinueSection) {
+                setTimeout(() => {
+                    ResumeManager.displayContinueSection();
+                }, 100);
+            }
         },
         
-        // Select practice mode (domain or test)
+        // Select practice mode (domain only - tests are now on dashboard)
         selectPracticeMode: (mode) => {
             if (mode === 'domain') {
                 Navigation.hideScreen('main-selection');
                 Navigation.showScreen('domain-selection');
-            } else if (mode === 'test') {
-                Navigation.hideScreen('main-selection');
-                Navigation.showScreen('source-selection');
             }
+            // Test mode is now handled directly from dashboard via TestManager.startTest/resumeTest
         },
         
         // Select source (Stephane, Dojo, or Sergey)
@@ -107,12 +119,27 @@ const Navigation = (function() {
                     Stats.recalculateUserStats(false);
                     Stats.updateDashboard();
                 }
+                
+                // Load all tests on dashboard
+                if (typeof TestManager !== 'undefined' && TestManager.loadAllTestsOnDashboard) {
+                    setTimeout(() => {
+                        TestManager.loadAllTestsOnDashboard();
+                    }, 100);
+                }
+                
+                // Display continue section
+                if (typeof ResumeManager !== 'undefined' && ResumeManager.displayContinueSection) {
+                    setTimeout(() => {
+                        ResumeManager.displayContinueSection();
+                    }, 100);
+                }
+                
                 // Update insights when showing dashboard
                 if (typeof Insights !== 'undefined' && Insights.displayInsights) {
                     // Small delay to ensure DOM is ready
                     setTimeout(() => {
                         Insights.displayInsights();
-                    }, 100);
+                    }, 200);
                 }
             }
             
@@ -205,6 +232,7 @@ if (typeof TestManager !== 'undefined') {
     window.selectMode = TestManager.selectMode;
     window.selectTest = TestManager.selectTest;
     window.selectDomainForReview = TestManager.selectDomainForReview;
+    window.selectDomainForReviewInModal = TestManager.selectDomainForReviewInModal;
     window.nextQuestion = TestManager.nextQuestion;
     window.previousQuestion = TestManager.previousQuestion;
     window.submitAnswer = TestManager.submitAnswer;
@@ -439,6 +467,7 @@ function attachNavbarToggleListener() {
 window.toggleNavbar = function() {
     const questionGrid = document.getElementById('question-grid');
     const questionScreen = document.getElementById('question-screen');
+    const navbarToggle = document.getElementById('navbar-toggle');
     
     // Check if question screen is visible
     if (questionScreen && questionScreen.classList.contains('hidden')) {
@@ -450,6 +479,27 @@ window.toggleNavbar = function() {
         const wasCollapsed = questionGrid.classList.contains('collapsed');
         questionGrid.classList.toggle('collapsed');
         const isCollapsed = questionGrid.classList.contains('collapsed');
+        
+        // Update toggle button icons
+        if (navbarToggle) {
+            const arrowIcon = navbarToggle.querySelector('.navbar-toggle-arrow');
+            const closeIcon = navbarToggle.querySelector('.navbar-toggle-close');
+            const isExpanded = !isCollapsed;
+            
+            navbarToggle.setAttribute('aria-expanded', isExpanded);
+            
+            if (arrowIcon && closeIcon) {
+                if (isExpanded) {
+                    // Grid is open - show X icon
+                    arrowIcon.classList.add('hidden');
+                    closeIcon.classList.remove('hidden');
+                } else {
+                    // Grid is closed - show arrow icon
+                    arrowIcon.classList.remove('hidden');
+                    closeIcon.classList.add('hidden');
+                }
+            }
+        }
         
         // Force a reflow to ensure the change is visible
         void questionGrid.offsetHeight;
@@ -649,13 +699,63 @@ function initSwipeGestures() {
     }, { passive: false });
 }
 
+// Initialize swipe gestures for question grid (vertical swipe to toggle)
+function initQuestionGridSwipe() {
+    const questionGrid = document.getElementById('question-grid');
+    const questionNavbar = document.getElementById('question-navbar');
+    
+    if (!questionGrid || !questionNavbar) return;
+    
+    let touchStartY = 0;
+    let touchEndY = 0;
+    let touchStartTime = 0;
+    const SWIPE_THRESHOLD = 50; // Minimum distance for swipe
+    const SWIPE_TIME_THRESHOLD = 300; // Maximum time for swipe (ms)
+    
+    // Add touch event listeners to the navbar header (where users would naturally swipe)
+    questionNavbar.addEventListener('touchstart', function(e) {
+        touchStartY = e.changedTouches[0].screenY;
+        touchStartTime = Date.now();
+    }, { passive: true });
+    
+    questionNavbar.addEventListener('touchend', function(e) {
+        touchEndY = e.changedTouches[0].screenY;
+        const touchDuration = Date.now() - touchStartTime;
+        const deltaY = touchStartY - touchEndY;
+        const absDeltaY = Math.abs(deltaY);
+        
+        // Only handle vertical swipes if they're significant enough
+        if (absDeltaY > SWIPE_THRESHOLD && touchDuration < SWIPE_TIME_THRESHOLD) {
+            const isCollapsed = questionGrid.classList.contains('collapsed');
+            
+            if (deltaY > 0) {
+                // Swipe up - open the grid if it's closed
+                if (isCollapsed && typeof window.toggleNavbar === 'function') {
+                    window.toggleNavbar();
+                }
+            } else {
+                // Swipe down - close the grid if it's open
+                if (!isCollapsed && typeof window.toggleNavbar === 'function') {
+                    window.toggleNavbar();
+                }
+            }
+        }
+    }, { passive: true });
+}
+
 // Initialize swipe gestures when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(initSwipeGestures, 100);
+        setTimeout(() => {
+            initSwipeGestures();
+            initQuestionGridSwipe();
+        }, 100);
     });
 } else {
-    setTimeout(initSwipeGestures, 100);
+    setTimeout(() => {
+        initSwipeGestures();
+        initQuestionGridSwipe();
+    }, 100);
 }
 
 // Re-initialize swipe gestures when question screen is shown
@@ -663,7 +763,10 @@ const originalShowScreen = Navigation.showScreen;
 Navigation.showScreen = function(screenId) {
     originalShowScreen.call(this, screenId);
     if (screenId === 'question-screen') {
-        setTimeout(initSwipeGestures, 100);
+        setTimeout(() => {
+            initSwipeGestures();
+            initQuestionGridSwipe();
+        }, 100);
         initMobileBottomNav();
     } else {
         hideMobileBottomNav();

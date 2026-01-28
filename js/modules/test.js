@@ -36,7 +36,349 @@ const TestManager = (function() {
             return organized;
         },
         
-        // Load available tests for selected source
+        // Load all tests on dashboard grouped by source
+        loadAllTestsOnDashboard: () => {
+            const questions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
+            
+            if (!questions) {
+                console.error('examQuestions not loaded');
+                const allTestsContainer = document.getElementById('all-tests-container');
+                if (allTestsContainer) {
+                    allTestsContainer.innerHTML = `
+                        <div class="empty-state" role="alert">
+                            <div class="empty-state-icon">⚠️</div>
+                            <h3>Unable to Load Tests</h3>
+                            <p>Questions could not be loaded. Please refresh the page and try again.</p>
+                            <button class="empty-state-cta" onclick="location.reload()">Refresh Page</button>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
+            const allTestsContainer = document.getElementById('all-tests-container');
+            if (!allTestsContainer) {
+                console.error('all-tests-container not found');
+                return;
+            }
+            
+            allTestsContainer.innerHTML = '';
+            
+            const organized = TestManager.organizeTestsBySource();
+            
+            // Create sections for each source
+            const sources = [
+                { key: Config.TEST_SOURCES.STEPHANE, name: 'Stephane', tests: organized.stephane || [] },
+                { key: Config.TEST_SOURCES.DOJO, name: 'Dojo', tests: organized.dojo || [] },
+                { key: Config.TEST_SOURCES.SERGEY, name: 'Sergey', tests: organized.sergey || [] }
+            ];
+            
+            sources.forEach(({ key, name, tests }) => {
+                if (tests.length === 0) return;
+                
+                // Create source section
+                const sourceSection = document.createElement('div');
+                sourceSection.className = 'test-source-section';
+                sourceSection.setAttribute('data-source', key);
+                
+                // Create collapsible header
+                const header = document.createElement('div');
+                header.className = 'test-source-header';
+                header.style.cursor = 'pointer';
+                header.innerHTML = `
+                    <h3>${name} Tests</h3>
+                    <button class="test-source-toggle" aria-expanded="false" aria-label="Toggle ${name} tests">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                        </svg>
+                    </button>
+                `;
+                
+                // Create content container (collapsed by default)
+                const content = document.createElement('div');
+                content.className = 'test-source-content';
+                content.style.display = 'none';
+                
+                // Toggle functionality - make entire header clickable
+                const toggleContent = () => {
+                    const toggle = header.querySelector('.test-source-toggle');
+                    const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+                    content.style.display = isExpanded ? 'none' : 'block';
+                    toggle.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
+                };
+                
+                header.addEventListener('click', (e) => {
+                    // Don't toggle if clicking directly on the button (it will handle its own click)
+                    if (e.target.closest('.test-source-toggle')) {
+                        return;
+                    }
+                    toggleContent();
+                });
+                
+                // Also allow button click
+                const toggle = header.querySelector('.test-source-toggle');
+                toggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleContent();
+                });
+                
+                // Create test cards
+                tests.forEach(({ key: testKey, number }, index) => {
+                    const testQuestions = questions[testKey] || [];
+                    const questionCount = testQuestions.length;
+                    const displayNumber = index + 1;
+                    const actualTestNumber = number;
+                    
+                    if (questionCount === 0) {
+                        console.warn(`No questions found for ${testKey}`);
+                        return;
+                    }
+                    
+                    const progressStatus = ProgressManager.getTestProgressStatus(actualTestNumber);
+                    const testCard = TestManager.createTestCard(actualTestNumber, displayNumber, questionCount, key, progressStatus);
+                    content.appendChild(testCard);
+                });
+                
+                sourceSection.appendChild(header);
+                sourceSection.appendChild(content);
+                allTestsContainer.appendChild(sourceSection);
+            });
+        },
+        
+        // Create a test card with progress indicators
+        createTestCard: (testNumber, displayNumber, questionCount, source, progressStatus) => {
+            const card = document.createElement('div');
+            card.className = 'test-card';
+            card.setAttribute('data-test-number', testNumber);
+            
+            // Status badge
+            let statusBadge = '';
+            let statusClass = '';
+            if (progressStatus.status === 'completed') {
+                statusBadge = '<span class="test-status-badge test-status-completed">✓ Completed</span>';
+                statusClass = 'completed';
+            } else if (progressStatus.status === 'in-progress') {
+                statusBadge = `<span class="test-status-badge test-status-in-progress">In Progress (${progressStatus.progressPercent}%)</span>`;
+                statusClass = 'in-progress';
+            } else {
+                statusBadge = '<span class="test-status-badge test-status-not-started">Not Started</span>';
+                statusClass = 'not-started';
+            }
+            
+            // Last accessed time
+            let lastAccessedText = '';
+            if (progressStatus.lastAccessed) {
+                const lastAccess = new Date(progressStatus.lastAccessed);
+                const now = new Date();
+                const diffMs = now - lastAccess;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                
+                if (diffMins < 1) {
+                    lastAccessedText = 'Just now';
+                } else if (diffMins < 60) {
+                    lastAccessedText = `${diffMins}m ago`;
+                } else if (diffHours < 24) {
+                    lastAccessedText = `${diffHours}h ago`;
+                } else if (diffDays < 7) {
+                    lastAccessedText = `${diffDays}d ago`;
+                } else {
+                    lastAccessedText = lastAccess.toLocaleDateString();
+                }
+            }
+            
+            // Progress bar
+            const progressBar = progressStatus.status !== 'not-started' 
+                ? `<div class="test-progress-bar">
+                    <div class="test-progress-fill" style="width: ${progressStatus.progressPercent}%"></div>
+                   </div>`
+                : '';
+            
+            card.innerHTML = `
+                <div class="test-card-header">
+                    <div>
+                        <h3 class="test-card-title">Test ${displayNumber}</h3>
+                        <p class="test-card-subtitle">${questionCount} Questions</p>
+                    </div>
+                    ${statusBadge}
+                </div>
+                ${progressBar}
+                <div class="test-card-footer">
+                    ${lastAccessedText ? `<span class="test-card-last-accessed">Last: ${lastAccessedText}</span>` : ''}
+                    <span class="test-card-action-hint">${progressStatus.status === 'not-started' ? 'Click to start' : progressStatus.status === 'completed' ? 'Click to review' : 'Click to resume'}</span>
+                </div>
+            `;
+            
+            // Make entire card clickable
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', (e) => {
+                // Don't trigger if clicking on restart button (if we add it back later)
+                if (e.target.closest('.test-action-restart')) {
+                    return;
+                }
+                
+                if (progressStatus.status === 'not-started') {
+                    TestManager.startTest(testNumber, source, displayNumber);
+                } else {
+                    TestManager.resumeTest(testNumber, source, displayNumber);
+                }
+            });
+            
+            return card;
+        },
+        
+        // Start a test (opens in modal)
+        startTest: (testNumber, source, displayNumber) => {
+            AppState.setCurrentTest(testNumber);
+            AppState.setSelectedSource(source);
+            AppState.setCurrentTestDisplayNumber(displayNumber);
+            
+            const questions = QuestionHandler.getTestQuestions(testNumber);
+            AppState.setCurrentQuestions(questions);
+            
+            if (!questions || questions.length === 0) {
+                alert('Questions not loaded. Please ensure questions.js is properly loaded.');
+                return;
+            }
+            
+            // Open mode selection in modal
+            TestManager.showModeSelectionModal();
+        },
+        
+        // Resume a test (opens in modal)
+        resumeTest: (testNumber, source, displayNumber) => {
+            AppState.setCurrentTest(testNumber);
+            AppState.setSelectedSource(source);
+            AppState.setCurrentTestDisplayNumber(displayNumber);
+            
+            const saved = ProgressManager.getSavedProgressForTest(testNumber);
+            if (saved) {
+                // Load saved progress and go directly to questions
+                const loaded = TestManager.loadSavedProgress(testNumber);
+                if (loaded) {
+                    // Open question screen in modal
+                    TestManager.showQuestionModal();
+                    return;
+                }
+            }
+            
+            // If no saved progress or loading failed, go to mode selection
+            const questions = QuestionHandler.getTestQuestions(testNumber);
+            AppState.setCurrentQuestions(questions);
+            TestManager.showModeSelectionModal();
+        },
+        
+        // Show mode selection in modal
+        showModeSelectionModal: () => {
+            const modal = document.getElementById('test-modal');
+            if (!modal) {
+                // Create modal if it doesn't exist
+                TestManager.createTestModal();
+            }
+            
+            const modalContent = document.getElementById('test-modal-content');
+            if (modalContent) {
+                modalContent.innerHTML = `
+                    <div class="test-modal-header">
+                        <h2>Select Mode</h2>
+                        <button class="test-modal-close" onclick="TestManager.closeTestModal()" aria-label="Close">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="test-modal-body">
+                        <div class="mode-buttons">
+                            <button class="mode-btn" onclick="TestManager.selectModeInModal('review')">
+                                <h3>Review Mode</h3>
+                                <p>Get immediate feedback after each answer with detailed explanations</p>
+                            </button>
+                            <button class="mode-btn" onclick="TestManager.selectModeInModal('test')">
+                                <h3>Test Mode</h3>
+                                <p>Timed exam simulation (130 minutes)</p>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        },
+        
+        // Select mode in modal
+        selectModeInModal: (mode) => {
+            TestManager.selectMode(mode);
+            TestManager.closeTestModal();
+            TestManager.showQuestionModal();
+        },
+        
+        // Show question screen in modal (full screen overlay)
+        showQuestionModal: () => {
+            // Close mode selection modal
+            TestManager.closeTestModal();
+            
+            // Show question screen as full screen overlay
+            Navigation.hideScreen('main-selection');
+            Navigation.showScreen('question-screen');
+            
+            // Add close button to question screen header
+            const questionHeader = document.querySelector('.question-header');
+            if (questionHeader && !document.getElementById('question-close-btn')) {
+                const closeBtn = document.createElement('button');
+                closeBtn.id = 'question-close-btn';
+                closeBtn.className = 'question-close-btn';
+                closeBtn.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                `;
+                closeBtn.onclick = () => {
+                    Navigation.returnToDashboard();
+                };
+                closeBtn.setAttribute('aria-label', 'Close and return to dashboard');
+                const questionActions = questionHeader.querySelector('.question-actions');
+                if (questionActions) {
+                    questionActions.insertBefore(closeBtn, questionActions.firstChild);
+                }
+            }
+        },
+        
+        // Create test modal
+        createTestModal: () => {
+            const modal = document.createElement('div');
+            modal.id = 'test-modal';
+            modal.className = 'test-modal hidden';
+            modal.innerHTML = `
+                <div class="test-modal-backdrop" onclick="TestManager.closeTestModal()"></div>
+                <div class="test-modal-container">
+                    <div id="test-modal-content" class="test-modal-content"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        },
+        
+        // Close test modal
+        closeTestModal: () => {
+            const modal = document.getElementById('test-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+        },
+        
+        // Confirm and restart a test
+        restartTestConfirm: (testNumber, displayNumber) => {
+            if (confirm(`Are you sure you want to restart Test ${displayNumber}? Your saved progress will be lost.`)) {
+                ProgressManager.clearSavedProgressForTest(testNumber);
+                TestManager.loadAllTestsOnDashboard();
+            }
+        },
+        
+        // Load available tests for selected source (legacy - for test-selection screen)
         loadAvailableTests: () => {
             // Check both window.examQuestions and global examQuestions
             const questions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
@@ -179,7 +521,7 @@ const TestManager = (function() {
             if (testCountStat) testCountStat.textContent = totalTests;
         },
         
-        // Select a test
+        // Select a test (legacy - for test-selection screen)
         selectTest: (testNumber) => {
             AppState.setCurrentTest(testNumber);
             const questions = QuestionHandler.getTestQuestions(testNumber);
@@ -237,7 +579,13 @@ const TestManager = (function() {
             }
         },
         
-        // Select domain for review
+        // Select domain for review in modal/overlay
+        selectDomainForReviewInModal: async (domain) => {
+            // This opens domain practice in full screen overlay (same as modal style)
+            await TestManager.selectDomainForReview(domain);
+        },
+        
+        // Select domain for review (opens in modal/full screen)
         selectDomainForReview: async (domain) => {
             AppState.setSelectedDomain(domain);
             AppState.setCurrentMode(Config.MODES.REVIEW);
@@ -272,7 +620,6 @@ const TestManager = (function() {
             
             if (domainQuestions.length === 0) {
                 alert(`No questions found for domain: ${domain}`);
-                Navigation.goBackToMainSelection();
                 return;
             }
             
@@ -307,6 +654,30 @@ const TestManager = (function() {
             if (typeof window.attachNavbarToggleListener === 'function') {
                 setTimeout(() => window.attachNavbarToggleListener(), 100);
             }
+            
+            // Add close button to question screen header (for overlay style)
+            setTimeout(() => {
+                const questionHeader = document.querySelector('.question-header');
+                if (questionHeader && !document.getElementById('question-close-btn')) {
+                    const closeBtn = document.createElement('button');
+                    closeBtn.id = 'question-close-btn';
+                    closeBtn.className = 'question-close-btn';
+                    closeBtn.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    `;
+                    closeBtn.onclick = () => {
+                        Navigation.returnToDashboard();
+                    };
+                    closeBtn.setAttribute('aria-label', 'Close and return to dashboard');
+                    const questionActions = questionHeader.querySelector('.question-actions');
+                    if (questionActions) {
+                        questionActions.insertBefore(closeBtn, questionActions.firstChild);
+                    }
+                }
+            }, 100);
             
             // Scroll to top of page and question screen when navigating from insights
             setTimeout(() => {
@@ -504,4 +875,11 @@ if (typeof window !== 'undefined' && typeof TestManager !== 'undefined') {
     window.previousQuestion = TestManager.previousQuestion;
     window.toggleMarkQuestion = TestManager.toggleMarkQuestion;
     window.submitTest = TestManager.submitTest;
+    window.startTest = TestManager.startTest;
+    window.resumeTest = TestManager.resumeTest;
+    window.showModeSelectionModal = TestManager.showModeSelectionModal;
+    window.selectModeInModal = TestManager.selectModeInModal;
+    window.closeTestModal = TestManager.closeTestModal;
+    window.showQuestionModal = TestManager.showQuestionModal;
+    window.selectDomainForReviewInModal = TestManager.selectDomainForReviewInModal;
 }

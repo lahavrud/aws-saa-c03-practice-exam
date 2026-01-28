@@ -46,6 +46,12 @@ const ProgressManager = (function() {
                         localStorage.setItem(progressKey, JSON.stringify(progress));
                         AppState.setSavedProgress(progress);
                         localStorage.setItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`, progressKey);
+                        
+                        // Track last accessed
+                        AppState.setLastAccessedTest(currentTest);
+                        AppState.setLastAccessedMode(currentMode);
+                        AppState.setLastAccessedDomain(null);
+                        
                         console.log('Progress saved to localStorage:', progressKey);
                     } catch (storageError) {
                         console.error('Error saving to localStorage:', storageError);
@@ -82,6 +88,12 @@ const ProgressManager = (function() {
                         localStorage.setItem(progressKey, JSON.stringify(progress));
                         AppState.setSavedProgress(progress);
                         localStorage.setItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`, progressKey);
+                        
+                        // Track last accessed
+                        AppState.setLastAccessedDomain(selectedDomain);
+                        AppState.setLastAccessedMode(currentMode);
+                        AppState.setLastAccessedTest(null);
+                        
                         console.log('Domain progress saved to localStorage:', progressKey);
                     } catch (storageError) {
                         console.error('Error saving to localStorage:', storageError);
@@ -286,6 +298,92 @@ const ProgressManager = (function() {
             if (AppState.getSelectedSource()) {
                 TestManager.loadAvailableTests();
             }
+        },
+        
+        // Calculate progress percentage for a test
+        calculateTestProgress: (testNumber) => {
+            const progress = ProgressManager.getSavedProgressForTest(testNumber);
+            if (!progress || !progress.answers) return 0;
+            
+            const questions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
+            if (!questions) return 0;
+            
+            const testKey = `test${testNumber}`;
+            const testQuestions = questions[testKey] || [];
+            const totalQuestions = testQuestions.length;
+            
+            if (totalQuestions === 0) return 0;
+            
+            const answeredCount = Object.keys(progress.answers).length;
+            return Math.round((answeredCount / totalQuestions) * 100);
+        },
+        
+        // Get last progress point
+        getLastProgressPoint: () => {
+            const currentUserEmail = AppState.getCurrentUserEmail();
+            if (!currentUserEmail) return null;
+            
+            const userKey = currentUserEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
+            const lastProgressKey = localStorage.getItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`);
+            
+            if (!lastProgressKey) return null;
+            
+            const saved = localStorage.getItem(lastProgressKey);
+            if (!saved) return null;
+            
+            try {
+                return JSON.parse(saved);
+            } catch (error) {
+                console.error('Error parsing last progress:', error);
+                return null;
+            }
+        },
+        
+        // Get progress status for a test
+        getTestProgressStatus: (testNumber) => {
+            const progress = ProgressManager.getSavedProgressForTest(testNumber);
+            if (!progress) {
+                return {
+                    status: 'not-started',
+                    progressPercent: 0,
+                    answeredCount: 0,
+                    totalQuestions: 0,
+                    lastAccessed: null
+                };
+            }
+            
+            const questions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
+            if (!questions) {
+                return {
+                    status: 'unknown',
+                    progressPercent: 0,
+                    answeredCount: 0,
+                    totalQuestions: 0,
+                    lastAccessed: progress.timestamp || null
+                };
+            }
+            
+            const testKey = `test${testNumber}`;
+            const testQuestions = questions[testKey] || [];
+            const totalQuestions = testQuestions.length;
+            const answeredCount = Object.keys(progress.answers || {}).length;
+            const progressPercent = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+            
+            let status = 'in-progress';
+            if (progressPercent === 0) {
+                status = 'not-started';
+            } else if (progressPercent === 100) {
+                status = 'completed';
+            }
+            
+            return {
+                status,
+                progressPercent,
+                answeredCount,
+                totalQuestions,
+                lastAccessed: progress.timestamp || null,
+                mode: progress.mode || 'review'
+            };
         }
     };
 })();

@@ -5,8 +5,77 @@
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Initializing AWS Lahavda Application...');
     
+    // Easter egg loading messages
+    const easterEggMessages = [
+        // Sergey (Infrastructure & Network)
+        "Configuring Sergey Groups to block unauthorized traffic...",
+        "Uploading data to Simple Sergey Service (S3)...",
+        "Encrypting traffic with Sergey-Side Encryption...",
+        "Checking Sergey-Net connectivity...",
+        
+        // Netzi (Management & Rules)
+        "Routing packets through the Netzi Gateway...",
+        "Checking permissions in Netzi ACLs...",
+        "Calculating monthly costs in the Netzi Billing Console...",
+        "Requesting approval from Netzi Organizations root account...",
+        
+        // Manny (Automation & Identity)
+        "Authenticating via IA-Manny...",
+        "Compiling Manny-fests...",
+        "Debugging Python.manny scripts...",
+        "Establishing a Manny-to-Manny database relationship...",
+        
+        // Dor (Connectivity & Containers)
+        "Establishing Direct Dor-nect connection...",
+        "Spinning up Dor-cker containers...",
+        "Opening a Back-Dor for emergency access...",
+        "Resolving DNS queries via Route Dor-3...",
+        
+        // Lahav (Serverless & Speed)
+        "Invoking Lahav-da serverless functions...",
+        "Caching content at Lahav Locations...",
+        "Warming up Lahav-da cold starts...",
+        "Scaling up with Auto-Lahav-ling Groups...",
+        
+        // Jonathan (Formats, NAT & JIT)
+        "Parsing valid Jonathan-SON policy documents...",
+        "Routing private traffic via the Jo-NAT-han Gateway...",
+        "Granting Jonathan-in-Time administrative access...",
+        "Validating the Jonathan Well-Architected Framework...",
+        "Exporting CloudFormation templates to Jonathan-SON...",
+        
+        // Ilay & Eyal (High Availability & Redundancy)
+        "Balancing traffic with Ilay-stic Load Balancer...",
+        "Replicating data across Eyal-ability Zones...",
+        "Syncing Ilay & Eyal Active-Active cluster...",
+        "Allocating Ilay-stic IPs for dynamic resources...",
+        "Taking snapshots for Eyal-astic Block Store..."
+    ];
+    
+    // Show first easter egg message immediately
+    const loaderText = document.getElementById('loader-message');
+    let currentMessageIndex = 0;
+    if (loaderText && easterEggMessages.length > 0) {
+        // Randomize starting message
+        currentMessageIndex = Math.floor(Math.random() * easterEggMessages.length);
+        loaderText.textContent = easterEggMessages[currentMessageIndex];
+        currentMessageIndex = (currentMessageIndex + 1) % easterEggMessages.length;
+    }
+    
+    const updateLoaderMessage = () => {
+        const loaderTextEl = document.getElementById('loader-message');
+        if (loaderTextEl && easterEggMessages.length > 0) {
+            loaderTextEl.textContent = easterEggMessages[currentMessageIndex];
+            currentMessageIndex = (currentMessageIndex + 1) % easterEggMessages.length;
+        }
+    };
+    
+    // Start rotating messages every 2 seconds
+    const messageInterval = setInterval(updateLoaderMessage, 2000);
+    
     // Hide initial loader when app is ready
     const hideInitialLoader = () => {
+        clearInterval(messageInterval);
         const loader = document.getElementById('initial-loader');
         if (loader) {
             loader.classList.add('hidden');
@@ -293,6 +362,28 @@ document.addEventListener('DOMContentLoaded', async function() {
                         console.error('toggleNavbar function not available');
                     }
                 });
+                
+                // Initialize icon state based on current collapsed state
+                const questionGrid = document.getElementById('question-grid');
+                if (questionGrid && newToggle) {
+                    const isCollapsed = questionGrid.classList.contains('collapsed');
+                    const arrowIcon = newToggle.querySelector('.navbar-toggle-arrow');
+                    const closeIcon = newToggle.querySelector('.navbar-toggle-close');
+                    
+                    if (arrowIcon && closeIcon) {
+                        if (isCollapsed) {
+                            // Grid is collapsed - show arrow
+                            arrowIcon.classList.remove('hidden');
+                            closeIcon.classList.add('hidden');
+                        } else {
+                            // Grid is open - show X
+                            arrowIcon.classList.add('hidden');
+                            closeIcon.classList.remove('hidden');
+                        }
+                        newToggle.setAttribute('aria-expanded', !isCollapsed);
+                    }
+                }
+                
                 console.log('✓ Navbar toggle button event listener attached');
                 return true;
             }

@@ -67,6 +67,7 @@ const Insights = (function() {
                 : 0;
             
             // Process test progress
+            let testsCompleted = 0;
             for (let testNum = 1; testNum <= maxTestNum; testNum++) {
                 const progressKey = `${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-test${testNum}`;
                 const saved = localStorage.getItem(progressKey);
@@ -77,6 +78,11 @@ const Insights = (function() {
                             const testKey = `test${testNum}`;
                             const testQuestions = questions[testKey];
                             if (testQuestions && testQuestions.length > 0) {
+                                // Check if test is completed (all questions answered)
+                                const answeredCount = Object.keys(progress.answers || {}).length;
+                                if (answeredCount === testQuestions.length) {
+                                    testsCompleted++;
+                                }
                                 testQuestions.forEach(question => {
                                     const domain = question.domain || 'Unknown';
                                     if (domainStats[domain]) {
@@ -212,6 +218,7 @@ const Insights = (function() {
                 totalQuestions: Object.values(domainStats).reduce((sum, stats) => sum + stats.total, 0),
                 totalAnswered: Object.values(domainStats).reduce((sum, stats) => sum + stats.answered, 0),
                 totalCorrect: Object.values(domainStats).reduce((sum, stats) => sum + stats.correct, 0),
+                testsCompleted: testsCompleted,
                 overallAccuracy: 0
             };
         },
@@ -221,14 +228,37 @@ const Insights = (function() {
             const insightsContainer = document.getElementById('insights-container');
             if (!insightsContainer) return;
             
+            // Setup toggle functionality
+            const toggle = document.getElementById('insights-toggle');
+            const content = document.getElementById('insights-content');
+            if (toggle && content) {
+                // Remove existing listeners by cloning
+                const newToggle = toggle.cloneNode(true);
+                toggle.parentNode.replaceChild(newToggle, toggle);
+                
+                newToggle.addEventListener('click', () => {
+                    const isExpanded = newToggle.getAttribute('aria-expanded') === 'true';
+                    if (isExpanded) {
+                        content.style.display = 'none';
+                        newToggle.setAttribute('aria-expanded', 'false');
+                    } else {
+                        content.style.display = 'block';
+                        newToggle.setAttribute('aria-expanded', 'true');
+                    }
+                });
+            }
+            
             // Show loading state
-            insightsContainer.innerHTML = '<div class="insights-loading"><div class="skeleton-loader"></div><div class="skeleton-loader"></div><div class="skeleton-loader"></div></div>';
+            const contentDiv = content || insightsContainer;
+            if (contentDiv) {
+                contentDiv.innerHTML = '<div class="insights-loading"><div class="skeleton-loader"></div><div class="skeleton-loader"></div><div class="skeleton-loader"></div></div>';
+            }
             
             // Simulate loading delay for better UX
             setTimeout(() => {
                 const insights = Insights.calculateInsights();
                 if (!insights) {
-                    insightsContainer.innerHTML = `
+                    const emptyHtml = `
                         <div class="insights-empty" role="status" aria-live="polite">
                             <div class="empty-state-icon">📊</div>
                             <h3>No Data Yet</h3>
@@ -246,6 +276,9 @@ const Insights = (function() {
                             <p style="font-size: 0.9em; margin-top: 8px; opacity: 0.7;">Start practicing to track your performance across domains</p>
                         </div>
                     `;
+                    if (contentDiv) {
+                        contentDiv.innerHTML = emptyHtml;
+                    }
                     return;
                 }
             
@@ -277,70 +310,55 @@ const Insights = (function() {
                 </div>
             `;
             
-            // Domain breakdown
-            html += '<div class="insights-domains"><h3>Performance by Domain</h3>';
-            
-            const domains = [
-                'Design Secure Architectures',
-                'Design Resilient Architectures',
-                'Design High-Performing Architectures',
-                'Design Cost-Optimized Architectures'
-            ];
-            
-            domains.forEach(domain => {
-                const stats = insights.domainStats[domain];
-                const progressPercent = stats.total > 0 ? Math.round((stats.answered / stats.total) * 100) : 0;
-                const needsPractice = stats.answered > 0 && stats.accuracy < 70;
-                
-                html += `
-                    <div class="domain-insight-card">
-                        <div class="domain-header">
-                            <h4>${domain}</h4>
-                            <span class="domain-accuracy">${stats.accuracy}%</span>
-                        </div>
-                        <div class="domain-progress-bar">
-                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
-                        </div>
-                        <div class="domain-details">
-                            <span>Answered: ${stats.answered}</span>
-                            <span>Correct: ${stats.correct}</span>
-                            <span>Incorrect: ${stats.incorrect}</span>
-                        </div>
-                        <button class="practice-domain-btn" onclick="selectDomainForReview('${domain}')" ${stats.answered === 0 ? '' : needsPractice ? 'style="background: #ff9800; color: white;"' : ''}>
-                            ${stats.answered === 0 ? 'Start Practicing' : needsPractice ? 'Practice More' : 'Review Domain'}
-                        </button>
+            // Quick stats summary
+            html += '<div class="insights-quick-stats">';
+            html += `
+                <div class="quick-stat-card">
+                    <div class="quick-stat-icon">📊</div>
+                    <div class="quick-stat-info">
+                        <div class="quick-stat-label">Tests Completed</div>
+                        <div class="quick-stat-value">${insights.testsCompleted || 0}</div>
                     </div>
-                `;
-            });
-            
+                </div>
+                <div class="quick-stat-card">
+                    <div class="quick-stat-icon">✅</div>
+                    <div class="quick-stat-info">
+                        <div class="quick-stat-label">Questions Answered</div>
+                        <div class="quick-stat-value">${insights.totalAnswered}</div>
+                    </div>
+                </div>
+                <div class="quick-stat-card">
+                    <div class="quick-stat-icon">🎯</div>
+                    <div class="quick-stat-info">
+                        <div class="quick-stat-label">Overall Accuracy</div>
+                        <div class="quick-stat-value">${insights.overallAccuracy}%</div>
+                    </div>
+                </div>
+            `;
             html += '</div>';
             
-            // Strongest/Weakest domains
-            if (insights.strongestDomain || insights.weakestDomain) {
-                html += '<div class="insights-highlights">';
-                if (insights.strongestDomain) {
-                    html += `
-                        <div class="highlight-card highlight-strong">
-                            <h4>🏆 Strongest Domain</h4>
-                            <p>${insights.strongestDomain}</p>
-                            <span class="highlight-value">${insights.domainStats[insights.strongestDomain].accuracy}% accuracy</span>
+            // Study recommendations
+            if (insights.weakestDomain) {
+                html += '<div class="insights-recommendation">';
+                html += `
+                    <div class="recommendation-card">
+                        <div class="recommendation-icon">💡</div>
+                        <div class="recommendation-content">
+                            <h4>Focus Area</h4>
+                            <p>Consider practicing <strong>${insights.weakestDomain}</strong> more to improve your overall performance.</p>
+                            <button class="recommendation-btn" onclick="TestManager.selectDomainForReviewInModal('${insights.weakestDomain}')">
+                                Practice This Domain
+                            </button>
                         </div>
-                    `;
-                }
-                if (insights.weakestDomain) {
-                    html += `
-                        <div class="highlight-card highlight-weak">
-                            <h4>📚 Needs Practice</h4>
-                            <p>${insights.weakestDomain}</p>
-                            <span class="highlight-value">${insights.domainStats[insights.weakestDomain].accuracy}% accuracy</span>
-                        </div>
-                    `;
-                }
+                    </div>
+                `;
                 html += '</div>';
             }
             
             html += '</div>';
-            insightsContainer.innerHTML = html;
+            if (contentDiv) {
+                contentDiv.innerHTML = html;
+            }
             }, 300); // Small delay for better perceived performance
         }
     };

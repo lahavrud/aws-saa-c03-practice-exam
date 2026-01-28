@@ -49,7 +49,7 @@
         <div class="loader-content">
             <div class="loader-spinner"></div>
             <h2>Loading AWS Lahavda</h2>
-            <p>Preparing your practice exam platform...</p>
+            <p id="loader-message">Preparing your practice exam platform...</p>
         </div>
     </div>
 
@@ -128,38 +128,53 @@
                     <div class="hero-circle hero-circle-2"></div>
                 </div>
             </div>
-            <!-- Insights Section -->
+            <!-- Continue Section -->
+            <div id="continue-section" class="continue-section" style="display: none;">
+                <!-- Will be populated by ResumeManager -->
+            </div>
+            
+            <!-- Insights Section (Collapsible) -->
             <div id="insights-container" class="insights-section" role="region" aria-label="Performance Insights">
-                <h2>Performance Insights</h2>
-                <div class="insights-loading" role="status" aria-live="polite">
-                    <div class="skeleton-loader"></div>
-                    <div class="skeleton-loader"></div>
-                    <div class="skeleton-loader"></div>
-                    <p>Loading insights...</p>
+                <div class="insights-header">
+                    <h2>Performance Insights</h2>
+                    <button class="insights-toggle" id="insights-toggle" aria-expanded="true" aria-label="Toggle insights">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                <div class="insights-content" id="insights-content">
+                    <div class="insights-loading" role="status" aria-live="polite">
+                        <div class="skeleton-loader"></div>
+                        <div class="skeleton-loader"></div>
+                        <div class="skeleton-loader"></div>
+                        <p>Loading insights...</p>
+                    </div>
                 </div>
             </div>
             
-            <h2>Choose Your Practice Mode</h2>
-            <div class="mode-buttons">
-                <button class="mode-btn large" onclick="selectPracticeMode('domain')">
-                    <h3>By Domain</h3>
-                    <p>Practice all questions from a specific AWS domain across all tests</p>
-                </button>
-                <button class="mode-btn large" onclick="selectPracticeMode('test')">
-                    <h3>By Test</h3>
-                    <p>Take a complete practice exam with review or test mode</p>
+            <!-- All Tests Section -->
+            <div class="all-tests-section">
+                <h2>All Tests</h2>
+                <div id="all-tests-container" class="all-tests-container">
+                    <!-- Tests will be loaded here by TestManager -->
+                </div>
+            </div>
+            
+            <!-- Practice by Domain (Secondary Option) -->
+            <div class="domain-practice-section">
+                <button class="domain-practice-btn" onclick="selectPracticeMode('domain')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                    Practice by Domain
                 </button>
             </div>
         </div>
 
         
 <div id="source-selection" class="screen hidden">
-            <button class="back-btn top-left" onclick="goBackToMainSelection()" aria-label="Go back">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-                Back
-            </button>
             <h2>Select Test Source</h2>
             <div class="source-buttons">
                 <button class="source-btn" onclick="selectSource('stephane')">
@@ -179,12 +194,6 @@
 
         
 <div id="test-selection" class="screen hidden">
-            <button class="back-btn top-left" onclick="goBackToSourceSelection()" aria-label="Go back">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-                Back
-            </button>
             <h2>Select a Test</h2>
             <div class="test-buttons" id="test-buttons-container">
                 <!-- Test buttons will be dynamically loaded here by app.js -->
@@ -193,11 +202,11 @@
 
         
 <div id="mode-selection" class="screen hidden">
-            <button class="back-btn top-left" onclick="goBackToTestSelection()" aria-label="Go back to tests">
+            <button class="back-btn top-left" onclick="goBackToMainSelection()" aria-label="Go back to dashboard">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;">
                     <polyline points="15 18 9 12 15 6"></polyline>
                 </svg>
-                Back to Tests
+                Back
             </button>
             <h2>Select Mode</h2>
             <div class="mode-buttons">
@@ -1050,12 +1059,6 @@
 
         
 <div id="domain-selection" class="screen hidden">
-            <button class="back-btn top-left" onclick="goBackToMainSelection()" aria-label="Go back">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-                Back
-            </button>
             <h2>Select Domain to Review</h2>
             <div class="domain-buttons">
                 <button class="domain-btn" onclick="selectDomainForReview('Design Secure Architectures')">
@@ -1083,13 +1086,26 @@
             <div class="question-navbar" id="question-navbar" role="navigation" aria-label="Question navigation">
                 <div class="navbar-header">
                     <span>Questions</span>
-                    <button class="navbar-toggle" id="navbar-toggle" type="button" aria-label="Toggle question navigation" aria-expanded="false">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <line x1="3" y1="12" x2="21" y2="12"></line>
-                            <line x1="3" y1="18" x2="21" y2="18"></line>
-                        </svg>
-                    </button>
+                    <div class="question-nav-controls">
+                        <div class="quick-jump-container">
+                            <label for="quick-jump-input" class="quick-jump-label">Jump to:</label>
+                            <input type="number" id="quick-jump-input" class="quick-jump-input" min="1" placeholder="#" aria-label="Jump to question number">
+                            <button class="quick-jump-btn" id="quick-jump-btn" type="button" aria-label="Jump to question">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                        <button class="navbar-toggle" id="navbar-toggle" type="button" aria-label="Toggle question navigation" aria-expanded="false">
+                            <svg class="navbar-toggle-icon navbar-toggle-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                            <svg class="navbar-toggle-icon navbar-toggle-close hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="question-grid" id="question-grid" role="list" aria-label="Question numbers"></div>
             </div>
@@ -1568,6 +1584,7 @@
     <script src="js/modules/user.js"></script>
     <script src="js/modules/stats.js"></script>
     <script src="js/modules/progress.js"></script>
+    <script src="js/modules/resume.js"></script>
     <script src="js/modules/timer.js"></script>
     <script src="js/modules/questions.js"></script>
     <script src="js/modules/results.js"></script>
