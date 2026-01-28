@@ -90,7 +90,7 @@
       1
     ],
     "explanation": "**Why option 1 is correct:**\nThis is correct because it configures a lifecycle policy to transition objects to S3 One Zone-IA after 30 days. S3 One Zone-IA offers a lower storage cost compared to S3 Standard and S3 Standard-IA. While the question states high access for the first few days and reduced access after a week, transitioning after 30 days still addresses the requirement of cost reduction while maintaining immediate accessibility. S3 One Zone-IA is suitable because the assets are re-creatable, mitigating the risk of data loss in a single availability zone. The infrequent access requirement is also met.\n\n**Why option 0 is incorrect:**\nis incorrect because transitioning after only 7 days might be too soon. The question states high access for the first few days, but it doesn't explicitly state that access drops to almost zero immediately after a week. Transitioning after 7 days might result in unnecessary transitions if there's still some level of frequent access between 7 and 30 days. Also, while S3 One Zone-IA is a good choice, the timing is premature.\n\n**Why option 2 is incorrect:**\nThis option is incorrect because it does not meet the specific requirements outlined in the scenario.\n\n**Why option 3 is incorrect:**\nThis option is incorrect because it does not meet the specific requirements outlined in the scenario.",
-    "domain": "Design Secure Architectures"
+    "domain": "Design Cost-Optimized Architectures"
   },
   {
     "id": 3,

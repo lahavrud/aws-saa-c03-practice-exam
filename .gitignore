@@ -23,6 +23,7 @@ ENV/
 Thumbs.db
 
 # Project specific
+questions.js
 questions.js.backup*
 *.backup
 *.bak

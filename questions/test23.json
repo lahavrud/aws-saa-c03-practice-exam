@@ -90,7 +90,7 @@
       1
     ],
     "explanation": "**Why option 1 is correct:**\nThis is correct because it configures a lifecycle policy to transition objects to S3 One Zone-IA after 30 days. S3 One Zone-IA offers a lower storage cost compared to S3 Standard and S3 Standard-IA. While the question states high access for the first few days and reduced access after a week, transitioning after 30 days still addresses the requirement of cost reduction while maintaining immediate accessibility. S3 One Zone-IA is suitable because the assets are re-creatable, mitigating the risk of data loss in a single availability zone. The infrequent access requirement is also met.\n\n**Why option 0 is incorrect:**\nis incorrect because transitioning after only 7 days might be too soon. The question states high access for the first few days, but it doesn't explicitly state that access drops to almost zero immediately after a week. Transitioning after 7 days might result in unnecessary transitions if there's still some level of frequent access between 7 and 30 days. Also, while S3 One Zone-IA is a good choice, the timing is premature.\n\n**Why option 2 is incorrect:**\nThis option is incorrect because it does not meet the specific requirements outlined in the scenario.\n\n**Why option 3 is incorrect:**\nThis option is incorrect because it does not meet the specific requirements outlined in the scenario.",
-    "domain": "Design Secure Architectures"
+    "domain": "Design Cost-Optimized Architectures"
   },
   {
     "id": 3,
@@ -152,7 +152,7 @@
       1
     ],
     "explanation": "**Why option 1 is correct:**\nThis is correct because Amazon ElastiCache for Redis is an in-memory data store specifically designed for low-latency read and write operations. It offers high availability through replication and automatic failover. Redis's data structures are well-suited for leaderboard implementations, allowing for efficient ranking and retrieval of user data. Option 3 is also correct because DynamoDB with DAX (DynamoDB Accelerator) provides an in-memory cache layer for DynamoDB. DAX significantly improves read performance by caching frequently accessed data, reducing latency and improving the overall responsiveness of the leaderboard application. DynamoDB itself provides high availability and scalability, and DAX enhances its performance for read-heavy workloads.\n\n**Why option 0 is incorrect:**\nis incorrect because while DynamoDB offers low latency and high availability, it is not an in-memory data store by default. It is a NoSQL database that stores data on SSDs. While it can provide fast read/write speeds, it doesn't match the performance characteristics of a true in-memory solution for the specific requirements of a real-time leaderboard.\n\n**Why option 2 is incorrect:**\nis incorrect because Amazon RDS for Aurora is a relational database service. While Aurora offers good performance, it is not an in-memory data store and is not optimized for the ultra-low latency requirements of a real-time leaderboard. It is designed for transactional workloads and not for the high-frequency read/write operations typical of a leaderboard.\n\n**Why option 3 is incorrect:**\nThis option is incorrect because it does not meet the specific requirements outlined in the scenario.",
-    "domain": "Design Resilient Architectures"
+    "domain": "Design Cost-Optimized Architectures"
   },
   {
     "id": 5,
@@ -183,7 +183,7 @@
       2
     ],
     "explanation": "**Why option 2 is correct:**\nenabling Amazon DynamoDB Accelerator (DAX) for DynamoDB and Amazon CloudFront for S3, is the most efficient solution. DAX is a fully managed, highly available, in-memory cache for DynamoDB. It significantly improves read performance by caching frequently accessed data, reducing the load on DynamoDB and lowering latency. Amazon CloudFront is a content delivery network (CDN) that caches static content like images from S3 at edge locations globally. This reduces latency for users accessing the static content and offloads traffic from the S3 bucket. Since 90% of read requests are for commonly accessed data, both DAX and CloudFront will provide substantial performance improvements.\n\n**Why option 0 is incorrect:**\nThis option is incorrect because it does not meet the specific requirements outlined in the scenario.\n\n**Why option 1 is incorrect:**\nenabling ElastiCache Redis for DynamoDB and Amazon CloudFront for S3, is less efficient than using DAX. While ElastiCache Redis can be used as a cache, DAX is specifically designed for DynamoDB and offers tighter integration and easier management. DAX also handles invalidation and consistency automatically, which would need to be manually managed with ElastiCache Redis. CloudFront for S3 is a good choice for caching static content.\n\n**Why option 3 is incorrect:**\nenabling ElastiCache Redis for DynamoDB and ElastiCache Memcached for S3, is the least efficient option. While ElastiCache Redis can be used as a cache for DynamoDB, DAX is a better-suited and more tightly integrated solution. ElastiCache Memcached is not the best choice for caching static content in S3; CloudFront is a more appropriate CDN.",
-    "domain": "Design Resilient Architectures"
+    "domain": "Design Cost-Optimized Architectures"
   },
   {
     "id": 6,

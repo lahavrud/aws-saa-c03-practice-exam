@@ -28,7 +28,7 @@
       0
     ],
     "explanation": "**Why option 0 is correct:**\nAmazon S3 is a highly scalable and cost-effective storage service that can be used to host static website content. It provides durability, high availability, and low latency access to the static files. Amazon ECS with AWS Fargate eliminates the need to manage the underlying infrastructure. It allows you to run containerized applications without provisioning or managing EC2 instances. This reduces operational overhead and provides scalability. By using a managed Amazon RDS cluster for the database, you can offload the management tasks such as backups, patching, and monitoring to AWS. This reduces the operational burden and ensures high availability and durability of the database.\n\n**Why other options are incorrect:**\nThe other options do not meet the requirements specified in the scenario.",
-    "domain": "Design Secure Architectures"
+    "domain": "Design Cost-Optimized Architectures"
   },
   {
     "id": 1,

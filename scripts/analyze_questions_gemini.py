@@ -7,8 +7,18 @@ Uses gemini-2.0-flash for ultra-fast analysis with checkpointing and resume capa
 import json
 import time
 import os
+import sys
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Set, Tuple
+
+# Import shared utilities
+sys.path.insert(0, str(Path(__file__).parent))
+from utils.question_utils import (
+    find_test_files,
+    load_questions_file,
+    save_questions_file,
+    get_questions_dir,
+)
 
 try:
     import google.generativeai as genai  # type: ignore
@@ -47,42 +57,23 @@ MAX_QUESTIONS = (
 
 def load_questions(file_path: str) -> List[Dict[str, Any]]:
     """Load questions from JSON file"""
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Input file not found: {file_path}")
-
-    with open(file_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    # If it's a list of questions
-    if isinstance(data, list):
-        return data
-
-    # If it's an object with keys like test1, test2, etc.
-    all_questions = []
-    for key, questions in data.items():
-        if isinstance(questions, list):
-            all_questions.extend(questions)
-
-    return all_questions
+    path = Path(file_path)
+    questions = load_questions_file(path)
+    if questions is None:
+        raise FileNotFoundError(
+            f"Input file not found or could not be loaded: {file_path}"
+        )
+    return questions
 
 
 def find_all_test_files(questions_dir: str = "questions") -> List[str]:
     """Find all test*.json files in the questions directory"""
     questions_path = Path(questions_dir)
     if not questions_path.exists():
-        return []
+        questions_path = get_questions_dir()
 
-    test_files = []
-    # Find all test*.json files and sort them numerically
-    for test_file in sorted(
-        questions_path.glob("test*.json"),
-        key=lambda x: int(x.stem.replace("test", ""))
-        if x.stem.replace("test", "").isdigit()
-        else 999,
-    ):
-        test_files.append(str(test_file))
-
-    return test_files
+    test_files = find_test_files(questions_path, exclude_backups=True)
+    return [str(f) for f in test_files]
 
 
 def load_existing_output(
@@ -139,26 +130,28 @@ def load_existing_output(
 
 def save_output_json(data: Dict[str, Any], file_path: str):
     """Save output to JSON file (full rewrite)"""
+    path = Path(file_path)
+    # Use shared utility but handle dict data (not list of questions)
     # Create backup before writing
-    if os.path.exists(file_path):
-        backup_path = f"{file_path}.backup"
+    if path.exists():
+        backup_path = path.with_suffix(".json.backup")
         try:
             import shutil
 
-            shutil.copy2(file_path, backup_path)
+            shutil.copy2(path, backup_path)
         except Exception:
             pass
 
     # Write atomically using temp file
-    temp_path = f"{file_path}.tmp"
+    temp_path = path.with_suffix(".json.tmp")
     try:
         with open(temp_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-        os.replace(temp_path, file_path)  # Atomic replace
+        temp_path.replace(path)  # Atomic replace
     except Exception as e:
         print(f"❌ Error saving output: {e}")
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+        if temp_path.exists():
+            temp_path.unlink()
         raise
 
 

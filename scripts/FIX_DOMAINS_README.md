@@ -54,7 +54,6 @@ The script uses these guidelines for domain classification:
 - **Design Resilient Architectures**: High availability, fault tolerance, disaster recovery, backup
 - **Design High-Performing Architectures**: Performance optimization, caching, content delivery, database performance
 - **Design Cost-Optimized Architectures**: Cost reduction, resource optimization, right-sizing, cost-effective storage
-- **Design Operational Excellence Architectures**: Monitoring, logging, automation, CI/CD, infrastructure as code
 
 ## Output
 

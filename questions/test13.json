@@ -90,7 +90,7 @@
       1
     ],
     "explanation": "**Why option 1 is correct:**\nThis solution addresses the problem of heavy read workloads by creating copies of the primary database. These copies, known as read replicas, can handle the business reporting queries, thus offloading the primary instance and preventing performance degradation. This allows the primary instance to focus on write operations and other critical tasks, ensuring optimal performance for the data warehousing solution.\n\n**Why option 0 is incorrect:**\nThis option is incorrect because it only involves configuring database parameters. While parameter groups are useful for tuning database performance, they don't provide a mechanism to offload read traffic from the primary database instance. They cannot address the core issue of the primary instance being overloaded by reporting queries.\n\n**Why option 2 is incorrect:**\nThis option is incorrect because Multi-AZ deployment is primarily for high availability and disaster recovery. While it provides a standby instance in case of failure, it doesn't actively offload read traffic from the primary instance. The standby instance is only used during failover, not for handling reporting queries.\n\n**Why option 3 is incorrect:**\nThis option is incorrect because database snapshots are used for backup and recovery purposes. They do not provide a mechanism for handling real-time read traffic or offloading queries from the primary database. Snapshots are point-in-time copies of the data and are not suitable for serving live reporting queries.",
-    "domain": "Design Resilient Architectures"
+    "domain": "Design High-Performing Architectures"
   },
   {
     "id": 3,

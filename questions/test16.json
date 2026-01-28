@@ -121,7 +121,7 @@
       1
     ],
     "explanation": "**Why option 1 is correct:**\nThis solution addresses the requirements because ACM certificates issued by Amazon are free when used with AWS services like CloudFront. Furthermore, ACM certificates used with CloudFront must be requested in the us-east-1 region (North Virginia) regardless of where the CloudFront distribution itself is located. Requesting a public certificate fulfills the need for SSL/TLS encryption and allows the use of a custom domain name.\n\n**Why option 0 is incorrect:**\nPrivate certificates are typically used for internal resources and are not directly trusted by external clients accessing the CloudFront distribution. While you can import a private certificate into ACM and use it with CloudFront, it requires additional configuration and might not be the most straightforward approach. More importantly, using a private certificate in this context would likely involve additional steps and costs associated with establishing trust with external clients.\n\n**Why option 2 is incorrect:**\nWhile requesting a public certificate is correct, the region is incorrect. ACM certificates for CloudFront must be requested in us-east-1.\n\n**Why option 3 is incorrect:**\nWhile requesting a public certificate is correct, the region is incorrect. ACM certificates for CloudFront must be requested in us-east-1.",
-    "domain": "Design Secure Architectures"
+    "domain": "Design Cost-Optimized Architectures"
   },
   {
     "id": 5,

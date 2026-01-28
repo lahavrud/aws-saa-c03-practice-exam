@@ -28,7 +28,7 @@
       0
     ],
     "explanation": "**Why option 0 is correct:**\nThis is correct because AWS DataSync is specifically designed for efficient and automated data transfer between on-premises storage and AWS storage services, as well as between different AWS Regions. It supports NFS file systems directly and provides features like incremental transfers, encryption, and scheduling, which significantly reduce operational overhead compared to other manual or custom solutions. It automates the data transfer process, handles network optimization, and provides monitoring capabilities, making it the ideal choice for periodic data synchronization between NFS file systems in different Regions.\n\n**Why option 1 is incorrect:**\nThis is incorrect because AWS Snowball devices are primarily intended for large, one-time data migrations to or from AWS. While they can handle large amounts of data, they are not suitable for periodic data transfers due to the logistical overhead involved in shipping the devices back and forth between Regions. This option would introduce significant delays and operational complexity.\n\n**Why option 2 is incorrect:**\nThis is incorrect because setting up an SFTP server on Amazon EC2 would require manual configuration, management, and maintenance of the server, including security patching, scaling, and monitoring. This approach introduces significant operational overhead compared to using a managed service like AWS DataSync. Furthermore, transferring large amounts of data over SFTP might not be as efficient as using DataSync's optimized transfer protocols.\n\n**Why option 3 is incorrect:**\nThis is incorrect because AWS Database Migration Service (DMS) is designed for migrating databases, not file systems. It is not suitable for transferring data between NFS file systems. Using DMS for this purpose would be inappropriate and ineffective.",
-    "domain": "Design Resilient Architectures"
+    "domain": "Design Cost-Optimized Architectures"
   },
   {
     "id": 1,
@@ -121,7 +121,7 @@
       3
     ],
     "explanation": "**Why option 3 is correct:**\nThis solution addresses the requirement by storing the entire dataset in AWS S3 while caching only the frequently accessed data on-premises. This minimizes the on-premises storage footprint and ensures that only the recently accessed data remains stored locally. The cached volumes gateway allows the company to leverage the scalability and cost-effectiveness of S3 while maintaining low-latency access to frequently used data on-premises.\n\n**Why option 0 is incorrect:**\nThis option is incorrect because Amazon S3 File Gateway provides file-based access to S3, not block-based iSCSI access. The company uses iSCSI storage on-premises, so a file gateway is not a suitable replacement.\n\n**Why option 1 is incorrect:**\nThis option is incorrect because AWS Storage Gateway Tape Gateway is designed for backup and archival purposes, not for primary storage or minimizing on-premises storage footprint. It's used to replace physical tape libraries with virtual tape libraries in AWS.\n\n**Why option 2 is incorrect:**\nThis option is incorrect because it does not meet the specific requirements outlined in the scenario.",
-    "domain": "Design Secure Architectures"
+    "domain": "Design Cost-Optimized Architectures"
   },
   {
     "id": 4,

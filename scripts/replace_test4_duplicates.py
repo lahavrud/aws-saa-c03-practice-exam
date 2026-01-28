@@ -4,71 +4,65 @@ Remove test1.json and replace duplicate questions in test4.json
 with non-duplicate questions from test1.json
 """
 
-import json
-import os
+import sys
+from pathlib import Path
 from collections import defaultdict
 
-
-def normalize_text(text):
-    """Normalize text for comparison"""
-    return " ".join(text.lower().split())
+# Import shared utilities
+sys.path.insert(0, str(Path(__file__).parent))
+from utils.question_utils import (
+    normalize_text,
+    normalize_question_text,
+    find_test_files,
+    load_questions_file,
+    save_questions_file,
+    get_questions_dir,
+)
 
 
 def replace_test4_duplicates():
     """Replace duplicates in test4 with unique questions from test1"""
-    project_root = os.path.dirname(os.path.dirname(__file__))
-    questions_dir = os.path.join(project_root, "questions")
+    questions_dir = get_questions_dir()
 
     # Load all test files to identify duplicates
     all_questions = {}
     text_to_questions = defaultdict(list)
     
-    test_files = []
-    for f in os.listdir(questions_dir):
-        if f.startswith("test") and f.endswith(".json"):
-            try:
-                test_num_str = f.replace("test", "").replace(".json", "")
-                if test_num_str.isdigit():
-                    test_files.append((int(test_num_str), f))
-            except (ValueError, AttributeError):
-                continue
-
-    test_files = sorted(test_files, key=lambda x: x[0])
-    test_files = [f[1] for f in test_files]
+    test_files = find_test_files(questions_dir)
 
     # Load all questions and build duplicate map
     for test_file in test_files:
-        file_path = os.path.join(questions_dir, test_file)
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                questions = json.load(f)
-            if not isinstance(questions, list):
+        questions = load_questions_file(test_file)
+        if questions is None:
+            continue
+        all_questions[test_file.name] = questions
+        for q in questions:
+            if not isinstance(q, dict):
                 continue
-            all_questions[test_file] = questions
-            for q in questions:
-                if not isinstance(q, dict):
-                    continue
-                normalized = normalize_text(q.get("text", q.get("question", "")))
-                if normalized:
-                    text_to_questions[normalized].append(test_file)
-        except Exception as e:
-            print(f"Error loading {test_file}: {e}")
+            normalized = normalize_question_text(q)
+            if normalized:
+                text_to_questions[normalized].append(test_file.name)
 
     # Find duplicates
     duplicates = {k: v for k, v in text_to_questions.items() if len(v) > 1}
     
     # Step 1: Find unique questions in test1 (not duplicates)
-    if "test1.json" not in all_questions:
+    test1_file = questions_dir / "test1.json"
+    if not test1_file.exists():
         print("Error: test1.json not found!")
         return
     
-    test1_questions = all_questions["test1.json"]
+    test1_questions = load_questions_file(test1_file)
+    if test1_questions is None:
+        print("Error: Could not load test1.json!")
+        return
+    
     test1_unique = []
     
     for q in test1_questions:
         if not isinstance(q, dict):
             continue
-        normalized = normalize_text(q.get("text", q.get("question", "")))
+        normalized = normalize_question_text(q)
         # Check if this question is unique (not a duplicate)
         if normalized not in duplicates:
             test1_unique.append(q)
@@ -77,18 +71,23 @@ def replace_test4_duplicates():
     print(f"Found {len(duplicates)} duplicate question texts across all tests")
     
     # Step 2: Find duplicate questions in test4
-    if "test4.json" not in all_questions:
+    test4_file = questions_dir / "test4.json"
+    if not test4_file.exists():
         print("Error: test4.json not found!")
         return
     
-    test4_questions = all_questions["test4.json"]
+    test4_questions = load_questions_file(test4_file)
+    if test4_questions is None:
+        print("Error: Could not load test4.json!")
+        return
+    
     test4_duplicate_indices = []
     test4_duplicate_texts = set()
     
     for idx, q in enumerate(test4_questions):
         if not isinstance(q, dict):
             continue
-        normalized = normalize_text(q.get("text", q.get("question", "")))
+        normalized = normalize_question_text(q)
         # Check if this question is a duplicate (appears in other tests)
         if normalized in duplicates:
             occurrences = duplicates[normalized]
@@ -129,39 +128,29 @@ def replace_test4_duplicates():
             new_test4_questions.append(q)
     
     # Step 4: Save updated test4.json
-    test4_path = os.path.join(questions_dir, "test4.json")
-    with open(test4_path, "w", encoding="utf-8") as f:
-        json.dump(new_test4_questions, f, indent=2, ensure_ascii=False)
-    print(f"\n✓ Updated test4.json: replaced {replacement_count} duplicate questions")
-    print(f"  test4.json now has {len(new_test4_questions)} questions")
+    if save_questions_file(test4_file, new_test4_questions, create_backup=True):
+        print(f"\n✓ Updated test4.json: replaced {replacement_count} duplicate questions")
+        print(f"  test4.json now has {len(new_test4_questions)} questions")
     
     # Step 5: Delete test1.json
-    test1_path = os.path.join(questions_dir, "test1.json")
-    if os.path.exists(test1_path):
-        os.remove(test1_path)
+    if test1_file.exists():
+        test1_file.unlink()
         print(f"✓ Deleted test1.json")
     
     # Step 6: Update all_tests.json
-    all_tests_path = os.path.join(questions_dir, "all_tests.json")
-    if os.path.exists(all_tests_path):
+    all_tests_path = questions_dir / "all_tests.json"
+    if all_tests_path.exists():
         print(f"\nUpdating all_tests.json...")
         all_tests_data = {}
-        remaining_tests = [f for f in test_files if f != "test1.json"]
+        remaining_tests = [f for f in test_files if f.name != "test1.json"]
         for test_file in remaining_tests:
-            file_path = os.path.join(questions_dir, test_file)
-            if not os.path.exists(file_path):
-                continue
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    questions = json.load(f)
-                test_key = test_file.replace(".json", "")
+            questions = load_questions_file(test_file)
+            if questions is not None:
+                test_key = test_file.stem
                 all_tests_data[test_key] = questions
-            except Exception as e:
-                print(f"Error loading {test_file} for all_tests.json: {e}")
         
-        with open(all_tests_path, "w", encoding="utf-8") as f:
-            json.dump(all_tests_data, f, indent=2, ensure_ascii=False)
-        print(f"✓ Updated all_tests.json with {len(all_tests_data)} tests")
+        if save_questions_file(all_tests_path, all_tests_data, create_backup=False):
+            print(f"✓ Updated all_tests.json with {len(all_tests_data)} tests")
     
     print(f"\n{'='*80}")
     print(f"Summary:")

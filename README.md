@@ -11,7 +11,9 @@ The HTML is split into modular components for better organization:
 - `html/screens/` - Individual screen components (sign-in, main-selection, question-screen, etc.)
 - `html/modals/` - Modal dialogs (dashboard, settings, about-us)
 
-### Building the HTML
+### Building the Project
+
+#### Building HTML
 
 To rebuild `index.html` from modular components, run:
 
@@ -20,6 +22,18 @@ python3 scripts/build_html.py
 ```
 
 This will assemble all the modular HTML files into a single `index.html` file.
+
+#### Generating questions.js
+
+The `questions.js` file is auto-generated from JSON files in the `questions/` directory. It is gitignored and should be regenerated after adding or modifying questions.
+
+To generate `questions.js`, run:
+
+```bash
+python3 scripts/regenerate_questions_js.py
+```
+
+**Note**: `questions.js` is not committed to the repository. It must be generated locally or as part of your deployment process.
 
 ### CSS Files (Modular)
 CSS is split into logical modules:

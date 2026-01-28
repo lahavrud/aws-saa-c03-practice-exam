@@ -28,7 +28,7 @@
       2
     ],
     "explanation": "**Why option 2 is correct:**\nThis solution directly addresses the requirement of minimizing infrastructure management. AWS Fargate is a serverless compute engine for containers that works with Amazon ECS and Amazon EKS. With Fargate, you don't need to provision, configure, or manage servers. AWS manages the underlying infrastructure, allowing the company to focus solely on deploying and managing their containerized applications. This also inherently provides scalability and availability as Fargate automatically scales resources based on application needs.\n\n**Why option 0 is incorrect:**\nThis approach requires the company to manage the EC2 instances, including patching, scaling, and ensuring high availability. This contradicts the requirement of minimizing infrastructure management. While Docker provides containerization, it doesn't abstract away the underlying infrastructure management.\n\n**Why option 1 is incorrect:**\nWhile Amazon ECS simplifies container orchestration compared to managing Docker directly on EC2, using Amazon EC2 worker nodes still requires the company to manage the EC2 instances. This includes tasks like patching, scaling the EC2 instances, and ensuring their availability. This contradicts the requirement of minimizing infrastructure management. The company wants to avoid managing the underlying infrastructure, which EC2 instances necessitate.\n\n**Why option 3 is incorrect:**\nThis option is incorrect because it does not meet the specific requirements outlined in the scenario.",
-    "domain": "Design Resilient Architectures"
+    "domain": "Design Cost-Optimized Architectures"
   },
   {
     "id": 1,

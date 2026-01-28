@@ -298,10 +298,21 @@ const TestManager = (function() {
         
         // Show mode selection in modal
         showModeSelectionModal: (savedProgress = null) => {
-            const modal = document.getElementById('test-modal');
+            let modal = document.getElementById('test-modal');
             if (!modal) {
                 // Create modal if it doesn't exist
                 TestManager.createTestModal();
+                // Re-fetch the modal after creation
+                modal = document.getElementById('test-modal');
+            }
+            
+            // Safety check - if modal still doesn't exist, log error and return
+            if (!modal) {
+                console.error('Failed to create or find test-modal element');
+                if (typeof window.handleError === 'function') {
+                    window.handleError(new Error('Modal element not found'), 'Failed to show mode selection. Please refresh the page.');
+                }
+                return;
             }
             
             const modalContent = document.getElementById('test-modal-content');
@@ -357,6 +368,7 @@ const TestManager = (function() {
                 `;
             }
             
+            // Now safe to use modal
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         },

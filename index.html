@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AWS Lahavda</title>
     <!-- CSS Files - Load in order for proper cascade -->
     <link rel="stylesheet" href="css/base.css">
@@ -11,19 +11,10 @@
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/screens.css">
     <link rel="stylesheet" href="css/responsive.css">
-
+</head>
 <body>
-    <!-- Skip to main content link for keyboard users -->
-    <a href="#main-content" class="skip-link">Skip to main content</a>
-    
-    <!-- Mobile menu backdrop -->
-    <div class="navbar-backdrop" id="navbar-backdrop" aria-hidden="true"></div>
-    
-    <!-- Toast notification container -->
-    <div id="toast-container" class="toast-container" role="region" aria-live="polite" aria-atomic="true"></div>
-    
     <!-- Navigation Bar -->
-    <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <nav class="navbar">
         <div class="navbar-container">
             <button class="navbar-back-btn hidden" id="navbar-back-btn" aria-label="Go back" onclick="handleNavbarBack()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -49,18 +40,9 @@
         </div>
     </nav>
 
-    <!-- Initial Page Loader -->
-    <div id="initial-loader" class="initial-loader" role="status" aria-live="polite" aria-label="Loading application">
-        <div class="loader-content">
-            <div class="loader-spinner"></div>
-            <h2>Loading AWS Lahavda</h2>
-            <p id="loader-message">Preparing your practice exam platform...</p>
-        </div>
-    </div>
-
-    <div class="container" id="main-content">
+    <div class="container">
         <header class="page-header">
-            <div id="timer" class="timer hidden" role="timer" aria-live="polite" aria-atomic="true"></div>
+            <div id="timer" class="timer hidden"></div>
         </header>
 
 <div id="sign-in-screen" class="screen">
@@ -122,12 +104,7 @@
                     <h1 class="hero-title">Ready to practice, <span id="user-name">Student</span>?</h1>
                     <p class="hero-subtitle">Continue your journey to AWS certification success</p>
                 </div>
-                <button class="user-settings-btn" onclick="showUserSettings()" title="User Settings" aria-label="User Settings">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
-                    </svg>
-                </button>
+                <button class="user-settings-btn" onclick="showUserSettings()" title="User Settings">⚙️</button>
                 <div class="hero-decoration">
                     <div class="hero-circle hero-circle-1"></div>
                     <div class="hero-circle hero-circle-2"></div>
@@ -174,14 +151,15 @@
                 </div>
             </div>
             
-            <!-- Practice by Domain (Secondary Option) -->
-            <div class="domain-practice-section">
-                <button class="domain-practice-btn" onclick="selectPracticeMode('domain')">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                        <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                    </svg>
-                    Practice by Domain
+            <h2>Choose Your Practice Mode</h2>
+            <div class="mode-buttons">
+                <button class="mode-btn large" onclick="selectPracticeMode('domain')">
+                    <h3>By Domain</h3>
+                    <p>Practice all questions from a specific AWS domain across all tests</p>
+                </button>
+                <button class="mode-btn large" onclick="selectPracticeMode('test')">
+                    <h3>By Test</h3>
+                    <p>Take a complete practice exam with review or test mode</p>
                 </button>
             </div>
         </div>
@@ -203,6 +181,7 @@
                     <p>Practice tests from Sergey</p>
                 </button>
             </div>
+            <button class="back-btn" onclick="goBackToMainSelection()">← Back</button>
         </div>
 
         
@@ -211,16 +190,11 @@
             <div class="test-buttons" id="test-buttons-container">
                 <!-- Test buttons will be dynamically loaded here by app.js -->
             </div>
+            <button class="back-btn" onclick="goBackToSourceSelection()">← Back</button>
         </div>
 
         
 <div id="mode-selection" class="screen hidden">
-            <button class="back-btn top-left" onclick="goBackToMainSelection()" aria-label="Go back to dashboard">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-                Back
-            </button>
             <h2>Select Mode</h2>
             <div class="mode-buttons">
                 <button class="mode-btn" onclick="selectMode('review')">
@@ -232,6 +206,7 @@
                     <p>Timed exam simulation (130 minutes)</p>
                 </button>
             </div>
+            <button class="back-btn" onclick="goBackToTestSelection()">← Back to Tests</button>
         </div>
 
         
@@ -752,21 +727,17 @@
                             <div class="faq-section-icon">🚀</div>
                             <h2>Platform & Usage</h2>
                         </div>
-                        <div class="faq-controls">
-                            <button class="faq-control-btn" id="expand-all-faq" aria-label="Expand all FAQ items">Expand All</button>
-                            <button class="faq-control-btn" id="collapse-all-faq" aria-label="Collapse all FAQ items">Collapse All</button>
-                        </div>
                         <div class="faq-items">
                             <div class="faq-item">
                                 <div class="faq-question">
                                     <h3>Is AWS Lahavda free to use?</h3>
-                                    <button class="faq-toggle" aria-label="Toggle answer for: Is AWS Lahavda free to use?" aria-expanded="false">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <button class="faq-toggle" aria-label="Toggle answer">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M6 9l6 6 6-6"/>
                                         </svg>
                                     </button>
                                 </div>
-                                <div class="faq-answer" role="region" aria-labelledby="faq-1">
+                                <div class="faq-answer">
                                     <p>Yes! AWS Lahavda is completely free to use. Simply sign in with your Google account to access all features, including practice exams, progress tracking, and detailed explanations.</p>
                                 </div>
                             </div>
@@ -849,10 +820,6 @@
                         <div class="faq-section-header">
                             <div class="faq-section-icon">📝</div>
                             <h2>About the SAA-C03 Exam</h2>
-                        </div>
-                        <div class="faq-controls">
-                            <button class="faq-control-btn" onclick="document.getElementById('expand-all-faq')?.click()">Expand All</button>
-                            <button class="faq-control-btn" onclick="document.getElementById('collapse-all-faq')?.click()">Collapse All</button>
                         </div>
                         <div class="faq-items">
                             <div class="faq-item">
@@ -959,10 +926,6 @@
                         <div class="faq-section-header">
                             <div class="faq-section-icon">🔧</div>
                             <h2>Technical & Support</h2>
-                        </div>
-                        <div class="faq-controls">
-                            <button class="faq-control-btn" onclick="document.getElementById('expand-all-faq')?.click()">Expand All</button>
-                            <button class="faq-control-btn" onclick="document.getElementById('collapse-all-faq')?.click()">Collapse All</button>
                         </div>
                         <div class="faq-items">
                             <div class="faq-item">
@@ -1091,12 +1054,13 @@
                     <p>Cost optimization, pricing, savings</p>
                 </button>
             </div>
+            <button class="back-btn" onclick="goBackToMainSelection()">← Back</button>
         </div>
 
         
 <div id="question-screen" class="screen hidden">
             <!-- Question Navigation Bar -->
-            <div class="question-navbar" id="question-navbar" role="navigation" aria-label="Question navigation">
+            <div class="question-navbar" id="question-navbar">
                 <div class="navbar-header">
                     <span>Questions</span>
                     <div class="question-nav-controls">
@@ -1109,23 +1073,20 @@
                                 </svg>
                             </button>
                         </div>
-                        <button class="navbar-toggle" id="navbar-toggle" type="button" aria-label="Toggle question navigation" aria-expanded="false">
-                            <svg class="navbar-toggle-icon navbar-toggle-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                            <svg class="navbar-toggle-icon navbar-toggle-close hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                        <button class="navbar-toggle" id="navbar-toggle" type="button" aria-label="Toggle question navigation">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
                             </svg>
                         </button>
                     </div>
                 </div>
-                <div class="question-grid" id="question-grid" role="list" aria-label="Question numbers"></div>
+                <div class="question-grid" id="question-grid"></div>
             </div>
             
-            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Test progress" aria-live="polite" aria-atomic="true">
+            <div class="progress-bar">
                 <div id="progress" class="progress-fill"></div>
-                <span class="progress-percentage" id="progress-percentage" aria-label="Progress percentage">0%</span>
             </div>
             <div class="question-header">
                 <div class="question-title">
@@ -1134,96 +1095,88 @@
                     <span id="question-domain" class="domain-badge"></span>
                 </div>
                 <div class="question-actions">
-                    <button class="mark-btn" id="mark-btn" type="button" title="Mark for review" aria-label="Mark question for review">
-                        <span id="mark-icon" aria-hidden="true">☆</span><span> Mark</span>
+                    <button class="mark-btn" id="mark-btn" type="button" title="Mark for review">
+                        <span id="mark-icon">☆</span><span> Mark</span>
                     </button>
-                    <button class="dashboard-btn" onclick="showDashboardDialog()" title="Return to dashboard (Esc)" aria-label="Return to dashboard">
+                    <button class="dashboard-btn" onclick="showDashboardDialog()" title="Return to dashboard" aria-label="Return to dashboard">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;">
                             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                             <polyline points="9 22 9 12 15 12 15 22"></polyline>
                         </svg>
                         Dashboard
                     </button>
-                    <span class="keyboard-hint">(← → navigate, Esc dashboard)</span>
+                    <span class="keyboard-hint">(← → to navigate)</span>
                 </div>
             </div>
             
-            <div class="stats-bar" role="region" aria-label="Test statistics" aria-live="polite" aria-atomic="false" id="stats-bar-container">
-                <button class="stats-bar-toggle" id="stats-bar-toggle" aria-expanded="true" aria-label="Toggle statistics" title="Toggle statistics" type="button">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                    <span class="stats-bar-toggle-text">Stats</span>
-                </button>
-                <div class="stats-bar-content" id="stats-bar-content">
-                <span class="stat-item" id="stat-item-1" aria-live="polite" aria-atomic="true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;" aria-hidden="true">
+            <div class="stats-bar">
+                <span class="stat-item" id="stat-item-1">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                         <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
-                    Answered: <strong id="answered-count" aria-label="Questions answered">0</strong>
+                    Answered: <strong id="answered-count">0</strong>
                 </span>
-                <span class="stat-item" id="stat-item-2" aria-live="polite" aria-atomic="true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;" aria-hidden="true">
+                <span class="stat-item" id="stat-item-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
-                    Remaining: <strong id="remaining-count" aria-label="Questions remaining">65</strong>
+                    Remaining: <strong id="remaining-count">65</strong>
                 </span>
-                <span class="stat-item stat-item-correct" id="stat-item-correct" aria-live="polite" aria-atomic="true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;" aria-hidden="true">
+                <span class="stat-item stat-item-correct" id="stat-item-correct">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                         <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
-                    Correct: <strong id="correct-count" aria-label="Correct answers">0</strong>
+                    Correct: <strong id="correct-count">0</strong>
                 </span>
-                <span class="stat-item stat-item-incorrect" id="stat-item-incorrect" aria-live="polite" aria-atomic="true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;" aria-hidden="true">
+                <span class="stat-item stat-item-incorrect" id="stat-item-incorrect">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="15" y1="9" x2="9" y2="15"></line>
                         <line x1="9" y1="9" x2="15" y2="15"></line>
                     </svg>
-                    Incorrect: <strong id="incorrect-count" aria-label="Incorrect answers">0</strong>
+                    Incorrect: <strong id="incorrect-count">0</strong>
                 </span>
-                <span class="stat-item stat-item-accuracy" id="stat-item-accuracy" aria-live="polite" aria-atomic="true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;" aria-hidden="true">
+                <span class="stat-item stat-item-accuracy" id="stat-item-accuracy">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                         <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                         <line x1="12" y1="22.08" x2="12" y2="12"></line>
                     </svg>
-                    Accuracy: <strong id="accuracy-percent" aria-label="Accuracy percentage">0%</strong>
+                    Accuracy: <strong id="accuracy-percent">0%</strong>
                 </span>
-                <span class="stat-item" id="stat-item-3" aria-live="polite" aria-atomic="true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;" aria-hidden="true">
+                <span class="stat-item" id="stat-item-3">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                     </svg>
-                    Marked: <strong id="marked-count" aria-label="Questions marked for review">0</strong>
+                    Marked: <strong id="marked-count">0</strong>
                 </span>
                 <!-- Domain mode stats (hidden by default) -->
-                <span class="stat-item domain-stat" id="domain-stat-correct" style="display: none;" aria-live="polite" aria-atomic="true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;" aria-hidden="true">
+                <span class="stat-item domain-stat" id="domain-stat-correct" style="display: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                         <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
-                    Correct: <strong id="domain-correct-count" aria-label="Correct answers">0</strong>
+                    Correct: <strong id="domain-correct-count">0</strong>
                 </span>
-                <span class="stat-item domain-stat" id="domain-stat-incorrect" style="display: none;" aria-live="polite" aria-atomic="true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;" aria-hidden="true">
+                <span class="stat-item domain-stat" id="domain-stat-incorrect" style="display: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="15" y1="9" x2="9" y2="15"></line>
                         <line x1="9" y1="9" x2="15" y2="15"></line>
                     </svg>
-                    Incorrect: <strong id="domain-incorrect-count" aria-label="Incorrect answers">0</strong>
+                    Incorrect: <strong id="domain-incorrect-count">0</strong>
                 </span>
-                <span class="stat-item domain-stat" id="domain-stat-accuracy" style="display: none;" aria-live="polite" aria-atomic="true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;" aria-hidden="true">
+                <span class="stat-item domain-stat" id="domain-stat-accuracy" style="display: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: middle;">
                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                         <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                         <line x1="12" y1="22.08" x2="12" y2="12"></line>
                     </svg>
-                    Accuracy: <strong id="domain-accuracy-percent" aria-label="Accuracy percentage">0%</strong>
+                    Accuracy: <strong id="domain-accuracy-percent">0%</strong>
                 </span>
-                </div>
             </div>
             
             <div class="question-content">
@@ -1240,53 +1193,14 @@
             </div>
 
             <div class="navigation">
-                <button id="prev-btn" class="nav-btn" type="button" title="Previous question (←)">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px; vertical-align: middle;">
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                    </svg>
-                    Previous
-                </button>
-                <div class="nav-center">
-                    <button id="submit-btn" class="nav-btn primary" type="button">Check Answer</button>
-                    <button id="next-btn" class="nav-btn primary hidden" type="button" title="Next question (→)">
-                        Next Question
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 8px; vertical-align: middle;">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Mobile Bottom Navigation Bar -->
-            <div class="mobile-bottom-nav" id="mobile-bottom-nav">
-                <button id="mobile-prev-btn" class="mobile-nav-btn" type="button" aria-label="Previous question">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                    </svg>
-                    <span>Previous</span>
-                </button>
-                <button id="mobile-mark-btn" class="mobile-nav-btn" type="button" aria-label="Mark question for review">
-                    <span id="mobile-mark-icon" aria-hidden="true">☆</span>
-                    <span>Mark</span>
-                </button>
-                <button id="mobile-dashboard-btn" class="mobile-nav-btn" type="button" aria-label="Return to dashboard">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                    </svg>
-                    <span>Dashboard</span>
-                </button>
-                <button id="mobile-next-btn" class="mobile-nav-btn mobile-nav-btn-primary" type="button" aria-label="Next question">
-                    <span>Next</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                </button>
+                <button id="prev-btn" class="nav-btn" type="button">Previous</button>
+                <button id="submit-btn" class="nav-btn primary" type="button">Submit Answer</button>
+                <button id="next-btn" class="nav-btn primary hidden" type="button">Next Question</button>
             </div>
         </div>
 
         
-        <div id="results-screen" class="screen hidden">
+<div id="results-screen" class="screen hidden">
             <div class="results-screen-header">
                 <button class="back-btn results-back-btn" onclick="returnToResultsDashboard()" aria-label="Return to dashboard">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1329,29 +1243,21 @@
             </div>
 
             <div class="review-section">
-                <div class="review-section-header">
-                    <h3>Review Answers</h3>
-                    <button class="review-toggle-btn" id="review-toggle-btn" aria-expanded="false" aria-label="Toggle review section">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6"/>
-                        </svg>
-                    </button>
-                </div>
-                <div id="review-questions" class="review-questions-container"></div>
+                <h3>Review Answers</h3>
+                <div id="review-questions"></div>
             </div>
 
             <div class="action-buttons">
                 <button class="action-btn primary" onclick="restartTest()">Take Another Test</button>
                 <button class="action-btn" onclick="reviewAnswers()">Review All Answers</button>
-                <button class="action-btn" id="view-submitted-test-btn" onclick="viewSubmittedTestFromResults()" style="display: none;">View in Submitted Tests</button>
             </div>
         </div>
 
         
     </div>
-            <div id="dashboard-dialog" class="modal hidden" role="dialog" aria-labelledby="dashboard-dialog-title" aria-modal="true">
+<div id="dashboard-dialog" class="modal hidden">
             <div class="modal-content">
-                <h3 id="dashboard-dialog-title">Return to Dashboard?</h3>
+                <h3>Return to Dashboard?</h3>
                 <p>Your progress will be saved. You can resume later.</p>
                 <div class="modal-buttons">
                     <button class="modal-btn primary" onclick="saveAndReturnToDashboard()">Save & Return</button>
@@ -1361,32 +1267,12 @@
             </div>
         </div>
 
-        <!-- Reset Confirmation Dialog -->
-        <div id="reset-confirmation-dialog" class="modal hidden" role="dialog" aria-labelledby="reset-dialog-title" aria-modal="true">
-            <div class="modal-content">
-                <h3 id="reset-dialog-title">⚠️ Reset All Progress?</h3>
-                <p><strong>This action cannot be undone.</strong></p>
-                <p>This will permanently delete:</p>
-                <ul style="text-align: left; margin: 15px 0; padding-left: 30px; color: #666;">
-                    <li>All test progress and answers</li>
-                    <li>All domain practice history</li>
-                    <li>All statistics and performance data</li>
-                </ul>
-                <p style="margin-top: 20px;">Type <strong>"DELETE"</strong> to confirm:</p>
-                <input type="text" id="reset-confirm-input" placeholder="Type DELETE to confirm" style="width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #D5DBDB; border-radius: 6px; font-size: 1em;" autocomplete="off" />
-                <div class="modal-buttons">
-                    <button class="modal-btn danger" id="reset-confirm-btn" onclick="confirmResetProgress()" disabled>Delete All Progress</button>
-                    <button class="modal-btn" onclick="closeResetConfirmation()">Cancel</button>
-                </div>
-            </div>
-        </div>
-
         
         <!-- User Settings Dialog -->
-        <div id="user-settings-dialog" class="modal hidden" role="dialog" aria-labelledby="user-settings-title" aria-modal="true">
+        <div id="user-settings-dialog" class="modal hidden">
             <div class="modal-content settings-modal-content">
                 <div class="settings-header">
-                    <h3 id="user-settings-title">User Settings</h3>
+                    <h3>User Settings</h3>
                     <button class="settings-close-btn" onclick="closeUserSettings()" aria-label="Close settings">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1406,13 +1292,7 @@
                         </div>
                         <div class="form-group">
                             <label for="user-name-input">Your Name</label>
-                            <div class="input-wrapper">
-                                <input type="text" id="user-name-input" placeholder="Enter your name" minlength="1" maxlength="50" required aria-describedby="user-name-error user-name-success" />
-                                <span class="input-icon input-icon-error" aria-hidden="true">✕</span>
-                                <span class="input-icon input-icon-success" aria-hidden="true">✓</span>
-                            </div>
-                            <span class="error-message" id="user-name-error">Please enter a valid name (1-50 characters)</span>
-                            <span class="success-message" id="user-name-success">Name looks good!</span>
+                            <input type="text" id="user-name-input" placeholder="Enter your name" />
                         </div>
                     </div>
 
@@ -1538,13 +1418,13 @@
             </div>
         </div>
 
-<div id="about-us-modal" class="modal hidden" role="dialog" aria-labelledby="about-us-title" aria-modal="true">
+<div id="about-us-modal" class="modal hidden">
         <div class="modal-content about-modal-content">
             <div class="about-header">
                 <div class="about-logo-wrapper">
                     <img src="Website-logo.png" alt="AWS Lahavda Logo" class="about-logo" />
                 </div>
-                <h2 id="about-us-title">About AWS Lahavda</h2>
+                <h2>About AWS Lahavda</h2>
                 <button class="settings-close-btn" onclick="closeAboutUs()" aria-label="Close">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1617,7 +1497,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
     <!-- Firebase Config (gitignored for security) -->
-    <script src="firebase-config.js"></script>
+    <script src="js/config/firebase.js"></script>
     
     <!-- Application Scripts -->
     <script src="question-loader.js"></script>
@@ -1625,6 +1505,8 @@
     
     <!-- Modules (load in dependency order) -->
     <script src="js/modules/config.js"></script>
+    <script src="js/config/messages.js"></script>
+    <script src="js/config/constants.js"></script>
     <script src="js/modules/state.js"></script>
     <script src="js/modules/user.js"></script>
     <script src="js/modules/stats.js"></script>
@@ -1637,9 +1519,12 @@
     <script src="js/modules/ui.js"></script>
     <script src="js/modules/insights.js"></script>
     <script src="js/modules/navigation.js"></script>
+    <script src="js/modules/exports.js"></script>
+    <script src="js/modules/utils/error-handler.js"></script>
+    <script src="js/modules/initialization.js"></script>
     
     <!-- Firebase (must load before app.js) -->
-    <script src="firebase-db.js"></script>
+    <script src="js/modules/firebase/db.js"></script>
     
     <!-- Main Application -->
     <script src="app.js"></script>
@@ -1683,7 +1568,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 AWS Lahavda. All rights reserved.</p>
+            <p>&copy; 2024 AWS Lahavda. All rights reserved.</p>
         </div>
     </footer>
 
