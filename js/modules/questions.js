@@ -2,6 +2,79 @@
 const QuestionHandler = (function() {
     'use strict';
     
+    // Helper function to detect and format JSON strings in text
+    // Returns object with formatted text and whether JSON was found
+    const formatJsonInText = (text) => {
+        if (!text || typeof text !== 'string') return { text: text, hasJson: false };
+        
+        // Try to detect JSON-like patterns: { "key": "value" } or { "key": [ ... ] }
+        // Match JSON objects that start with { and contain quoted keys
+        // Use a more flexible pattern to catch nested JSON
+        const jsonPattern = /\{[^{}]*(?:"[^"]*"\s*:\s*[^}]*)+[^{}]*\}/g;
+        
+        // Find all potential JSON strings
+        const matches = [];
+        let match;
+        const textCopy = text; // Work with original text
+        while ((match = jsonPattern.exec(textCopy)) !== null) {
+            try {
+                // Try to parse as JSON
+                const jsonObj = JSON.parse(match[0]);
+                // If successful, format it nicely with 2-space indentation
+                const formatted = JSON.stringify(jsonObj, null, 2);
+                matches.push({
+                    start: match.index,
+                    end: match.index + match[0].length,
+                    original: match[0],
+                    formatted: formatted
+                });
+            } catch (e) {
+                // Not valid JSON, skip
+            }
+        }
+        
+        if (matches.length === 0) {
+            return { text: text, hasJson: false };
+        }
+        
+        // Replace JSON strings with formatted versions (in reverse order to maintain indices)
+        // First, escape HTML in the original text
+        let escapedText = escapeHtml(text);
+        
+        // Now replace JSON parts with formatted versions
+        // We need to find the JSON in the escaped text (quotes are now &quot;)
+        let formattedText = escapedText;
+        for (let i = matches.length - 1; i >= 0; i--) {
+            const m = matches[i];
+            // Find the escaped version of the JSON
+            const escapedJson = escapeHtml(m.original);
+            const jsonIndex = formattedText.indexOf(escapedJson);
+            if (jsonIndex !== -1) {
+                const before = formattedText.substring(0, jsonIndex);
+                const after = formattedText.substring(jsonIndex + escapedJson.length);
+                // Escape HTML in formatted JSON and wrap in <pre><code> tags
+                const escapedFormatted = m.formatted
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                formattedText = before + '<pre class="json-code"><code>' + escapedFormatted + '</code></pre>' + after;
+            }
+        }
+        
+        return { text: formattedText, hasJson: true };
+    };
+    
+    // Helper to escape HTML
+    const escapeHtml = (text) => {
+        if (!text) return '';
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
+    
     return {
         // Load and display current question
         loadQuestion: () => {
@@ -43,7 +116,16 @@ const QuestionHandler = (function() {
             const questionTextEl = document.getElementById('question-text');
             if (questionTextEl) {
                 // Support both 'text' (JSON) and 'question' (legacy) properties
-                questionTextEl.textContent = question.text || question.question || 'Question text not available';
+                const questionText = question.text || question.question || 'Question text not available';
+                // Format JSON if present
+                const result = formatJsonInText(questionText);
+                if (result.hasJson) {
+                    // Contains JSON, use innerHTML with formatted JSON
+                    questionTextEl.innerHTML = result.text.replace(/\n/g, '<br>');
+                } else {
+                    // No JSON, use textContent for safety
+                    questionTextEl.textContent = questionText;
+                }
             }
             
             // Update domain badge
@@ -116,7 +198,15 @@ const QuestionHandler = (function() {
                     
                     const label = document.createElement('label');
                     label.htmlFor = `option-${questionUniqueId}-${index}`;
-                    label.textContent = option.text;
+                    // Format JSON if present in option text
+                    const optionText = option.text || '';
+                    const result = formatJsonInText(optionText);
+                    if (result.hasJson) {
+                        // Contains JSON, use innerHTML with proper formatting
+                        label.innerHTML = result.text;
+                    } else {
+                        label.textContent = optionText;
+                    }
                     
                     optionDiv.appendChild(input);
                     optionDiv.appendChild(label);
@@ -357,17 +447,36 @@ const QuestionHandler = (function() {
             // Parse explanation text
             const optionExplanations = {};
             if (question.explanation) {
+                // Split by the explanation headers, which includes capture groups
+                // Format: **Why option X is correct/incorrect:**\n[text]\n\n**Why option Y is...
                 const parts = question.explanation.split(/\*\*Why option (\d+) is (correct|incorrect):\*\*/);
+                
+                // Process in groups of 3: [text_before, optionId, type, text_after]
+                // parts[0] is text before first match (usually empty)
+                // parts[1] = first option ID, parts[2] = first type, parts[3] = first explanation text
                 for (let i = 1; i < parts.length; i += 3) {
                     if (i + 2 < parts.length) {
                         const optionId = parseInt(parts[i]);
                         const type = parts[i + 1];
-                        const explanationText = parts[i + 2].trim();
+                        let explanationText = parts[i + 2].trim();
+                        
+                        // Remove the next section header if it's included in the text
+                        // The next section starts with \n\n**Why option
+                        explanationText = explanationText.replace(/\n\n\*\*Why option \d+ is (correct|incorrect):\*\*.*$/, '');
+                        explanationText = explanationText.trim();
+                        
                         optionExplanations[optionId] = {
                             type: type,
                             text: explanationText
                         };
                     }
+                }
+                
+                // Debug: log if we found explanations
+                if (Object.keys(optionExplanations).length === 0) {
+                    console.warn('No explanations parsed from question.explanation. Raw explanation:', question.explanation.substring(0, 200));
+                } else {
+                    console.log('Parsed explanations for options:', Object.keys(optionExplanations));
                 }
             }
             
@@ -375,6 +484,10 @@ const QuestionHandler = (function() {
             let correctHtml = '<div class="correct-explanation"><h4 class="explanation-title correct-title">✓ Correct Answer' + (correctOptions.length > 1 ? 's' : '') + ':</h4>';
             correctOptions.forEach(opt => {
                 const explanation = optionExplanations[opt.id];
+                // Format option text (may contain JSON)
+                const optResult = formatJsonInText(opt.text);
+                const formattedOptionText = optResult.hasJson ? optResult.text : escapeHtml(opt.text);
+                
                 if (explanation && explanation.type === 'correct') {
                     let formattedText = explanation.text
                         .replace(/&/g, '&amp;')
@@ -382,9 +495,15 @@ const QuestionHandler = (function() {
                         .replace(/>/g, '&gt;')
                         .replace(/\n\n/g, '</p><p class="explanation-detail">')
                         .replace(/\n/g, '<br>');
-                    correctHtml += `<div class="option-explanation"><strong>${opt.text}</strong><p class="explanation-detail">${formattedText}</p></div>`;
+                    // Format JSON in explanation if present
+                    const expResult = formatJsonInText(explanation.text);
+                    if (expResult.hasJson) {
+                        // Re-escape the formatted text properly
+                        formattedText = expResult.text.replace(/\n\n/g, '</p><p class="explanation-detail">').replace(/\n/g, '<br>');
+                    }
+                    correctHtml += `<div class="option-explanation"><strong>${formattedOptionText}</strong><p class="explanation-detail">${formattedText}</p></div>`;
                 } else {
-                    correctHtml += `<div class="option-explanation"><strong>${opt.text}</strong><p class="explanation-detail">This is the correct answer because it best addresses all the requirements described in the scenario.</p></div>`;
+                    correctHtml += `<div class="option-explanation"><strong>${formattedOptionText}</strong><p class="explanation-detail">This is the correct answer because it best addresses all the requirements described in the scenario.</p></div>`;
                 }
             });
             correctHtml += '</div>';
@@ -399,6 +518,10 @@ const QuestionHandler = (function() {
                 
                 allIncorrectOptions.forEach(opt => {
                     const explanation = optionExplanations[opt.id];
+                    // Format option text (may contain JSON)
+                    const optResult = formatJsonInText(opt.text);
+                    const formattedOptionText = optResult.hasJson ? optResult.text : escapeHtml(opt.text);
+                    
                     if (explanation && explanation.type === 'incorrect') {
                         let formattedText = explanation.text
                             .replace(/&/g, '&amp;')
@@ -406,9 +529,15 @@ const QuestionHandler = (function() {
                             .replace(/>/g, '&gt;')
                             .replace(/\n\n/g, '</p><p class="explanation-detail">')
                             .replace(/\n/g, '<br>');
-                        incorrectHtml += `<div class="option-explanation"><strong>${opt.text}</strong><p class="explanation-detail">${formattedText}</p></div>`;
+                        // Format JSON in explanation if present
+                        const expResult = formatJsonInText(explanation.text);
+                        if (expResult.hasJson) {
+                            // Re-escape the formatted text properly
+                            formattedText = expResult.text.replace(/\n\n/g, '</p><p class="explanation-detail">').replace(/\n/g, '<br>');
+                        }
+                        incorrectHtml += `<div class="option-explanation"><strong>${formattedOptionText}</strong><p class="explanation-detail">${formattedText}</p></div>`;
                     } else {
-                        incorrectHtml += `<div class="option-explanation"><strong>${opt.text}</strong><p class="explanation-detail">This option is incorrect because it does not meet the specific requirements outlined in the scenario.</p></div>`;
+                        incorrectHtml += `<div class="option-explanation"><strong>${formattedOptionText}</strong><p class="explanation-detail">This option is incorrect because it does not meet the specific requirements outlined in the scenario.</p></div>`;
                     }
                 });
                 
