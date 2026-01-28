@@ -5,7 +5,11 @@ const ResumeManager = (function() {
     return {
         // Get last progress point (delegates to ProgressManager for Firestore sync)
         getLastProgressPoint: async () => {
-            return await ProgressManager.getLastProgressPoint();
+            if (typeof ProgressManager !== 'undefined' && ProgressManager.getLastProgressPoint) {
+                return await ProgressManager.getLastProgressPoint();
+            }
+            console.warn('ProgressManager not available');
+            return null;
         },
         
         // Calculate progress percentage for a test or domain

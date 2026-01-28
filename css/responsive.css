@@ -832,9 +832,10 @@
         min-height: 48px;
     }
 
-    /* Study Guide & FAQ Mobile Styles */
+    /* Study Guide, FAQ & About Us Mobile Styles */
     .study-guide-hero,
-    .faq-hero {
+    .faq-hero,
+    .about-page-hero {
         padding: 40px 20px;
         margin-bottom: 30px;
     }
@@ -844,43 +845,55 @@
         font-size: 60px;
     }
 
+    .about-page-thumbnail-wrapper {
+        max-width: 100%;
+        margin-bottom: 20px;
+    }
+
     .study-guide-hero h1,
-    .faq-hero h1 {
+    .faq-hero h1,
+    .about-page-hero h1 {
         font-size: 1.8em;
     }
 
     .study-guide-subtitle,
-    .faq-subtitle {
+    .faq-subtitle,
+    .about-page-tagline {
         font-size: 1em;
     }
 
     .study-guide-content,
-    .faq-content {
+    .faq-content,
+    .about-page-content {
         padding: 0;
     }
 
     .study-guide-section,
-    .faq-section {
+    .faq-section,
+    .about-page-section {
         padding: 25px 20px;
         margin-bottom: 30px;
     }
 
     .study-guide-section-header,
-    .faq-section-header {
+    .faq-section-header,
+    .about-page-section-header {
         flex-direction: column;
         text-align: center;
         gap: 15px;
     }
 
     .study-guide-section-icon,
-    .faq-section-icon {
+    .faq-section-icon,
+    .about-page-icon {
         width: 56px;
         height: 56px;
         font-size: 2em;
     }
 
     .study-guide-section-header h2,
-    .faq-section-header h2 {
+    .faq-section-header h2,
+    .about-page-section-header h2 {
         font-size: 1.5em;
     }
 
@@ -916,25 +929,45 @@
     }
 
     .study-guide-cta-content h2,
-    .faq-cta-content h2 {
+    .faq-cta-content h2,
+    .about-page-cta-content h2 {
         font-size: 1.5em;
     }
 
     .study-guide-cta-content p,
-    .faq-cta-content p {
+    .faq-cta-content p,
+    .about-page-cta-content p {
         font-size: 1em;
     }
 
     .study-guide-cta-buttons,
-    .faq-cta-buttons {
+    .faq-cta-buttons,
+    .about-page-cta-buttons {
         flex-direction: column;
     }
 
     .study-guide-btn-primary,
     .study-guide-btn-secondary,
     .faq-btn-primary,
-    .faq-btn-secondary {
+    .faq-btn-secondary,
+    .about-page-btn-primary,
+    .about-page-btn-secondary {
         width: 100%;
+    }
+
+    .about-page-features-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .about-page-benefits {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .about-page-domains {
+        grid-template-columns: 1fr;
+        gap: 15px;
     }
 
     .faq-question {
@@ -1099,5 +1132,44 @@
 
     .study-guide-domain-card .domain-weight {
         align-self: flex-end;
+    }
+
+    .about-page-hero h1 {
+        font-size: 1.5em;
+    }
+
+    .about-page-tagline {
+        font-size: 0.9em;
+    }
+
+    .about-page-thumbnail-wrapper {
+        max-width: 100%;
+        margin-bottom: 15px;
+    }
+
+    .about-page-section {
+        padding: 20px 15px;
+    }
+
+    .about-page-section-header h2 {
+        font-size: 1.3em;
+    }
+
+    .about-page-feature-card {
+        padding: 20px;
+    }
+
+    .about-page-feature-icon {
+        font-size: 2.5em;
+    }
+
+    .about-page-benefit-item {
+        padding: 15px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .about-page-benefit-check {
+        margin: 0 auto;
     }
 }

@@ -31,19 +31,26 @@ const Navigation = (function() {
             Navigation.hideAllScreens();
             Navigation.showScreen('main-selection');
             
+            // Check if reset was just performed - if so, skip syncing to avoid restoring deleted data
+            const resetJustPerformed = AppState.getResetJustPerformed && AppState.getResetJustPerformed();
+            
             // Sync all progress from Firestore first (for cross-device sync)
-            if (typeof ProgressManager !== 'undefined' && ProgressManager.syncAllProgressFromFirestore) {
+            // BUT skip if reset was just performed (we don't want to restore deleted data)
+            if (!resetJustPerformed && typeof ProgressManager !== 'undefined' && ProgressManager.syncAllProgressFromFirestore) {
                 try {
                     console.log('Syncing progress from Firestore before showing dashboard...');
                     await ProgressManager.syncAllProgressFromFirestore();
                 } catch (error) {
                     console.error('Error syncing progress:', error);
                 }
+            } else if (resetJustPerformed) {
+                console.log('Skipping progress sync - reset was just performed');
             }
             
             // Update stats after syncing (so they reflect synced data)
+            // But skip recalculation if reset was just performed
             if (typeof Stats !== 'undefined') {
-                if (Stats.recalculateUserStats) {
+                if (!resetJustPerformed && Stats.recalculateUserStats) {
                     Stats.recalculateUserStats(false);
                 }
                 if (Stats.updateDashboard) {
@@ -141,19 +148,28 @@ const Navigation = (function() {
             const currentUserName = AppState.getCurrentUserName();
             
             if (currentUser && currentUserName) {
+                // Check if reset was just performed - if so, skip syncing to avoid restoring deleted data
+                const resetJustPerformed = AppState.getResetJustPerformed && AppState.getResetJustPerformed();
+                
                 // Sync progress from Firestore before showing dashboard
-                if (typeof ProgressManager !== 'undefined' && ProgressManager.syncAllProgressFromFirestore) {
+                // BUT skip if reset was just performed (we don't want to restore deleted data)
+                if (!resetJustPerformed && typeof ProgressManager !== 'undefined' && ProgressManager.syncAllProgressFromFirestore) {
                     try {
                         console.log('Syncing progress from Firestore before returning to dashboard...');
                         await ProgressManager.syncAllProgressFromFirestore();
                     } catch (error) {
                         console.error('Error syncing progress:', error);
                     }
+                } else if (resetJustPerformed) {
+                    console.log('Skipping progress sync on return - reset was just performed');
                 }
                 
                 Navigation.showScreen('main-selection');
                 if (typeof Stats !== 'undefined') {
-                    Stats.recalculateUserStats(false);
+                    // Skip recalculation if reset was just performed
+                    if (!resetJustPerformed && Stats.recalculateUserStats) {
+                        Stats.recalculateUserStats(false);
+                    }
                     Stats.updateDashboard();
                 }
                 

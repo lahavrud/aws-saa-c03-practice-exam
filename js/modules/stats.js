@@ -5,6 +5,18 @@ const Stats = (function() {
     return {
         // Recalculate user stats from saved progress
         recalculateUserStats: (includeCurrentSession = true) => {
+            // Don't recalculate if a reset was just performed - keep the reset values
+            if (AppState.getResetJustPerformed && AppState.getResetJustPerformed()) {
+                console.log('Skipping stats recalculation - reset was just performed');
+                // Clear the flag after a short delay so future recalculations work
+                setTimeout(() => {
+                    if (AppState.setResetJustPerformed) {
+                        AppState.setResetJustPerformed(false);
+                    }
+                }, 2000);
+                return;
+            }
+            
             const currentUser = AppState.getCurrentUser();
             if (!currentUser) return;
             
@@ -56,15 +68,41 @@ const Stats = (function() {
             
             if (questions && currentUserName) {
                 const userKey = UserManager.getUserKey(currentUserName);
+                const currentUserEmail = AppState.getCurrentUserEmail();
                 const allTestKeys = Object.keys(questions).filter(key => key.startsWith('test'));
                 const maxTestNum = Math.max(...allTestKeys.map(key => parseInt(key.replace('test', ''))));
+                
+                // Also check for Firestore-synced progress (stored with document IDs as keys)
+                const firestoreProgressKeys = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key) {
+                        try {
+                            const value = localStorage.getItem(key);
+                            if (value) {
+                                const parsed = JSON.parse(value);
+                                // Check if this is a progress document for current user
+                                if (parsed.userEmail === currentUserEmail && parsed.test) {
+                                    firestoreProgressKeys.push({ key, progress: parsed });
+                                }
+                            }
+                        } catch (e) {
+                            // Not JSON, skip
+                        }
+                    }
+                }
                 
                 for (let testNum = 1; testNum <= maxTestNum; testNum++) {
                     const progressKey = `${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-test${testNum}`;
                     const saved = localStorage.getItem(progressKey);
-                    if (saved) {
+                    
+                    // Also check Firestore-synced progress for this test
+                    const firestoreProgress = firestoreProgressKeys.find(p => p.progress.test === testNum);
+                    const progressToUse = firestoreProgress ? firestoreProgress.progress : (saved ? JSON.parse(saved) : null);
+                    
+                    if (progressToUse) {
                         try {
-                            const progress = JSON.parse(saved);
+                            const progress = progressToUse;
                             if (progress.answers && progress.test === testNum) {
                                 const testKey = `test${testNum}`;
                                 const testQuestions = questions[testKey];
@@ -107,63 +145,95 @@ const Stats = (function() {
                 }
                 
                 // Process domain review saved progress
+                // Also check Firestore-synced domain progress
                 const domainProgressKeys = [];
+                const firestoreDomainProgress = [];
+                
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
-                    if (key && key.startsWith(`${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-domain-`)) {
+                    if (!key) continue;
+                    
+                    // Old format
+                    if (key.startsWith(`${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-domain-`)) {
                         domainProgressKeys.push(key);
+                    }
+                    
+                    // Firestore format - check if it's domain progress
+                    try {
+                        const value = localStorage.getItem(key);
+                        if (value) {
+                            const parsed = JSON.parse(value);
+                            if (parsed.userEmail === currentUserEmail && parsed.selectedDomain && !parsed.test) {
+                                firestoreDomainProgress.push({ key, progress: parsed });
+                            }
+                        }
+                    } catch (e) {
+                        // Not JSON, skip
                     }
                 }
                 
+                // Process both old format and Firestore-synced domain progress
+                const allDomainProgress = [];
                 domainProgressKeys.forEach(progressKey => {
                     const saved = localStorage.getItem(progressKey);
                     if (saved) {
                         try {
-                            const progress = JSON.parse(saved);
-                            if (progress.answers && progress.selectedDomain) {
-                                const allQuestions = [];
-                                // Check both window.examQuestions and global examQuestions
-                                const domainQuestions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
-                                if (domainQuestions) {
-                                    for (const testKey in domainQuestions) {
-                                        if (domainQuestions.hasOwnProperty(testKey) && testKey.startsWith('test')) {
-                                            allQuestions.push(...domainQuestions[testKey]);
-                                        }
+                            allDomainProgress.push(JSON.parse(saved));
+                        } catch (e) {
+                            // Skip invalid JSON
+                        }
+                    }
+                });
+                // Add Firestore-synced domain progress
+                firestoreDomainProgress.forEach(({ progress }) => {
+                    allDomainProgress.push(progress);
+                });
+                
+                allDomainProgress.forEach(progress => {
+                    if (progress.answers && progress.selectedDomain) {
+                        try {
+                            const allQuestions = [];
+                            // Check both window.examQuestions and global examQuestions
+                            const domainQuestions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
+                            if (domainQuestions) {
+                                for (const testKey in domainQuestions) {
+                                    if (domainQuestions.hasOwnProperty(testKey) && testKey.startsWith('test')) {
+                                        allQuestions.push(...domainQuestions[testKey]);
                                     }
                                 }
-                                const filteredDomainQuestions = allQuestions.filter(q => q.domain === progress.selectedDomain);
-                                
-                                if (filteredDomainQuestions && filteredDomainQuestions.length > 0) {
-                                    filteredDomainQuestions.forEach(question => {
-                                        // Try to match by uniqueId first, then by id
-                                        const questionUniqueId = question.uniqueId || question.id;
-                                        const questionKey = questionUniqueId.toString();
-                                        const oldQuestionKey = question.id.toString();
-                                        const selectedAnswers = progress.answers[questionKey] || progress.answers[oldQuestionKey] || [];
+                            }
+                            const filteredDomainQuestions = allQuestions.filter(q => q.domain === progress.selectedDomain);
+                            
+                            if (filteredDomainQuestions && filteredDomainQuestions.length > 0) {
+                                filteredDomainQuestions.forEach(question => {
+                                    // Try to match by uniqueId first, then by id
+                                    const questionUniqueId = question.uniqueId || question.id;
+                                    const questionKey = questionUniqueId.toString();
+                                    const oldQuestionKey = question.id.toString();
+                                    const selectedAnswers = progress.answers[questionKey] || progress.answers[oldQuestionKey] || [];
+                                    
+                                    if (selectedAnswers.length > 0) {
+                                        // Use uniqueId for tracking
+                                        const questionId = questionUniqueId;
                                         
-                                        if (selectedAnswers.length > 0) {
-                                            // Use uniqueId for tracking
-                                            const questionId = questionUniqueId;
+                                        if (!questionsAnsweredSet.has(questionId)) {
+                                            const selectedSet = new Set(selectedAnswers.sort());
+                                            const correctSet = new Set(question.correctAnswers.sort());
+                                            const isCorrect = selectedSet.size === correctSet.size && 
+                                                            [...selectedSet].every(id => correctSet.has(id));
                                             
-                                            if (!questionsAnsweredSet.has(questionId)) {
-                                                const selectedSet = new Set(selectedAnswers.sort());
-                                                const correctSet = new Set(question.correctAnswers.sort());
-                                                const isCorrect = selectedSet.size === correctSet.size && 
-                                                                [...selectedSet].every(id => correctSet.has(id));
-                                                
-                                                questionsAnsweredSet.add(questionId);
-                                                
-                                                if (isCorrect) {
-                                                    totalCorrectAnswers++;
-                                                }
-                                                
-                                                if (question.domain) {
-                                                    domainsPracticedSet.add(question.domain);
-                                                }
+                                            questionsAnsweredSet.add(questionId);
+                                            
+                                            if (isCorrect) {
+                                                totalCorrectAnswers++;
+                                            }
+                                            
+                                            if (question.domain) {
+                                                domainsPracticedSet.add(question.domain);
                                             }
                                         }
-                                    });
-                                }
+                                    }
+                                });
                             }
                         } catch (error) {
                             console.error(`Error processing saved domain progress:`, error);
@@ -207,3 +277,8 @@ const Stats = (function() {
         }
     };
 })();
+
+// Expose Stats to global scope for compatibility
+if (typeof window !== 'undefined') {
+    window.Stats = Stats;
+}

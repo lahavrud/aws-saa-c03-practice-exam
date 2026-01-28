@@ -133,7 +133,7 @@ const ProgressManager = (function() {
             }
         },
         
-        // Get saved progress for a specific test (loads from Firestore first, then localStorage)
+        // Get saved progress for a specific test (loads from localStorage first, then Firestore if needed)
         getSavedProgressForTest: async (testNumber) => {
             const currentUserEmail = AppState.getCurrentUserEmail();
             if (!currentUserEmail) return null;
@@ -141,7 +141,20 @@ const ProgressManager = (function() {
             const userKey = currentUserEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
             const progressKey = `${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-test${testNumber}`;
             
-            // Try Firestore first (for cross-device sync)
+            // Check localStorage first (primary source for client-side progress)
+            const saved = localStorage.getItem(progressKey);
+            if (saved) {
+                try {
+                    const progress = JSON.parse(saved);
+                    // If we have localStorage data, use it immediately
+                    // Only check Firestore if localStorage is empty (for cross-device sync)
+                    return progress;
+                } catch (error) {
+                    console.error('Error parsing saved progress from localStorage:', error);
+                }
+            }
+            
+            // Only try Firestore if localStorage doesn't have it (for cross-device sync)
             if (typeof window.loadProgressFromFirestore === 'function' && typeof window.isFirebaseAvailable === 'function' && window.isFirebaseAvailable()) {
                 try {
                     const firestoreProgress = await window.loadProgressFromFirestore(progressKey, currentUserEmail);
@@ -156,20 +169,11 @@ const ProgressManager = (function() {
                         return firestoreProgress;
                     }
                 } catch (firestoreError) {
-                    console.warn('Error loading from Firestore, falling back to localStorage:', firestoreError);
+                    // Silently fail - localStorage is primary source
                 }
             }
             
-            // Fallback to localStorage
-            const saved = localStorage.getItem(progressKey);
-            if (!saved) return null;
-            
-            try {
-                return JSON.parse(saved);
-            } catch (error) {
-                console.error('Error parsing saved progress:', error);
-                return null;
-            }
+            return null;
         },
         
         // Load saved progress (loads from Firestore first, then localStorage)
@@ -203,14 +207,25 @@ const ProgressManager = (function() {
                 return false;
             }
             
-            let progress = null;
+            // Check localStorage first (primary source for client-side progress)
+            const saved = localStorage.getItem(progressKey);
+            if (saved) {
+                try {
+                    const progress = JSON.parse(saved);
+                    console.log('Found saved progress in localStorage, parsing...');
+                    // If we have localStorage data, use it immediately
+                    // Only check Firestore if localStorage is empty (for cross-device sync)
+                    return progress;
+                } catch (error) {
+                    console.error('Error parsing saved progress from localStorage:', error);
+                }
+            }
             
-            // Try Firestore first (for cross-device sync)
+            // Only try Firestore if localStorage doesn't have it (for cross-device sync)
             if (typeof window.loadProgressFromFirestore === 'function' && typeof window.isFirebaseAvailable === 'function' && window.isFirebaseAvailable()) {
                 try {
                     const firestoreProgress = await window.loadProgressFromFirestore(progressKey, currentUserEmail);
                     if (firestoreProgress) {
-                        progress = firestoreProgress;
                         // Sync to localStorage for offline access
                         try {
                             localStorage.setItem(progressKey, JSON.stringify(firestoreProgress));
@@ -218,127 +233,16 @@ const ProgressManager = (function() {
                             console.warn('Could not sync Firestore progress to localStorage:', storageError);
                         }
                         console.log('Progress loaded from Firestore:', progressKey);
+                        return firestoreProgress;
                     }
                 } catch (firestoreError) {
-                    console.warn('Error loading from Firestore, falling back to localStorage:', firestoreError);
+                    // Silently fail - localStorage is primary source
                 }
             }
             
-            // Fallback to localStorage if Firestore didn't have it
-            if (!progress) {
-                const saved = localStorage.getItem(progressKey);
-                if (!saved) {
-                    console.log('No saved progress found for key:', progressKey);
-                    return false;
-                }
-                
-                console.log('Found saved progress in localStorage, parsing...');
-                
-                try {
-                    progress = JSON.parse(saved);
-                } catch (error) {
-                    console.error('Error parsing saved progress:', error);
-                    return false;
-                }
-            }
-            
-            if (!progress) {
-                return false;
-            }
-            
-            console.log('Found saved progress, loading...');
-            
-            try {
-                
-                AppState.setCurrentTest(progress.test);
-                AppState.setCurrentMode(progress.mode);
-                AppState.setCurrentQuestionIndex(progress.questionIndex || 0);
-                
-                // Handle answer ID mapping for domain review
-                let answers = progress.answers || {};
-                if (progress.selectedDomain && !progress.test) {
-                    // Domain review mode - need to map answers to new question IDs
-                    // Answers might be saved with uniqueId (testX-qY) or just id (number)
-                    let currentQuestions = AppState.getCurrentQuestions();
-                    
-                    // If questions aren't loaded yet, try to load them
-                    if (!currentQuestions || currentQuestions.length === 0) {
-                        console.log('Questions not loaded, attempting to load domain questions...');
-                        const domainQuestions = QuestionHandler.getDomainQuestions(progress.selectedDomain);
-                        if (domainQuestions && domainQuestions.length > 0) {
-                            AppState.setCurrentQuestions(domainQuestions);
-                            currentQuestions = domainQuestions;
-                        }
-                    }
-                    
-                    if (currentQuestions && currentQuestions.length > 0) {
-                        console.log(`Loading domain progress: ${Object.keys(answers).length} saved answers, ${currentQuestions.length} questions`);
-                        console.log('Sample saved answer keys:', Object.keys(answers).slice(0, 5));
-                        console.log('Sample question uniqueIds:', currentQuestions.slice(0, 5).map(q => ({ id: q.id, uniqueId: q.uniqueId, originalId: q.originalId })));
-                        
-                        const mappedAnswers = {};
-                        let mappedCount = 0;
-                        let unmatchedCount = 0;
-                        
-                        for (const [oldKey, answerValue] of Object.entries(answers)) {
-                            // Try to find matching question by multiple methods
-                            const question = currentQuestions.find(q => {
-                                const qUniqueId = (q.uniqueId || '').toString();
-                                const qId = q.id.toString();
-                                const qOriginalId = q.originalId ? q.originalId.toString() : null;
-                                
-                                // Match by uniqueId (most common case - exact match)
-                                if (qUniqueId === oldKey) return true;
-                                
-                                // Match by id (for backward compatibility)
-                                if (qId === oldKey) return true;
-                                
-                                // Match by originalId
-                                if (qOriginalId && qOriginalId === oldKey) return true;
-                                
-                                return false;
-                            });
-                            
-                            if (question) {
-                                // Use the current question's uniqueId format (this is what we use for saving)
-                                const questionKey = (question.uniqueId || question.id).toString();
-                                mappedAnswers[questionKey] = answerValue;
-                                mappedCount++;
-                                if (mappedCount <= 5) { // Only log first 5 to avoid spam
-                                    console.log(`✓ Mapped answer: ${oldKey} -> ${questionKey} = [${answerValue.join(', ')}]`);
-                                }
-                            } else {
-                                // Keep old key if no match found (might be from different session)
-                                mappedAnswers[oldKey] = answerValue;
-                                unmatchedCount++;
-                                if (unmatchedCount <= 5) { // Only log first 5 to avoid spam
-                                    console.warn(`✗ Could not map answer key: ${oldKey} (value: [${answerValue.join(', ')}])`);
-                                }
-                            }
-                        }
-                        answers = mappedAnswers;
-                        console.log(`Domain progress loaded: ${mappedCount} mapped, ${unmatchedCount} unmatched, total: ${Object.keys(answers).length}`);
-                        console.log('Final mapped answers sample:', Object.entries(answers).slice(0, 3));
-                    } else {
-                        console.warn('Cannot map domain answers: No questions available');
-                    }
-                }
-                
-                AppState.setUserAnswers(answers);
-                AppState.setMarkedQuestions(new Set(progress.marked || []));
-                AppState.setTestStartTime(progress.startTime);
-                AppState.setSelectedDomain(progress.selectedDomain);
-                AppState.setSelectedSource(progress.source);
-                AppState.setSavedProgress(progress);
-                
-                console.log('Progress loaded successfully. Answers:', Object.keys(answers).length, 'Marked:', progress.marked?.length || 0);
-                console.log('Sample answers:', Object.entries(answers).slice(0, 3));
-                
-                return true;
-            } catch (error) {
-                console.error('Error loading saved progress:', error);
-                return false;
-            }
+            // No progress found in either location
+            console.log('No saved progress found for key:', progressKey);
+            return null;
         },
         
         // Clear saved progress for a test
@@ -436,7 +340,19 @@ const ProgressManager = (function() {
             
             if (!lastProgressKey) return null;
             
-            // Try Firestore first
+            // Check localStorage first (primary source for client-side progress)
+            const saved = localStorage.getItem(lastProgressKey);
+            if (saved) {
+                try {
+                    const progress = JSON.parse(saved);
+                    console.log('Most recent progress loaded from localStorage:', lastProgressKey);
+                    return progress;
+                } catch (error) {
+                    console.error('Error parsing saved progress from localStorage:', error);
+                }
+            }
+            
+            // Only try Firestore if localStorage doesn't have it (for cross-device sync)
             if (typeof window.loadProgressFromFirestore === 'function' && typeof window.isFirebaseAvailable === 'function' && window.isFirebaseAvailable()) {
                 try {
                     const firestoreProgress = await window.loadProgressFromFirestore(lastProgressKey, currentUserEmail);
@@ -451,20 +367,12 @@ const ProgressManager = (function() {
                         return firestoreProgress;
                     }
                 } catch (firestoreError) {
-                    console.warn('Error loading from Firestore, falling back to localStorage:', firestoreError);
+                    // Silently fail - localStorage is primary source
                 }
             }
             
-            // Fallback to localStorage
-            const saved = localStorage.getItem(lastProgressKey);
-            if (!saved) return null;
-            
-            try {
-                return JSON.parse(saved);
-            } catch (error) {
-                console.error('Error parsing last progress:', error);
-                return null;
-            }
+            // No progress found in either location
+            return null;
         },
         
         // Sync all progress from Firestore to localStorage
@@ -600,3 +508,8 @@ const ProgressManager = (function() {
         }
     };
 })();
+
+// Expose ProgressManager to global scope for compatibility
+if (typeof window !== 'undefined') {
+    window.ProgressManager = ProgressManager;
+}

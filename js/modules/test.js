@@ -134,23 +134,30 @@ const TestManager = (function() {
                         return;
                     }
                     
-                    // Load progress status asynchronously
-                    ProgressManager.getTestProgressStatus(actualTestNumber).then(progressStatus => {
-                        const testCard = TestManager.createTestCard(actualTestNumber, displayNumber, questionCount, key, progressStatus);
-                        content.appendChild(testCard);
-                    }).catch(error => {
-                        console.error('Error loading progress status:', error);
-                        // Fallback to not-started status
-                        const progressStatus = {
-                            status: 'not-started',
-                            progressPercent: 0,
-                            answeredCount: 0,
-                            totalQuestions: questionCount,
-                            lastAccessed: null
-                        };
-                        const testCard = TestManager.createTestCard(actualTestNumber, displayNumber, questionCount, key, progressStatus);
-                        content.appendChild(testCard);
-                    });
+                    // Create test card immediately with default status, then update if ProgressManager is available
+                    const defaultProgressStatus = {
+                        status: 'not-started',
+                        progressPercent: 0,
+                        answeredCount: 0,
+                        totalQuestions: questionCount,
+                        lastAccessed: null
+                    };
+                    
+                    // Create and append test card immediately so it's visible
+                    const testCard = TestManager.createTestCard(actualTestNumber, displayNumber, questionCount, key, defaultProgressStatus);
+                    content.appendChild(testCard);
+                    
+                    // Then update with real progress status if ProgressManager is available
+                    if (typeof ProgressManager !== 'undefined' && ProgressManager.getTestProgressStatus) {
+                        ProgressManager.getTestProgressStatus(actualTestNumber).then(progressStatus => {
+                            // Update the existing card with real progress status
+                            const updatedCard = TestManager.createTestCard(actualTestNumber, displayNumber, questionCount, key, progressStatus);
+                            testCard.replaceWith(updatedCard);
+                        }).catch(error => {
+                            console.error('Error loading progress status:', error);
+                            // Keep the default card if there's an error
+                        });
+                    }
                 });
                 
                 sourceSection.appendChild(header);

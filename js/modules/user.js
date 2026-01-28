@@ -85,7 +85,9 @@ const UserManager = (function() {
             // Show main screen
             Navigation.showMainScreen();
             if (typeof Stats !== 'undefined' && Stats.updateDashboard) {
+                if (typeof Stats !== 'undefined' && Stats.updateDashboard) {
                 Stats.updateDashboard();
+            }
             }
         },
         
@@ -162,10 +164,13 @@ const UserManager = (function() {
             
             if (!currentUser || !currentUserEmail) return;
             
-            const userName = currentUser.name;
+            // Get userName, ensuring it's not undefined
+            const userName = currentUser.name || currentUser.displayName || currentUserEmail.split('@')[0] || 'User';
             const resetUser = {
                 name: userName,
-                createdAt: new Date().toISOString(),
+                displayName: currentUser.displayName || userName,
+                email: currentUserEmail,
+                createdAt: currentUser.createdAt || new Date().toISOString(),
                 stats: {
                     totalQuestionsAnswered: 0,
                     totalCorrectAnswers: 0,
@@ -176,16 +181,92 @@ const UserManager = (function() {
                 }
             };
             
-            // Delete from Firestore first (if available)
+            // Set the reset flag FIRST to prevent any syncing during the reset process
+            if (typeof AppState !== 'undefined' && AppState.setResetJustPerformed) {
+                AppState.setResetJustPerformed(true);
+                console.log('Reset flag set - preventing progress sync during reset');
+            }
+            
+            // Clear all saved progress for current user from localStorage FIRST
+            // Need to clear both old format keys and Firestore-synced keys (which use document IDs)
+            const userKey = UserManager.getUserKeyFromEmail(currentUserEmail);
+            const keysToRemove = [];
+            
+            // First, get all progress keys that might exist (old format and Firestore format)
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key) continue;
+                
+                // Old format: saa-c03-progress-{userKey}-test{num} or saa-c03-progress-{userKey}-domain-{domain}
+                if (key.startsWith(`${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-test`) ||
+                    key.startsWith(`${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-domain-`) ||
+                    key === `${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`) {
+                    keysToRemove.push(key);
+                }
+                
+                // Firestore format: document IDs that contain userEmail
+                // Check if this key contains progress data for this user
+                try {
+                    const value = localStorage.getItem(key);
+                    if (value) {
+                        const parsed = JSON.parse(value);
+                        // If it has userEmail matching current user, or if it's a progress document
+                        if ((parsed.userEmail === currentUserEmail) || 
+                            (parsed.test && parsed.userEmail === currentUserEmail) ||
+                            (parsed.selectedDomain && parsed.userEmail === currentUserEmail) ||
+                            (key.includes('progress') && parsed.userEmail === currentUserEmail)) {
+                            keysToRemove.push(key);
+                        }
+                    }
+                } catch (e) {
+                    // Not JSON, skip
+                }
+            }
+            
+            // Remove duplicates
+            const uniqueKeys = [...new Set(keysToRemove)];
+            uniqueKeys.forEach(key => localStorage.removeItem(key));
+            console.log(`✓ Cleared ${uniqueKeys.length} progress items from localStorage`);
+            
+            // Update user data - ensure Sets are properly initialized
+            const resetUserWithSets = {
+                ...resetUser,
+                stats: {
+                    ...resetUser.stats,
+                    domainsPracticed: new Set(),
+                    questionsAnswered: new Set()
+                }
+            };
+            AppState.setCurrentUser(resetUserWithSets);
+            
+            // Save the reset user data to localStorage FIRST (before Firestore operations)
+            const userKeyForStorage = currentUserEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
+            const userToSave = {
+                ...resetUserWithSets,
+                stats: {
+                    ...resetUserWithSets.stats,
+                    domainsPracticed: Array.from(resetUserWithSets.stats.domainsPracticed || []),
+                    questionsAnswered: Array.from(resetUserWithSets.stats.questionsAnswered || [])
+                }
+            };
+            localStorage.setItem(`${Config.STORAGE_KEYS.USER_PREFIX}${userKeyForStorage}`, JSON.stringify(userToSave));
+            
+            // Delete from Firestore and reset user data there
+            // IMPORTANT: Do this BEFORE any dashboard navigation to ensure deletion completes
             if (typeof window.deleteAllProgressFromFirestore === 'function' && 
                 typeof window.isFirebaseAvailable === 'function' && 
                 window.isFirebaseAvailable()) {
                 try {
                     console.log('Deleting all progress from Firestore...');
-                    await window.deleteAllProgressFromFirestore(currentUserEmail);
+                    const deleteResult = await window.deleteAllProgressFromFirestore(currentUserEmail);
+                    if (deleteResult) {
+                        console.log('✓ Successfully deleted all progress from Firestore');
+                    } else {
+                        console.warn('⚠ Failed to delete progress from Firestore');
+                    }
                 } catch (error) {
                     console.error('Error deleting progress from Firestore:', error);
-                    // Continue with localStorage deletion even if Firestore fails
+                    // Continue even if Firestore fails
                 }
             }
             
@@ -194,32 +275,86 @@ const UserManager = (function() {
                 window.isFirebaseAvailable()) {
                 try {
                     console.log('Resetting user data in Firestore...');
-                    await window.deleteUserDataFromFirestore(currentUserEmail);
+                    const resetResult = await window.deleteUserDataFromFirestore(currentUserEmail);
+                    if (resetResult) {
+                        console.log('✓ Successfully reset user data in Firestore');
+                    } else {
+                        console.warn('⚠ Failed to reset user data in Firestore');
+                    }
                 } catch (error) {
                     console.error('Error resetting user data in Firestore:', error);
-                    // Continue with localStorage reset even if Firestore fails
+                    // Continue even if Firestore fails
                 }
             }
             
-            // Clear all saved progress for current user from localStorage
-            const userKey = UserManager.getUserKeyFromEmail(currentUserEmail);
-            const keysToRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && (
-                    key.startsWith(`${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-test`) ||
-                    key.startsWith(`${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-domain-`) ||
-                    key === `${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`
-                )) {
-                    keysToRemove.push(key);
+            // Save the reset user data to Firestore immediately (not queued)
+            // This ensures Firestore has the reset stats before any sync happens
+            // IMPORTANT: Save AFTER deletion to ensure reset stats are saved
+            // Use deleteUserDataFromFirestore which already resets the stats, then we don't need to save again
+            // But we'll also save via the normal path to ensure consistency
+            
+            // deleteUserDataFromFirestore already resets the user stats in Firestore
+            // So we just need to make sure it completed, then save via normal path as backup
+            if (typeof saveUserToFirestore === 'function' && typeof isFirebaseAvailable === 'function' && isFirebaseAvailable()) {
+                try {
+                    // Save the reset user data (this will queue it, but we'll flush immediately)
+                    saveUserToFirestore(userToSave, currentUserEmail);
+                    // Wait a bit for the queue to populate, then flush
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    // Try to flush the queue if available
+                    if (typeof window.flushSaveQueue === 'function') {
+                        await window.flushSaveQueue();
+                        console.log('✓ Reset user data saved to Firestore');
+                    }
+                } catch (error) {
+                    console.error('Error saving reset user data to Firestore:', error);
                 }
             }
-            keysToRemove.forEach(key => localStorage.removeItem(key));
             
-            // Update user data
-            AppState.setCurrentUser(resetUser);
-            UserManager.saveUser(); // This will save the reset user data to Firestore
-            Stats.updateDashboard();
+            // Also use UserManager.saveUser() to ensure it's saved via the normal path
+            UserManager.saveUser();
+            
+            // Verify deletion worked by checking Firestore
+            if (typeof window.db !== 'undefined' && typeof isFirebaseAvailable === 'function' && isFirebaseAvailable()) {
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Wait a bit for deletion to propagate
+                    const verifySnapshot = await window.db.collection('progress')
+                        .where('userEmail', '==', currentUserEmail)
+                        .limit(1)
+                        .get();
+                    if (verifySnapshot.empty) {
+                        console.log('✓ Verification: No progress documents found in Firestore (deletion successful)');
+                    } else {
+                        console.warn(`⚠ Verification: Found ${verifySnapshot.size} progress document(s) still in Firestore after deletion`);
+                        // Try to delete again if found
+                        if (typeof window.deleteAllProgressFromFirestore === 'function') {
+                            console.log('Retrying deletion of remaining progress...');
+                            await window.deleteAllProgressFromFirestore(currentUserEmail);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not verify deletion:', error);
+                }
+            }
+            
+            // Keep the reset flag set for 10 seconds to ensure dashboard loads without syncing
+            // Clear the flag after enough time for the dashboard to fully load
+            setTimeout(() => {
+                if (AppState.setResetJustPerformed) {
+                    AppState.setResetJustPerformed(false);
+                    console.log('Reset flag cleared - future syncs will proceed normally');
+                }
+            }, 10000);
+            
+            // Force update dashboard without recalculating (to show reset stats)
+            // DO NOT call recalculateUserStats() - it would recalculate from saved progress
+            // We want to keep the reset values (all zeros)
+            if (typeof Stats !== 'undefined' && Stats.updateDashboard) {
+                if (typeof Stats !== 'undefined' && Stats.updateDashboard) {
+                Stats.updateDashboard();
+            }
+            }
+            
             UI.closeUserSettings();
             
             // Reset current state
@@ -237,9 +372,10 @@ const UserManager = (function() {
                 TestManager.loadAvailableTests();
             }
             
-            // Reload dashboard if on main screen
+            // Reload dashboard if on main screen (but don't sync progress - we just deleted it)
             if (typeof Navigation !== 'undefined' && Navigation.showMainScreen) {
                 // Refresh the dashboard to show updated state
+                // Note: We don't sync progress here because we just deleted it
                 setTimeout(() => {
                     if (typeof ResumeManager !== 'undefined' && ResumeManager.loadDashboardContent) {
                         ResumeManager.loadDashboardContent();
@@ -260,7 +396,9 @@ const UserManager = (function() {
             if (!currentUser) return;
             currentUser.stats.testsCompleted++;
             UserManager.saveUser();
-            Stats.updateDashboard();
+            if (typeof Stats !== 'undefined' && Stats.updateDashboard) {
+                Stats.updateDashboard();
+            }
         },
         
         // Export user data

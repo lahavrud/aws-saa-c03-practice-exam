@@ -20,7 +20,8 @@ const AppState = (function() {
         previousAnswers: {},
         lastAccessedTest: null,
         lastAccessedDomain: null,
-        lastAccessedMode: null
+        lastAccessedMode: null,
+        resetJustPerformed: false
     };
     
     // Public API
@@ -45,6 +46,7 @@ const AppState = (function() {
         getLastAccessedTest: () => state.lastAccessedTest,
         getLastAccessedDomain: () => state.lastAccessedDomain,
         getLastAccessedMode: () => state.lastAccessedMode,
+        getResetJustPerformed: () => state.resetJustPerformed,
         
         // Setters
         setCurrentTest: (value) => { state.currentTest = value; },
@@ -66,6 +68,7 @@ const AppState = (function() {
         setLastAccessedTest: (value) => { state.lastAccessedTest = value; },
         setLastAccessedDomain: (value) => { state.lastAccessedDomain = value; },
         setLastAccessedMode: (value) => { state.lastAccessedMode = value; },
+        setResetJustPerformed: (value) => { state.resetJustPerformed = value; },
         
         // Complex setters
         addUserAnswer: (questionId, answerIds) => {

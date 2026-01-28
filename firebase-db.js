@@ -920,6 +920,104 @@ window.loadProgressFromFirestore = loadProgressFromFirestore;
 window.saveProgressToFirestore = saveProgressToFirestore;
 window.db = db; // Expose db for direct queries if needed
 
+// Delete all progress documents for a user from Firestore
+async function deleteAllProgressFromFirestore(userEmail) {
+    if (!isFirebaseAvailable() || !userEmail) {
+        console.warn('Cannot delete progress: Firebase not available or no user email');
+        return false;
+    }
+    
+    try {
+        console.log('Deleting all progress from Firestore for user:', userEmail);
+        
+        // Query all progress documents for this user
+        const progressSnapshot = await db.collection('progress')
+            .where('userEmail', '==', userEmail)
+            .get();
+        
+        if (progressSnapshot.empty) {
+            console.log('No progress documents found in Firestore for user:', userEmail);
+            return true;
+        }
+        
+        // Delete all documents in batches (Firestore batch limit is 500)
+        const batchSize = 500;
+        const batches = [];
+        let currentBatch = db.batch();
+        let operationCount = 0;
+        
+        progressSnapshot.forEach((doc) => {
+            if (operationCount >= batchSize) {
+                batches.push(currentBatch);
+                currentBatch = db.batch();
+                operationCount = 0;
+            }
+            currentBatch.delete(doc.ref);
+            operationCount++;
+        });
+        
+        // Add the last batch if it has operations
+        if (operationCount > 0) {
+            batches.push(currentBatch);
+        }
+        
+        // Commit all batches
+        for (const batch of batches) {
+            await batch.commit();
+        }
+        
+        console.log(`✓ Deleted ${progressSnapshot.size} progress document(s) from Firestore`);
+        return true;
+    } catch (error) {
+        console.error('Error deleting progress from Firestore:', error);
+        return false;
+    }
+}
+
+// Delete user data from Firestore
+async function deleteUserDataFromFirestore(userEmail) {
+    if (!isFirebaseAvailable() || !userEmail) {
+        console.warn('Cannot delete user data: Firebase not available or no user email');
+        return false;
+    }
+    
+    try {
+        const userKey = userEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
+        const userRef = db.collection('users').doc(userKey);
+        
+        // Check if document exists
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) {
+            console.log('User document not found in Firestore for:', userEmail);
+            return true;
+        }
+        
+        // Reset user stats instead of deleting (preserve user document for future use)
+        await userRef.set({
+            email: userEmail,
+            displayName: userDoc.data().displayName || userEmail.split('@')[0],
+            createdAt: userDoc.data().createdAt || firebase.firestore.FieldValue.serverTimestamp(),
+            stats: {
+                totalQuestionsAnswered: 0,
+                totalCorrectAnswers: 0,
+                testsCompleted: 0,
+                domainsPracticed: [],
+                questionsAnswered: [],
+                lastActivity: new Date().toISOString()
+            },
+            resetAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: false });
+        
+        console.log('✓ Reset user data in Firestore for:', userEmail);
+        return true;
+    } catch (error) {
+        console.error('Error deleting user data from Firestore:', error);
+        return false;
+    }
+}
+
 // Make functions globally accessible
 window.signInWithGoogle = signInWithGoogle;
 window.signOut = signOut;
+window.deleteAllProgressFromFirestore = deleteAllProgressFromFirestore;
+window.deleteUserDataFromFirestore = deleteUserDataFromFirestore;
