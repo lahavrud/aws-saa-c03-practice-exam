@@ -229,7 +229,14 @@ const Insights = (function() {
                 const insights = Insights.calculateInsights();
                 if (!insights) {
                     insightsContainer.innerHTML = `
-                        <div class="insights-empty">
+                        <div class="insights-empty" role="status" aria-live="polite">
+                            <div class="empty-state-icon">📊</div>
+                            <h3>No Data Yet</h3>
+                            <p>Start practicing to see your performance insights here.</p>
+                            <button class="empty-state-cta" onclick="if (typeof Navigation !== 'undefined') Navigation.selectPracticeMode('test');">
+                                Start Your First Test
+                            </button>
+                        </div>
                             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 16px; opacity: 0.3;">
                                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                                 <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>

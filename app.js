@@ -5,6 +5,59 @@
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Initializing AWS Lahavda Application...');
     
+    // Hide initial loader when app is ready
+    const hideInitialLoader = () => {
+        const loader = document.getElementById('initial-loader');
+        if (loader) {
+            loader.classList.add('hidden');
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 300);
+        }
+    };
+    
+    // Show error state
+    const showErrorState = (message, retryCallback) => {
+        hideInitialLoader();
+        const container = document.getElementById('main-content');
+        if (container) {
+            const errorHTML = `
+                <div class="error-state">
+                    <div class="error-state-icon">⚠️</div>
+                    <h3>Something went wrong</h3>
+                    <p>${message}</p>
+                    <div class="error-state-actions">
+                        ${retryCallback ? `<button class="error-state-btn" onclick="location.reload()">Retry</button>` : ''}
+                        <button class="error-state-btn secondary" onclick="window.showOfflineMode()">Continue Offline</button>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = errorHTML;
+        }
+    };
+    
+    // Offline detection
+    const setupOfflineDetection = () => {
+        const offlineIndicator = document.createElement('div');
+        offlineIndicator.className = 'offline-indicator';
+        offlineIndicator.innerHTML = '<strong>⚠️</strong> You are currently offline. Some features may be limited.';
+        document.body.appendChild(offlineIndicator);
+        
+        const updateOfflineStatus = () => {
+            if (!navigator.onLine) {
+                offlineIndicator.classList.add('show');
+            } else {
+                offlineIndicator.classList.remove('show');
+            }
+        };
+        
+        window.addEventListener('online', updateOfflineStatus);
+        window.addEventListener('offline', updateOfflineStatus);
+        updateOfflineStatus();
+    };
+    
+    setupOfflineDetection();
+    
     // Ensure sign-in screen is visible by default if no user is authenticated
     // This is important for GitHub Pages where Firebase might load slowly
     const signInScreen = document.getElementById('sign-in-screen');
@@ -23,8 +76,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
-    // Wait for Firebase to initialize (if available)
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for Firebase to initialize (if available) with error handling
+    try {
+        await new Promise(resolve => setTimeout(resolve, 500));
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        // Continue anyway - app can work offline
+    }
     
     // Initialize user system
     UserManager.initUserSystem();
@@ -38,10 +96,26 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         newBtn.addEventListener('click', function() {
             if (typeof signInWithGoogle === 'function') {
-                signInWithGoogle();
-    } else {
+                // Show loading state
+                newBtn.classList.add('loading');
+                newBtn.disabled = true;
+                
+                signInWithGoogle().catch(error => {
+                    newBtn.classList.remove('loading');
+                    newBtn.disabled = false;
+                    if (typeof window.handleError === 'function') {
+                        window.handleError(error, 'Failed to sign in. Please try again.');
+                    } else {
+                        alert('Failed to sign in. Please check your connection and try again.');
+                    }
+                });
+            } else {
                 console.error('signInWithGoogle function not available');
-                alert('Google Sign-In is not available. Please check Firebase configuration.');
+                if (typeof window.handleError === 'function') {
+                    window.handleError(new Error('Google Sign-In not available'), 'Google Sign-In is not available. Please check Firebase configuration.');
+                } else {
+                    alert('Google Sign-In is not available. Please check Firebase configuration.');
+                }
             }
         });
         console.log('✓ Google Sign-In button event listener attached');
@@ -65,14 +139,50 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const loadedQuestions = await autoLoadQuestions();
                 if (loadedQuestions) {
                     window.examQuestions = loadedQuestions;
+                    hideInitialLoader();
                 } else if (typeof examQuestions === 'undefined') {
                     console.error('Failed to load questions. Please check that questions.js exists or JSON files are available.');
+                    // Try to load from cache/localStorage
+                    const cachedQuestions = localStorage.getItem('cached-questions');
+                    if (cachedQuestions) {
+                        try {
+                            window.examQuestions = JSON.parse(cachedQuestions);
+                            hideInitialLoader();
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Loaded questions from cache. Some features may be limited.', 'info');
+                            }
+                        } catch (e) {
+                            console.error('Error loading cached questions:', e);
+                            showErrorState('Failed to load questions. Please check your connection and refresh the page.', () => location.reload());
+                        }
+                    } else {
+                        showErrorState('Failed to load questions. Please check your connection and refresh the page.', () => location.reload());
+                    }
+                } else {
+                    hideInitialLoader();
                 }
             } catch (error) {
                 console.error('Error loading questions:', error);
+                // Try to continue with cached questions
+                const cachedQuestions = localStorage.getItem('cached-questions');
+                if (cachedQuestions) {
+                    try {
+                        window.examQuestions = JSON.parse(cachedQuestions);
+                        hideInitialLoader();
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Loaded questions from cache due to connection error.', 'warning');
+                        }
+                    } catch (e) {
+                        showErrorState('Failed to load questions. Please check your connection and refresh the page.', () => location.reload());
+                    }
+                } else {
+                    showErrorState('Failed to load questions: ' + error.message, () => location.reload());
+                }
             }
         } else {
             console.error('autoLoadQuestions function not available');
+            // Hide loader anyway after a delay
+            setTimeout(hideInitialLoader, 1000);
         }
     }, 200);
     
@@ -197,6 +307,26 @@ document.addEventListener('DOMContentLoaded', async function() {
             }, 500);
         }
         
+        // Stats bar toggle
+        const statsBarToggle = document.getElementById('stats-bar-toggle');
+        const statsBarContainer = document.getElementById('stats-bar-container');
+        const statsBarContent = document.getElementById('stats-bar-content');
+        
+        if (statsBarToggle && statsBarContainer) {
+            // Set initial state based on screen size
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                statsBarContainer.setAttribute('aria-expanded', 'false');
+                statsBarToggle.setAttribute('aria-expanded', 'false');
+            }
+            
+            statsBarToggle.addEventListener('click', function() {
+                const isExpanded = statsBarContainer.getAttribute('aria-expanded') === 'true';
+                statsBarContainer.setAttribute('aria-expanded', !isExpanded);
+                statsBarToggle.setAttribute('aria-expanded', !isExpanded);
+            });
+        }
+        
         console.log('✓ Question screen button event listeners attached');
     }, 100);
     
@@ -211,46 +341,32 @@ document.addEventListener('DOMContentLoaded', async function() {
                 signInScreen.classList.remove('hidden');
             }
         }
+        // Hide loader if still showing
+        hideInitialLoader();
     }, 1000);
+    
+    // Global offline mode function
+    window.showOfflineMode = () => {
+        hideInitialLoader();
+        const signInScreen = document.getElementById('sign-in-screen');
+        if (signInScreen) {
+            signInScreen.classList.remove('hidden');
+            if (typeof window.showToast === 'function') {
+                window.showToast('Running in offline mode. Some features may be limited.', 'info', 7000);
+            }
+        }
+    };
     
     console.log('✓ Application initialized');
 });
 
-// Make global functions available for backward compatibility
-// These are also set in navigation.js, but we ensure they're available here too
-window.exportUserData = UserManager.exportUserData;
-window.importUserData = UserManager.importUserData;
-
-// Ensure question screen functions are available
-if (typeof TestManager !== 'undefined') {
-    window.submitAnswer = TestManager.submitAnswer;
-    window.nextQuestion = TestManager.nextQuestion;
-    window.previousQuestion = TestManager.previousQuestion;
-    window.toggleMarkQuestion = TestManager.toggleMarkQuestion;
-    window.submitTest = TestManager.submitTest;
-}
-
-if (typeof UI !== 'undefined') {
-    window.showDashboardDialog = UI.showDashboardDialog;
-    window.closeDashboardDialog = UI.closeDashboardDialog;
-}
-
-if (typeof Navigation !== 'undefined') {
-    window.saveAndReturnToDashboard = Navigation.saveAndReturnToDashboard;
-    window.returnToDashboardWithoutSaving = Navigation.returnToDashboardWithoutSaving;
-}
-
-if (typeof QuestionHandler !== 'undefined') {
-    window.loadQuestion = QuestionHandler.loadQuestion;
-}
-
-if (typeof UI !== 'undefined') {
-    window.updateStats = UI.updateStats;
-}
-
-if (typeof QuestionHandler !== 'undefined') {
-    window.buildQuestionNavbar = QuestionHandler.buildQuestionNavbar;
-}
+// Global functions are already exposed in their respective modules:
+// - UserManager functions: navigation.js
+// - TestManager functions: navigation.js
+// - UI functions: ui.js
+// - Navigation functions: navigation.js
+// - QuestionHandler functions: navigation.js
+// No need to duplicate assignments here
 
 // Ensure toggleNavbar is available
 if (typeof window.toggleNavbar === 'undefined') {

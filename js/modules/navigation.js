@@ -216,16 +216,47 @@ window.goBackToMainSelection = Navigation.goBackToMainSelection;
 window.goBackToSourceSelection = Navigation.goBackToSourceSelection;
 window.goBackToTestSelection = Navigation.goBackToTestSelection;
 
-if (typeof UI !== 'undefined') {
-    window.showUserSettings = UI.showUserSettings;
-    window.closeUserSettings = UI.closeUserSettings;
-    window.saveUserSettings = UI.saveUserSettings;
-    window.showDashboardDialog = UI.showDashboardDialog;
-    window.closeDashboardDialog = UI.closeDashboardDialog;
-}
+// UI functions are already exposed in ui.js, no need to duplicate here
 
 if (typeof UserManager !== 'undefined') {
     window.resetUserData = UserManager.resetUserData;
+}
+
+// Reset confirmation functions
+window.confirmResetProgress = () => {
+    const input = document.getElementById('reset-confirm-input');
+    if (input && input.value === 'DELETE') {
+        if (typeof UserManager !== 'undefined' && UserManager.performReset) {
+            UserManager.performReset();
+        }
+        window.closeResetConfirmation();
+    }
+};
+
+window.closeResetConfirmation = () => {
+    const dialog = document.getElementById('reset-confirmation-dialog');
+    const input = document.getElementById('reset-confirm-input');
+    const confirmBtn = document.getElementById('reset-confirm-btn');
+    
+    if (dialog) {
+        dialog.classList.add('hidden');
+        if (input) input.value = '';
+        if (confirmBtn) confirmBtn.disabled = true;
+        
+        // Return focus to reset button
+        const resetBtn = document.querySelector('.danger-action-btn');
+        if (resetBtn && typeof UI !== 'undefined') {
+            UI.previousFocus = resetBtn;
+        }
+        
+        if (typeof UI !== 'undefined' && UI.releaseFocus) {
+            UI.releaseFocus();
+        }
+    }
+};
+
+// Export user data functions
+if (typeof UserManager !== 'undefined') {
     window.exportUserData = UserManager.exportUserData;
     window.importUserData = UserManager.importUserData;
 }
@@ -233,11 +264,53 @@ if (typeof UserManager !== 'undefined') {
 window.saveAndReturnToDashboard = Navigation.saveAndReturnToDashboard;
 window.returnToDashboardWithoutSaving = Navigation.returnToDashboardWithoutSaving;
 
-// Additional utility functions
+// Toast notification utility
+window.showToast = function(message, type = 'info', duration = 5000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.setAttribute('role', 'alert');
+    
+    const icons = {
+        error: '❌',
+        success: '✅',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    toast.innerHTML = `
+        <span class="toast-icon" aria-hidden="true">${icons[type] || icons.info}</span>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" aria-label="Close notification" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto-remove after duration
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.style.animation = 'slideInRight 0.3s ease reverse';
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, duration);
+};
+
+// Error handling utility
+window.handleError = function(error, userMessage = null) {
+    console.error('Error:', error);
+    const message = userMessage || (error.message || 'An unexpected error occurred. Please try again.');
+    window.showToast(message, 'error', 7000);
+};
+
 // Function to attach navbar toggle listener (prevents duplicate listeners)
 function attachNavbarToggleListener() {
-    const navbarToggle = document.getElementById('navbar-toggle');
-    if (navbarToggle) {
+    const navbarToggle = document.getElementById('navbar-menu-toggle');
+    const navbarMenu = document.getElementById('navbar-menu');
+    const navbarBackdrop = document.getElementById('navbar-backdrop');
+    
+    if (navbarToggle && navbarMenu) {
         // Clone button to remove all existing listeners
         const newToggle = navbarToggle.cloneNode(true);
         navbarToggle.parentNode.replaceChild(newToggle, navbarToggle);
@@ -246,13 +319,118 @@ function attachNavbarToggleListener() {
         newToggle.removeAttribute('onclick');
         newToggle.type = 'button';
         
-        // Attach single listener
+        // Attach single listener for main navigation menu
         newToggle.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            if (typeof window.toggleNavbar === 'function') {
-                window.toggleNavbar();
+            const menu = document.getElementById('navbar-menu');
+            const backdrop = document.getElementById('navbar-backdrop');
+            
+            if (menu) {
+                const isActive = menu.classList.contains('active');
+                
+                if (isActive) {
+                    // Close menu
+                    menu.classList.remove('active');
+                    newToggle.classList.remove('active');
+                    newToggle.setAttribute('aria-expanded', 'false');
+                    if (backdrop) {
+                        backdrop.classList.remove('active');
+                        backdrop.setAttribute('aria-hidden', 'true');
+                    }
+                } else {
+                    // Open menu
+                    menu.classList.add('active');
+                    newToggle.classList.add('active');
+                    newToggle.setAttribute('aria-expanded', 'true');
+                    if (backdrop) {
+                        backdrop.classList.add('active');
+                        backdrop.setAttribute('aria-hidden', 'false');
+                    }
+                }
             }
+        });
+        
+        // Close menu function
+        const closeMenu = () => {
+            const menu = document.getElementById('navbar-menu');
+            const toggle = document.getElementById('navbar-menu-toggle');
+            const backdrop = document.getElementById('navbar-backdrop');
+            if (menu && toggle) {
+                menu.classList.remove('active');
+                toggle.classList.remove('active');
+                toggle.setAttribute('aria-expanded', 'false');
+                if (backdrop) {
+                    backdrop.classList.remove('active');
+                    backdrop.setAttribute('aria-hidden', 'true');
+                }
+            }
+        };
+        
+        // Close menu when clicking backdrop
+        if (navbarBackdrop) {
+            // Remove existing listeners by cloning
+            const newBackdrop = navbarBackdrop.cloneNode(true);
+            navbarBackdrop.parentNode.replaceChild(newBackdrop, navbarBackdrop);
+            
+            newBackdrop.addEventListener('click', closeMenu);
+        }
+        
+        // Close menu when clicking outside (on document)
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('navbar-menu');
+            const toggle = document.getElementById('navbar-menu-toggle');
+            if (menu && menu.classList.contains('active')) {
+                // Check if click is outside menu and toggle button
+                if (!menu.contains(e.target) && toggle && !toggle.contains(e.target)) {
+                    closeMenu();
+                }
+            }
+        });
+        
+        // Swipe gesture to close menu (touch devices)
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        
+        if (navbarMenu) {
+            navbarMenu.addEventListener('touchstart', function(e) {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            }, { passive: true });
+            
+            navbarMenu.addEventListener('touchend', function(e) {
+                touchEndX = e.changedTouches[0].screenX;
+                touchEndY = e.changedTouches[0].screenY;
+                
+                const deltaX = touchStartX - touchEndX;
+                const deltaY = touchStartY - touchEndY;
+                
+                // Swipe left to close (more than 100px and horizontal movement is greater than vertical)
+                if (deltaX > 100 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                    closeMenu();
+                }
+            }, { passive: true });
+        }
+        
+        // Close menu when clicking on navigation links
+        const navLinks = navbarMenu.querySelectorAll('.navbar-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                const menu = document.getElementById('navbar-menu');
+                const toggle = document.getElementById('navbar-menu-toggle');
+                const backdrop = document.getElementById('navbar-backdrop');
+                if (menu && toggle) {
+                    menu.classList.remove('active');
+                    toggle.classList.remove('active');
+                    toggle.setAttribute('aria-expanded', 'false');
+                    if (backdrop) {
+                        backdrop.classList.remove('active');
+                        backdrop.setAttribute('aria-hidden', 'true');
+                    }
+                }
+            });
         });
     }
 }
@@ -322,15 +500,7 @@ window.reviewAnswers = () => {
     }
 };
 
-// Make question handler functions globally accessible
-if (typeof QuestionHandler !== 'undefined') {
-    window.loadQuestion = QuestionHandler.loadQuestion;
-    window.buildQuestionNavbar = QuestionHandler.buildQuestionNavbar;
-}
-
-if (typeof UI !== 'undefined') {
-    window.updateStats = UI.updateStats;
-}
+// Question handler and UI functions are already exposed in their respective modules
 
 // Keyboard shortcuts handler
 function handleKeyboardShortcuts(e) {
@@ -340,34 +510,385 @@ function handleKeyboardShortcuts(e) {
         return;
     }
     
+    // Escape key for dashboard (only if not typing in an input)
+    if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey) {
+        const activeElement = document.activeElement;
+        const isInputFocused = activeElement && (
+            activeElement.tagName === 'INPUT' || 
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.isContentEditable
+        );
+        
+        if (!isInputFocused) {
+            e.preventDefault();
+            if (typeof UI !== 'undefined' && UI.showDashboardDialog) {
+                UI.showDashboardDialog();
+            } else if (typeof window.showDashboardDialog === 'function') {
+                window.showDashboardDialog();
+            }
+        }
+    }
     // Arrow keys for navigation
-    if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
-        if (typeof TestManager !== 'undefined' && TestManager.previousQuestion) {
-            TestManager.previousQuestion();
+    else if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.metaKey) {
+        const activeElement = document.activeElement;
+        const isInputFocused = activeElement && (
+            activeElement.tagName === 'INPUT' || 
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.isContentEditable
+        );
+        
+        if (!isInputFocused) {
+            e.preventDefault();
+            if (typeof TestManager !== 'undefined' && TestManager.previousQuestion) {
+                TestManager.previousQuestion();
+            }
         }
     } else if (e.key === 'ArrowRight' && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
-        if (typeof TestManager !== 'undefined' && TestManager.nextQuestion) {
-            TestManager.nextQuestion();
+        const activeElement = document.activeElement;
+        const isInputFocused = activeElement && (
+            activeElement.tagName === 'INPUT' || 
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.isContentEditable
+        );
+        
+        if (!isInputFocused) {
+            e.preventDefault();
+            if (typeof TestManager !== 'undefined' && TestManager.nextQuestion) {
+                TestManager.nextQuestion();
+            }
         }
     }
 }
 
 document.addEventListener('keydown', handleKeyboardShortcuts);
 
-// Show main screen function
-window.showMainScreen = () => {
-    if (typeof Navigation !== 'undefined' && Navigation.showMainScreen) {
-        Navigation.showMainScreen();
+// Swipe gesture handler for question navigation (mobile only)
+function initSwipeGestures() {
+    const questionScreen = document.getElementById('question-screen');
+    if (!questionScreen) return;
+    
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    let isScrolling = false;
+    let scrollStartY = 0;
+    
+    // Minimum swipe distance (50px)
+    const SWIPE_THRESHOLD = 50;
+    // Maximum vertical movement to consider it a swipe (not scroll)
+    const MAX_VERTICAL_MOVEMENT = 30;
+    
+    questionScreen.addEventListener('touchstart', function(e) {
+        // Only handle if question screen is visible
+        if (questionScreen.classList.contains('hidden')) return;
+        
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+        scrollStartY = window.scrollY || document.documentElement.scrollTop;
+        isScrolling = false;
+    }, { passive: true });
+    
+    questionScreen.addEventListener('touchmove', function(e) {
+        if (questionScreen.classList.contains('hidden')) return;
+        
+        const currentY = e.changedTouches[0].screenY;
+        const deltaY = Math.abs(currentY - touchStartY);
+        
+        // If vertical movement is significant, it's a scroll, not a swipe
+        if (deltaY > MAX_VERTICAL_MOVEMENT) {
+            isScrolling = true;
+        }
+    }, { passive: true });
+    
+    questionScreen.addEventListener('touchend', function(e) {
+        if (questionScreen.classList.contains('hidden')) return;
+        
+        // Don't handle swipe if user was scrolling
+        if (isScrolling) return;
+        
+        // Don't handle swipe if user scrolled the page
+        const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+        if (Math.abs(currentScrollY - scrollStartY) > 10) return;
+        
+        // Don't handle swipe if touching interactive elements
+        const target = e.target;
+        if (target && (
+            target.tagName === 'BUTTON' ||
+            target.tagName === 'INPUT' ||
+            target.tagName === 'A' ||
+            target.closest('button') ||
+            target.closest('a') ||
+            target.closest('.option')
+        )) {
+            return;
+        }
+        
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        
+        const deltaX = touchStartX - touchEndX;
+        const deltaY = Math.abs(touchStartY - touchEndY);
+        
+        // Only handle horizontal swipes (horizontal movement > vertical movement)
+        if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+            e.preventDefault();
+            
+            if (deltaX > 0) {
+                // Swipe left - go to next question
+                if (typeof TestManager !== 'undefined' && TestManager.nextQuestion) {
+                    TestManager.nextQuestion();
+                }
+            } else {
+                // Swipe right - go to previous question
+                if (typeof TestManager !== 'undefined' && TestManager.previousQuestion) {
+                    TestManager.previousQuestion();
+                }
+            }
+        }
+    }, { passive: false });
+}
+
+// Initialize swipe gestures when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initSwipeGestures, 100);
+    });
+} else {
+    setTimeout(initSwipeGestures, 100);
+}
+
+// Re-initialize swipe gestures when question screen is shown
+const originalShowScreen = Navigation.showScreen;
+Navigation.showScreen = function(screenId) {
+    originalShowScreen.call(this, screenId);
+    if (screenId === 'question-screen') {
+        setTimeout(initSwipeGestures, 100);
+        initMobileBottomNav();
+    } else {
+        hideMobileBottomNav();
     }
-    // Close mobile menu if open
+};
+
+// Initialize mobile bottom navigation
+function initMobileBottomNav() {
+    const mobileBottomNav = document.getElementById('mobile-bottom-nav');
+    if (!mobileBottomNav) return;
+    
+    const questionScreen = document.getElementById('question-screen');
+    if (!questionScreen || questionScreen.classList.contains('hidden')) {
+        mobileBottomNav.classList.add('hidden');
+        return;
+    }
+    
+    mobileBottomNav.classList.remove('hidden');
+    
+    // Wire up button handlers
+    const mobilePrevBtn = document.getElementById('mobile-prev-btn');
+    const mobileNextBtn = document.getElementById('mobile-next-btn');
+    const mobileMarkBtn = document.getElementById('mobile-mark-btn');
+    const mobileDashboardBtn = document.getElementById('mobile-dashboard-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const desktopNextBtn = document.getElementById('next-btn');
+    const markBtn = document.getElementById('mark-btn');
+    
+    if (mobilePrevBtn && prevBtn) {
+        mobilePrevBtn.onclick = () => prevBtn.click();
+    }
+    
+    if (mobileNextBtn) {
+        // Handle both submit and next button states
+        const updateMobileNextBtn = () => {
+            const submitBtn = document.getElementById('submit-btn');
+            const nextBtn = document.getElementById('next-btn');
+            if (submitBtn && !submitBtn.classList.contains('hidden')) {
+                mobileNextBtn.onclick = () => submitBtn.click();
+                mobileNextBtn.querySelector('span').textContent = 'Check';
+            } else if (nextBtn && !nextBtn.classList.contains('hidden')) {
+                mobileNextBtn.onclick = () => nextBtn.click();
+                mobileNextBtn.querySelector('span').textContent = 'Next';
+            }
+        };
+        
+        // Observe button state changes
+        const submitBtn = document.getElementById('submit-btn');
+        const nextBtn = document.getElementById('next-btn');
+        if (submitBtn) {
+            const submitObserver = new MutationObserver(updateMobileNextBtn);
+            submitObserver.observe(submitBtn, { attributes: true, attributeFilter: ['class'] });
+        }
+        if (nextBtn) {
+            const nextObserver = new MutationObserver(updateMobileNextBtn);
+            nextObserver.observe(nextBtn, { attributes: true, attributeFilter: ['class'] });
+        }
+        updateMobileNextBtn();
+    }
+    
+    if (mobileMarkBtn && markBtn) {
+        mobileMarkBtn.onclick = () => markBtn.click();
+        // Sync mark state
+        const updateMarkState = () => {
+            if (markBtn.classList.contains('marked')) {
+                mobileMarkBtn.classList.add('marked');
+            } else {
+                mobileMarkBtn.classList.remove('marked');
+            }
+        };
+        // Observe mark button changes
+        const observer = new MutationObserver(updateMarkState);
+        observer.observe(markBtn, { attributes: true, attributeFilter: ['class'] });
+        updateMarkState();
+    }
+    
+    if (mobileDashboardBtn) {
+        mobileDashboardBtn.onclick = () => {
+            if (typeof UI !== 'undefined' && UI.showDashboardDialog) {
+                UI.showDashboardDialog();
+            } else if (typeof window.showDashboardDialog === 'function') {
+                window.showDashboardDialog();
+            }
+        };
+    }
+}
+
+function hideMobileBottomNav() {
+    const mobileBottomNav = document.getElementById('mobile-bottom-nav');
+    if (mobileBottomNav) {
+        mobileBottomNav.classList.add('hidden');
+    }
+}
+
+// Initialize swipe-down to close modals on mobile
+function initModalSwipeToClose() {
+    const modals = document.querySelectorAll('.modal:not(.hidden)');
+    
+    modals.forEach(modal => {
+        const modalContent = modal.querySelector('.modal-content');
+        if (!modalContent) return;
+        
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        let isDragging = false;
+        
+        modalContent.addEventListener('touchstart', function(e) {
+            // Only allow swipe from top of modal
+            if (e.touches[0].clientY - modalContent.getBoundingClientRect().top > 60) {
+                return;
+            }
+            touchStartY = e.touches[0].clientY;
+            touchStartTime = Date.now();
+            isDragging = false;
+        }, { passive: true });
+        
+        modalContent.addEventListener('touchmove', function(e) {
+            if (!touchStartY) return;
+            
+            const currentY = e.touches[0].clientY;
+            const deltaY = currentY - touchStartY;
+            
+            // Only allow downward swipe
+            if (deltaY > 0) {
+                isDragging = true;
+                // Add visual feedback
+                modalContent.style.transform = `translateY(${Math.min(deltaY, 100)}px)`;
+                modalContent.style.opacity = Math.max(0.7, 1 - (deltaY / 300));
+            }
+        }, { passive: true });
+        
+        modalContent.addEventListener('touchend', function(e) {
+            if (!touchStartY || !isDragging) {
+                touchStartY = 0;
+                return;
+            }
+            
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaY = touchEndY - touchStartY;
+            const deltaTime = Date.now() - touchStartTime;
+            const velocity = deltaY / deltaTime;
+            
+            // Reset transform
+            modalContent.style.transform = '';
+            modalContent.style.opacity = '';
+            
+            // Close if swiped down more than 100px or fast swipe
+            if (deltaY > 100 || (deltaY > 50 && velocity > 0.3)) {
+                // Close the appropriate modal
+                if (modal.id === 'user-settings-dialog') {
+                    if (typeof UI !== 'undefined' && UI.closeUserSettings) {
+                        UI.closeUserSettings();
+                    }
+                } else if (modal.id === 'dashboard-dialog') {
+                    if (typeof UI !== 'undefined' && UI.closeDashboardDialog) {
+                        UI.closeDashboardDialog();
+                    }
+                } else if (modal.id === 'reset-confirmation-dialog') {
+                    if (typeof window.closeResetConfirmation === 'function') {
+                        window.closeResetConfirmation();
+                    }
+                } else if (modal.id === 'about-us-modal') {
+                    if (typeof window.closeAboutUs === 'function') {
+                        window.closeAboutUs();
+                    }
+                } else {
+                    modal.classList.add('hidden');
+                }
+            }
+            
+            touchStartY = 0;
+            isDragging = false;
+        }, { passive: true });
+    });
+}
+
+// Observe modals being shown/hidden
+const modalObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            const modal = mutation.target;
+            if (modal.classList.contains('modal')) {
+                if (!modal.classList.contains('hidden')) {
+                    setTimeout(initModalSwipeToClose, 100);
+                }
+            }
+        }
+    });
+});
+
+// Observe all modals
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.modal').forEach(modal => {
+        modalObserver.observe(modal, { attributes: true });
+    });
+});
+
+// Utility function to close mobile menu
+const closeMobileMenu = () => {
     const menu = document.getElementById('navbar-menu');
     const toggle = document.getElementById('navbar-menu-toggle');
     if (menu && toggle) {
         menu.classList.remove('active');
         toggle.classList.remove('active');
+        toggle.setAttribute('aria-expanded', 'false');
     }
+};
+
+// Helper function to show sign-in screen (for HTML onclick handlers)
+window.showSignInScreen = () => {
+    if (typeof Navigation !== 'undefined' && Navigation.showScreen) {
+        Navigation.hideAllScreens();
+        Navigation.showScreen('sign-in-screen');
+    } else if (typeof showSignInScreen === 'function') {
+        // Fallback to firebase-db.js function if Navigation not available
+        showSignInScreen();
+    }
+};
+
+// Show main screen function
+window.showMainScreen = () => {
+    if (typeof Navigation !== 'undefined' && Navigation.showMainScreen) {
+        Navigation.showMainScreen();
+    }
+    closeMobileMenu();
 };
 
 // FAQ Page Functions
@@ -376,13 +897,7 @@ window.showFAQ = () => {
         Navigation.hideAllScreens();
         Navigation.showScreen('faq-screen');
     }
-    // Close mobile menu if open
-    const menu = document.getElementById('navbar-menu');
-    const toggle = document.getElementById('navbar-menu-toggle');
-    if (menu && toggle) {
-        menu.classList.remove('active');
-        toggle.classList.remove('active');
-    }
+    closeMobileMenu();
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
     // Initialize FAQ toggles
@@ -392,6 +907,39 @@ window.showFAQ = () => {
 // Initialize FAQ toggle functionality
 function initFAQToggles() {
     const faqItems = document.querySelectorAll('.faq-item');
+    
+    // Expand all functionality
+    const expandAllBtn = document.getElementById('expand-all-faq');
+    if (expandAllBtn) {
+        expandAllBtn.addEventListener('click', () => {
+            faqItems.forEach(item => {
+                const answer = item.querySelector('.faq-answer');
+                const toggle = item.querySelector('.faq-toggle');
+                if (answer && toggle) {
+                    item.classList.add('active');
+                    answer.style.maxHeight = answer.scrollHeight + 'px';
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+    }
+    
+    // Collapse all functionality
+    const collapseAllBtn = document.getElementById('collapse-all-faq');
+    if (collapseAllBtn) {
+        collapseAllBtn.addEventListener('click', () => {
+            faqItems.forEach(item => {
+                const answer = item.querySelector('.faq-answer');
+                const toggle = item.querySelector('.faq-toggle');
+                if (answer && toggle) {
+                    item.classList.remove('active');
+                    answer.style.maxHeight = null;
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    }
+    
     faqItems.forEach(item => {
         const toggle = item.querySelector('.faq-toggle');
         const answer = item.querySelector('.faq-answer');
@@ -421,9 +969,11 @@ function initFAQToggles() {
                 if (isActive) {
                     item.classList.remove('active');
                     answer.style.maxHeight = null;
+                    toggle.setAttribute('aria-expanded', 'false');
                 } else {
                     item.classList.add('active');
                     answer.style.maxHeight = answer.scrollHeight + 'px';
+                    toggle.setAttribute('aria-expanded', 'true');
                 }
             };
             
@@ -454,13 +1004,7 @@ window.showStudyGuide = () => {
         Navigation.hideAllScreens();
         Navigation.showScreen('study-guide-screen');
     }
-    // Close mobile menu if open
-    const menu = document.getElementById('navbar-menu');
-    const toggle = document.getElementById('navbar-menu-toggle');
-    if (menu && toggle) {
-        menu.classList.remove('active');
-        toggle.classList.remove('active');
-    }
+    closeMobileMenu();
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
@@ -471,13 +1015,7 @@ window.showAboutUsPage = () => {
         Navigation.hideAllScreens();
         Navigation.showScreen('about-us-screen');
     }
-    // Close mobile menu if open
-    const menu = document.getElementById('navbar-menu');
-    const toggle = document.getElementById('navbar-menu-toggle');
-    if (menu && toggle) {
-        menu.classList.remove('active');
-        toggle.classList.remove('active');
-    }
+    closeMobileMenu();
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
@@ -489,13 +1027,7 @@ window.showAboutUs = () => {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }
-    // Close mobile menu if open
-    const menu = document.getElementById('navbar-menu');
-    const toggle = document.getElementById('navbar-menu-toggle');
-    if (menu && toggle) {
-        menu.classList.remove('active');
-        toggle.classList.remove('active');
-    }
+    closeMobileMenu();
 };
 
 window.closeAboutUs = () => {
@@ -516,39 +1048,12 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Mobile Menu Toggle
-function initMobileMenu() {
-    const toggle = document.getElementById('navbar-menu-toggle');
-    const menu = document.getElementById('navbar-menu');
-    
-    if (toggle && menu) {
-        toggle.addEventListener('click', () => {
-            toggle.classList.toggle('active');
-            menu.classList.toggle('active');
-        });
-        
-        // Close menu when clicking a link
-        const links = menu.querySelectorAll('.navbar-link');
-        links.forEach(link => {
-            link.addEventListener('click', () => {
-                toggle.classList.remove('active');
-                menu.classList.remove('active');
-            });
-        });
-        
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!toggle.contains(e.target) && !menu.contains(e.target)) {
-                toggle.classList.remove('active');
-                menu.classList.remove('active');
-            }
-        });
-    }
-}
-
 // Initialize mobile menu when DOM is ready
+// Use attachNavbarToggleListener which properly handles backdrop and menu toggle
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMobileMenu);
+    document.addEventListener('DOMContentLoaded', () => {
+        attachNavbarToggleListener();
+    });
 } else {
-    initMobileMenu();
+    attachNavbarToggleListener();
 }

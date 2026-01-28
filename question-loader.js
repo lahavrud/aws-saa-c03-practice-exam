@@ -136,6 +136,30 @@ function parseQuestionsFromText(text) {
 
 // Auto-detect and load questions from questions directory
 async function autoLoadQuestions() {
+    // Check cache first
+    const cacheKey = 'cached-questions';
+    const cacheTimestampKey = 'cached-questions-timestamp';
+    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+    
+    try {
+        const cachedData = localStorage.getItem(cacheKey);
+        const cacheTimestamp = localStorage.getItem(cacheTimestampKey);
+        
+        if (cachedData && cacheTimestamp) {
+            const age = Date.now() - parseInt(cacheTimestamp);
+            if (age < CACHE_DURATION) {
+                console.log('Loading questions from cache...');
+                const parsed = JSON.parse(cachedData);
+                window.examQuestions = addUniqueIdsToQuestions(parsed);
+                return window.examQuestions;
+            } else {
+                console.log('Cache expired, loading fresh questions...');
+            }
+        }
+    } catch (error) {
+        console.warn('Error reading cache:', error);
+    }
+    
     // Wait a bit for questions.js to load (important for GitHub Pages)
     await new Promise(resolve => setTimeout(resolve, 100));
     
@@ -144,7 +168,17 @@ async function autoLoadQuestions() {
     const existingQuestions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
     if (existingQuestions) {
         // Ensure it's on window for module access and add unique IDs
-        window.examQuestions = addUniqueIdsToQuestions(existingQuestions);
+        const processed = addUniqueIdsToQuestions(existingQuestions);
+        window.examQuestions = processed;
+        
+        // Cache it
+        try {
+            localStorage.setItem(cacheKey, JSON.stringify(processed));
+            localStorage.setItem(cacheTimestampKey, Date.now().toString());
+        } catch (error) {
+            console.warn('Error caching questions:', error);
+        }
+        
         return window.examQuestions;
     }
     
@@ -153,10 +187,21 @@ async function autoLoadQuestions() {
         const combinedData = await loadQuestionsFromFile('questions/all_tests.json');
         if (combinedData && typeof combinedData === 'object') {
             // Assign to global examQuestions and add unique IDs
-            window.examQuestions = addUniqueIdsToQuestions(combinedData);
+            const processed = addUniqueIdsToQuestions(combinedData);
+            window.examQuestions = processed;
+            
+            // Cache it
+            try {
+                localStorage.setItem(cacheKey, JSON.stringify(processed));
+                localStorage.setItem(cacheTimestampKey, Date.now().toString());
+            } catch (error) {
+                console.warn('Error caching questions:', error);
+            }
+            
             return window.examQuestions;
         }
     } catch (error) {
+        console.warn('Error loading combined questions file:', error);
         // Silently continue to try individual files
     }
     
@@ -180,7 +225,17 @@ async function autoLoadQuestions() {
     
     if (foundAny) {
         // Assign to global examQuestions and add unique IDs
-        window.examQuestions = addUniqueIdsToQuestions(loadedTests);
+        const processed = addUniqueIdsToQuestions(loadedTests);
+        window.examQuestions = processed;
+        
+        // Cache it
+        try {
+            localStorage.setItem(cacheKey, JSON.stringify(processed));
+            localStorage.setItem(cacheTimestampKey, Date.now().toString());
+        } catch (error) {
+            console.warn('Error caching questions:', error);
+        }
+        
         return window.examQuestions;
     }
     
@@ -196,12 +251,36 @@ async function autoLoadQuestions() {
             const data = await loadQuestionsFromFile(file);
             if (data) {
                 // Assign to global examQuestions and add unique IDs
-                window.examQuestions = addUniqueIdsToQuestions(data);
+                const processed = addUniqueIdsToQuestions(data);
+                window.examQuestions = processed;
+                
+                // Cache it
+                try {
+                    localStorage.setItem(cacheKey, JSON.stringify(processed));
+                    localStorage.setItem(cacheTimestampKey, Date.now().toString());
+                } catch (error) {
+                    console.warn('Error caching questions:', error);
+                }
+                
                 return window.examQuestions;
             }
         } catch (error) {
+            console.warn(`Error loading ${file}:`, error);
             // Continue to next file
         }
+    }
+    
+    // Last resort: try to use cached data even if expired
+    try {
+        const cachedData = localStorage.getItem(cacheKey);
+        if (cachedData) {
+            console.warn('Using expired cache as fallback');
+            const parsed = JSON.parse(cachedData);
+            window.examQuestions = addUniqueIdsToQuestions(parsed);
+            return window.examQuestions;
+        }
+    } catch (error) {
+        console.warn('Error reading expired cache:', error);
     }
     
     console.error('No questions loaded from any source. Please ensure questions.js exists or JSON files are available.');

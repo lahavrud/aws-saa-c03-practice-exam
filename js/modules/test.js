@@ -43,6 +43,20 @@ const TestManager = (function() {
             
             if (!questions) {
                 console.error('examQuestions not loaded');
+                const testButtonsContainer = document.getElementById('test-buttons-container');
+                if (testButtonsContainer) {
+                    testButtonsContainer.innerHTML = `
+                        <div class="empty-state" role="alert">
+                            <div class="empty-state-icon">⚠️</div>
+                            <h3>Unable to Load Tests</h3>
+                            <p>Questions could not be loaded. Please refresh the page and try again.</p>
+                            <button class="empty-state-cta" onclick="location.reload()">Refresh Page</button>
+                        </div>
+                    `;
+                }
+                if (typeof window.handleError === 'function') {
+                    window.handleError(new Error('Questions not loaded'), 'Failed to load test questions. Please refresh the page.');
+                }
                 return;
             }
             
@@ -65,12 +79,25 @@ const TestManager = (function() {
             } else if (selectedSource === Config.TEST_SOURCES.SERGEY) {
                 testsForSource = organized.sergey || [];
             } else {
-                testButtonsContainer.innerHTML = '<p>Please select a source first.</p>';
+                testButtonsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📚</div>
+                        <h3>Select a Source</h3>
+                        <p>Please go back and select a test source first.</p>
+                    </div>
+                `;
                 return;
             }
             
             if (testsForSource.length === 0) {
-                testButtonsContainer.innerHTML = `<p>No tests available for ${selectedSource}.</p>`;
+                testButtonsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <h3>No Tests Available</h3>
+                        <p>No tests are currently available for ${selectedSource}.</p>
+                        <button class="empty-state-cta" onclick="goBackToSourceSelection()">Choose Another Source</button>
+                    </div>
+                `;
                 return;
             }
             
@@ -432,6 +459,7 @@ const TestManager = (function() {
                     return;
                 }
                 QuestionHandler.showAnswerFeedback(question, selectedAnswers);
+                // Hide submit button and show next button
                 if (submitBtn) submitBtn.classList.add('hidden');
                 if (nextBtn) nextBtn.classList.remove('hidden');
             } else {

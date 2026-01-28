@@ -98,10 +98,65 @@ const UserManager = (function() {
         
         // Reset user data
         resetUserData: () => {
-            if (!confirm('Are you sure you want to reset all your progress? This cannot be undone.')) {
-                return;
-            }
+            // Show confirmation modal
+            const dialog = document.getElementById('reset-confirmation-dialog');
+            const input = document.getElementById('reset-confirm-input');
+            const confirmBtn = document.getElementById('reset-confirm-btn');
             
+            if (dialog && input && confirmBtn) {
+                dialog.classList.remove('hidden');
+                input.value = '';
+                confirmBtn.disabled = true;
+                
+                // Focus on input
+                setTimeout(() => {
+                    input.focus();
+                }, 100);
+                
+                // Enable/disable confirm button based on input
+                input.addEventListener('input', function() {
+                    confirmBtn.disabled = input.value !== 'DELETE';
+                });
+                
+                // Handle Enter key
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && input.value === 'DELETE') {
+                        confirmResetProgress();
+                    }
+                });
+                
+                // Store trigger element
+                if (typeof UI !== 'undefined') {
+                    UI.previousFocus = document.activeElement;
+                }
+                
+                // Trap focus
+                if (typeof UI !== 'undefined' && UI.trapFocus) {
+                    UI.trapFocus(dialog);
+                }
+            } else {
+                // Fallback to prompt if modal not found
+                const confirmText = 'DELETE';
+                const userInput = prompt(`⚠️ WARNING: This will permanently delete ALL your progress data.\n\nThis action cannot be undone.\n\nType "${confirmText}" to confirm:`);
+                
+                if (userInput !== confirmText) {
+                    if (userInput !== null) {
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Reset cancelled. Progress data was not deleted.', 'warning');
+                        } else {
+                            alert('Reset cancelled. Progress data was not deleted.');
+                        }
+                    }
+                    return;
+                }
+                
+                // Continue with reset if confirmed
+                UserManager.performReset();
+            }
+        },
+        
+        // Perform the actual reset (called after confirmation)
+        performReset: () => {
             const currentUser = AppState.getCurrentUser();
             const currentUserEmail = AppState.getCurrentUserEmail();
             
@@ -143,6 +198,13 @@ const UserManager = (function() {
             
             // Reset current state
             AppState.resetTestState();
+            
+            // Show success message
+            if (typeof window.showToast === 'function') {
+                window.showToast('All progress data has been reset successfully.', 'success');
+            } else {
+                alert('All progress data has been reset successfully.');
+            }
             
             // Reload test buttons if on test selection screen
             if (AppState.getSelectedSource()) {

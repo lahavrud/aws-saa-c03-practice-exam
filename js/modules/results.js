@@ -91,6 +91,23 @@ const Results = (function() {
             
             // Show review questions
             Results.showReviewQuestions(currentQuestions, userAnswers);
+            
+            // Set up review section toggle
+            const reviewToggle = document.getElementById('review-toggle-btn');
+            const reviewContainer = document.getElementById('review-questions');
+            if (reviewToggle && reviewContainer) {
+                reviewToggle.addEventListener('click', () => {
+                    const isExpanded = reviewToggle.getAttribute('aria-expanded') === 'true';
+                    reviewToggle.setAttribute('aria-expanded', !isExpanded);
+                    if (isExpanded) {
+                        reviewContainer.classList.remove('expanded');
+                    } else {
+                        reviewContainer.classList.add('expanded');
+                    }
+                });
+                // Start collapsed
+                reviewToggle.setAttribute('aria-expanded', 'false');
+            }
         },
         
         // Build results breakdown by domain

@@ -20,6 +20,18 @@
     max-width: 500px;
     width: 90%;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .modal-content h3 {
@@ -195,20 +207,97 @@
     font-size: 0.95em;
 }
 
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
 .form-group input {
-    padding: 12px;
+    padding: 12px 40px 12px 12px;
     border: 2px solid #D5DBDB;
     border-radius: 6px;
     font-size: 1em;
     transition: all 0.3s ease;
     background: #FFFFFF;
     color: #232F3E;
+    width: 100%;
 }
 
 .form-group input:focus {
     outline: none;
     border-color: #FF9900;
     box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.1);
+}
+
+.form-group input:invalid:not(:placeholder-shown) {
+    border-color: #f44336;
+    padding-right: 40px;
+}
+
+.form-group input:valid:not(:placeholder-shown) {
+    border-color: #4caf50;
+    padding-right: 40px;
+}
+
+.input-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2em;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.input-icon-error {
+    color: #f44336;
+}
+
+.input-icon-success {
+    color: #4caf50;
+}
+
+.form-group.has-error .input-icon-error {
+    opacity: 1;
+}
+
+.form-group.has-success .input-icon-success {
+    opacity: 1;
+}
+
+.form-group.has-error input {
+    border-color: #f44336;
+    padding-right: 40px;
+}
+
+.form-group.has-success input {
+    border-color: #4caf50;
+    padding-right: 40px;
+}
+
+.form-group .error-message {
+    color: #f44336;
+    font-size: 0.85em;
+    margin-top: 4px;
+    display: none;
+}
+
+.form-group input:invalid + .error-message,
+.form-group.has-error .error-message {
+    display: block;
+}
+
+.form-group .success-message {
+    color: #4caf50;
+    font-size: 0.85em;
+    margin-top: 4px;
+    display: none;
+}
+
+.form-group.has-success .success-message {
+    display: block;
 }
 
 /* Statistics Grid */
@@ -704,6 +793,72 @@
     align-items: center;
     justify-content: center;
     min-height: 200px;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.empty-state-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.insights-empty h3 {
+    color: #232F3E;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.insights-empty p {
+    color: #666;
+    font-size: 1.1em;
+    margin-bottom: 25px;
+    max-width: 400px;
+}
+
+.empty-state-cta {
+    padding: 12px 24px;
+    background: #FF9900;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.empty-state-cta:hover {
+    background: #232F3E;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(35, 47, 62, 0.3);
+}
+
+/* Empty state for test selection */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: 40px 20px;
+    text-align: center;
+    background: #F5F5F5;
+    border-radius: 12px;
+    border: 2px dashed #D5DBDB;
+}
+
+.empty-state h3 {
+    color: #232F3E;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: #666;
+    font-size: 1.1em;
+    margin-bottom: 25px;
+    max-width: 400px;
 }
 
 .skeleton-loader {
@@ -1544,6 +1699,31 @@
     font-weight: 700;
     margin: 0;
     letter-spacing: -0.02em;
+}
+
+.faq-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: flex-end;
+}
+
+.faq-control-btn {
+    padding: 8px 16px;
+    background: #F5F5F5;
+    border: 2px solid #D5DBDB;
+    border-radius: 6px;
+    color: #232F3E;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.faq-control-btn:hover {
+    background: #E8EBED;
+    border-color: #FF9900;
+    color: #FF9900;
 }
 
 .faq-items {

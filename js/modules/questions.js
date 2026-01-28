@@ -255,30 +255,27 @@ const QuestionHandler = (function() {
                 }
             }
             
-            // Hide explanation initially
-            const explanationDiv = document.getElementById('explanation');
-            if (explanationDiv) {
-                explanationDiv.classList.add('hidden');
-            }
-            
             // Update submit/next button
             const submitBtn = document.getElementById('submit-btn');
             const nextBtn = document.getElementById('next-btn');
             // Use uniqueId for checking answers (questionKey already declared earlier)
             const hasAnswer = userAnswers[questionKey] && userAnswers[questionKey].length > 0;
             
+            // Hide explanation initially when loading a question
+            // In review mode, we'll show it again if user clicks "Check Answer"
+            const explanationDiv = document.getElementById('explanation');
+            if (explanationDiv) {
+                explanationDiv.classList.add('hidden');
+            }
+            
             if (currentMode === Config.MODES.REVIEW) {
-                if (hasAnswer) {
-                    // Show answer feedback
-                    QuestionHandler.showAnswerFeedback(question, userAnswers[questionKey]);
-                    submitBtn.classList.add('hidden');
-                    nextBtn.classList.remove('hidden');
-                } else {
-                    submitBtn.textContent = 'Check Answer';
-                    nextBtn.classList.add('hidden');
-                    submitBtn.classList.remove('hidden');
-                }
+                // In review mode, always show "Check Answer" button if there's an answer
+                // User can re-check answers by clicking the button again
+                submitBtn.textContent = 'Check Answer';
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
             } else {
+                // Test mode
                 submitBtn.textContent = currentQuestionIndex === currentQuestions.length - 1 ? 'Submit Test' : 'Next Question';
                 nextBtn.classList.add('hidden');
                 submitBtn.classList.remove('hidden');
@@ -628,6 +625,17 @@ const QuestionHandler = (function() {
             const currentMode = AppState.getCurrentMode();
             
             const buttons = questionGrid.querySelectorAll('.question-nav-item');
+            
+            // Auto-scroll to current question on mobile
+            if (window.innerWidth <= 768 && buttons[currentQuestionIndex]) {
+                const currentButton = buttons[currentQuestionIndex];
+                const scrollLeft = currentButton.offsetLeft - (questionGrid.offsetWidth / 2) + (currentButton.offsetWidth / 2);
+                questionGrid.scrollTo({
+                    left: scrollLeft,
+                    behavior: 'smooth'
+                });
+            }
+            
             buttons.forEach((btn, index) => {
                 const question = currentQuestions[index];
                 if (!question) return;

@@ -61,6 +61,20 @@ let localCache = {
     lastSync: {}
 };
 
+// Retry helper with exponential backoff
+async function retryOperation(operation, maxRetries = 3, delay = 1000) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            return await operation();
+        } catch (error) {
+            if (i === maxRetries - 1) throw error;
+            const waitTime = delay * Math.pow(2, i);
+            console.warn(`Operation failed, retrying in ${waitTime}ms... (attempt ${i + 1}/${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+    }
+}
+
 // Initialize Firebase
 function initFirebase() {
     if (firebaseInitialized) {
@@ -69,11 +83,17 @@ function initFirebase() {
     
     if (typeof firebaseConfig === 'undefined') {
         console.warn('Firebase config not found. Using localStorage only.');
+        if (typeof window.handleError === 'function') {
+            window.handleError(new Error('Firebase config missing'), 'Running in offline mode. Some features may be limited.');
+        }
         return;
     }
     
     if (typeof firebase === 'undefined') {
         console.warn('Firebase SDK not loaded. Using localStorage only.');
+        if (typeof window.handleError === 'function') {
+            window.handleError(new Error('Firebase SDK not loaded'), 'Running in offline mode. Some features may be limited.');
+        }
         return;
     }
     
@@ -81,6 +101,24 @@ function initFirebase() {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
         auth = firebase.auth();
+        
+        // Enable offline persistence with error handling
+        try {
+            db.enablePersistence({
+                synchronizeTabs: true
+            }).catch(err => {
+                if (err.code === 'failed-precondition') {
+                    console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+                } else if (err.code === 'unimplemented') {
+                    console.warn('Persistence is not available in this browser.');
+                } else {
+                    console.warn('Persistence error:', err);
+                }
+            });
+        } catch (persistenceError) {
+            console.warn('Could not enable offline persistence:', persistenceError);
+        }
+        
         firebaseInitialized = true;
         
         console.log('✓ Firebase initialized');
@@ -89,30 +127,45 @@ function initFirebase() {
         const googleProvider = new firebase.auth.GoogleAuthProvider();
         window.googleProvider = googleProvider; // Make globally accessible
         
-        // Listen for auth state changes
+        // Listen for auth state changes with error handling
         auth.onAuthStateChanged(user => {
-            if (user) {
-                currentUserId = user.uid;
-                const userEmail = user.email;
-                console.log('✓ User authenticated:', userEmail);
-                
-                // Update current user email
-                if (typeof window !== 'undefined') {
-                    window.currentUserEmail = userEmail;
+            try {
+                if (user) {
+                    currentUserId = user.uid;
+                    const userEmail = user.email;
+                    console.log('✓ User authenticated:', userEmail);
+                    
+                    // Update current user email
+                    if (typeof window !== 'undefined') {
+                        window.currentUserEmail = userEmail;
+                    }
+                    
+                    // Initialize user data for this email with error handling
+                    initializeUserForEmail(userEmail, user.displayName || userEmail.split('@')[0]).catch(error => {
+                        console.error('Error initializing user:', error);
+                        if (typeof window.handleError === 'function') {
+                            window.handleError(error, 'Failed to load user data. Using local storage only.');
+                        }
+                    });
+                    
+                    // One-time sync on auth with error handling
+                    syncLocalToFirestoreOnce().catch(error => {
+                        console.error('Error syncing data:', error);
+                        // Non-critical, continue anyway
+                    });
+                } else {
+                    currentUserId = null;
+                    if (typeof window !== 'undefined') {
+                        window.currentUserEmail = null;
+                    }
+                    // Show sign-in screen when not authenticated
+                    showSignInScreen();
                 }
-                
-                // Initialize user data for this email
-                initializeUserForEmail(userEmail, user.displayName || userEmail.split('@')[0]);
-                
-                // One-time sync on auth
-                syncLocalToFirestoreOnce();
-            } else {
-                currentUserId = null;
-                if (typeof window !== 'undefined') {
-                    window.currentUserEmail = null;
+            } catch (error) {
+                console.error('Error in auth state change handler:', error);
+                if (typeof window.handleError === 'function') {
+                    window.handleError(error, 'Authentication error. Please try refreshing the page.');
                 }
-                // Show sign-in screen when not authenticated
-                showSignInScreen();
             }
         });
         
@@ -128,6 +181,10 @@ function initFirebase() {
         }, 500);
     } catch (error) {
         console.error('Firebase initialization error:', error);
+        if (typeof window.handleError === 'function') {
+            window.handleError(error, 'Failed to initialize Firebase. Running in offline mode.');
+        }
+        // Continue without Firebase - app can work with localStorage
     }
 }
 
@@ -310,11 +367,11 @@ function queueSave(collection, docId, data, userName = null) {
     }, SAVE_DEBOUNCE_MS);
 }
 
-// Flush all queued saves in a single batch
+// Flush all queued saves in a single batch with retry
 async function flushSaveQueue() {
     if (saveQueue.size === 0 || !isFirebaseAvailable()) return;
     
-    try {
+    const saveOperation = async () => {
         const batch = db.batch();
         const updates = [];
         
@@ -336,8 +393,6 @@ async function flushSaveQueue() {
         }
         
         await batch.commit();
-        saveQueue.clear();
-        saveTimeout = null;
         
         // Update cache
         updates.forEach(key => {
@@ -350,10 +405,29 @@ async function flushSaveQueue() {
         });
         
         console.log(`✓ Batched ${updates.length} writes to Firestore`);
-    } catch (error) {
-        console.error('Error flushing save queue:', error);
+    };
+    
+    try {
+        await retryOperation(saveOperation, 3, 1000);
         saveQueue.clear();
         saveTimeout = null;
+    } catch (error) {
+        console.error('Error flushing save queue after retries:', error);
+        // Don't clear queue on error - will retry on next flush
+        // But clear timeout to allow retry
+        saveTimeout = null;
+        
+        // If offline, keep queue for when connection is restored
+        if (!navigator.onLine) {
+            if (typeof window.showToast === 'function') {
+                window.showToast('Changes will be saved when connection is restored.', 'info', 5000);
+            }
+        } else {
+            // Connection issue - will retry
+            if (typeof window.showToast === 'function') {
+                window.showToast('Failed to save. Will retry automatically.', 'warning', 5000);
+            }
+        }
     }
 }
 
@@ -557,14 +631,19 @@ function flushSaveQueueSync() {
 // Flush on page unload
 window.addEventListener('beforeunload', flushSaveQueueSync);
 
-// Sign in with Google
+// Sign in with Google with retry
 async function signInWithGoogle() {
     if (!isFirebaseInitialized()) {
-        console.error('Firebase not initialized');
-        return;
+        const error = new Error('Firebase not initialized');
+        if (typeof window.handleError === 'function') {
+            window.handleError(error, 'Firebase is not available. Please check your connection.');
+        } else {
+            console.error('Firebase not initialized');
+        }
+        throw error;
     }
     
-    try {
+    const signInOperation = async () => {
         const provider = window.googleProvider || new firebase.auth.GoogleAuthProvider();
         
         // Try popup first (better UX), fallback to redirect if popup is blocked
@@ -587,13 +666,22 @@ async function signInWithGoogle() {
                 throw popupError;
             }
         }
+    };
+    
+    try {
+        await retryOperation(signInOperation, 2, 1000);
     } catch (error) {
         console.error('Google Sign-In error:', error);
         if (error.code === 'auth/popup-closed-by-user') {
             // User closed popup - not an error
             return;
         } else {
-            alert('Sign-in failed: ' + error.message);
+            if (typeof window.handleError === 'function') {
+                window.handleError(error, 'Sign-in failed. Please check your connection and try again.');
+            } else {
+                alert('Sign-in failed: ' + error.message);
+            }
+            throw error; // Re-throw so calling code can handle it
         }
     }
 }
@@ -630,11 +718,15 @@ async function signOut() {
     }
 }
 
-// Initialize user data for email (create if doesn't exist)
+// Initialize user data for email (create if doesn't exist) with error handling
 async function initializeUserForEmail(email, displayName) {
-    if (!isFirebaseAvailable()) return;
+    if (!isFirebaseAvailable()) {
+        // Fallback to localStorage if Firebase not available
+        console.warn('Firebase not available, using localStorage only');
+        return;
+    }
     
-    try {
+    const initOperation = async () => {
         const userKey = email.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
         const userRef = db.collection('users').doc(userKey);
         const userDoc = await userRef.get();
@@ -712,9 +804,35 @@ async function initializeUserForEmail(email, displayName) {
         } else {
             console.warn('setCurrentUser function not available');
         }
-        
+    };
+    
+    try {
+        await retryOperation(initOperation, 3, 1000);
     } catch (error) {
-        console.error('Error initializing user:', error);
+        console.error('Error initializing user after retries:', error);
+        // Fallback: try to load from localStorage
+        const userKey = email.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
+        const cachedUser = localStorage.getItem(`saa-c03-user-${userKey}`);
+        if (cachedUser) {
+            try {
+                const userData = JSON.parse(cachedUser);
+                if (typeof window !== 'undefined' && typeof window.setCurrentUser === 'function') {
+                    window.setCurrentUser(userData, email);
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Loaded user data from cache. Some features may be limited.', 'warning');
+                    }
+                }
+            } catch (parseError) {
+                console.error('Error parsing cached user data:', parseError);
+                if (typeof window.handleError === 'function') {
+                    window.handleError(error, 'Failed to load user data. Please refresh the page.');
+                }
+            }
+        } else {
+            if (typeof window.handleError === 'function') {
+                window.handleError(error, 'Failed to initialize user. Please try refreshing the page.');
+            }
+        }
     }
 }
 
