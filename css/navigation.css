@@ -94,7 +94,7 @@
 }
 
 .navbar-toggle {
-    display: none;
+    display: none !important;
     flex-direction: column;
     gap: 4px;
     background: transparent;

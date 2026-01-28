@@ -267,6 +267,7 @@ const TestManager = (function() {
                 AppState.setMarkedQuestions(new Set());
                 
                 Navigation.hideScreen('domain-selection');
+                Navigation.hideScreen('main-selection');
                 Navigation.showScreen('question-screen');
                 
                 QuestionHandler.buildQuestionNavbar();
@@ -279,6 +280,15 @@ const TestManager = (function() {
             if (typeof window.attachNavbarToggleListener === 'function') {
                 setTimeout(() => window.attachNavbarToggleListener(), 100);
             }
+            
+            // Scroll to top of page and question screen when navigating from insights
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                const questionScreen = document.getElementById('question-screen');
+                if (questionScreen && !questionScreen.classList.contains('hidden')) {
+                    questionScreen.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 200);
         },
         
         // Load saved progress
