@@ -38,6 +38,7 @@ const TestManager = (function() {
         
         // Load all tests on dashboard grouped by source
         loadAllTestsOnDashboard: () => {
+            console.log('loadAllTestsOnDashboard called');
             const questions = window.examQuestions || (typeof examQuestions !== 'undefined' ? examQuestions : undefined);
             
             if (!questions) {
@@ -62,9 +63,11 @@ const TestManager = (function() {
                 return;
             }
             
+            console.log('Found all-tests-container, clearing and loading tests...');
             allTestsContainer.innerHTML = '';
             
             const organized = TestManager.organizeTestsBySource();
+            console.log('Organized tests:', organized);
             
             // Create sections for each source
             const sources = [
@@ -164,6 +167,17 @@ const TestManager = (function() {
                 sourceSection.appendChild(content);
                 allTestsContainer.appendChild(sourceSection);
             });
+            
+            // Ensure the all-tests-section is visible
+            const allTestsSection = document.querySelector('.all-tests-section');
+            if (allTestsSection) {
+                allTestsSection.style.display = 'block';
+                console.log('All tests section is now visible');
+            } else {
+                console.warn('all-tests-section element not found');
+            }
+            
+            console.log(`Loaded ${sources.reduce((sum, s) => sum + s.tests.length, 0)} tests total`);
         },
         
         // Create a test card with progress indicators
@@ -273,25 +287,17 @@ const TestManager = (function() {
             AppState.setSelectedSource(source);
             AppState.setCurrentTestDisplayNumber(displayNumber);
             
-            const saved = await ProgressManager.getSavedProgressForTest(testNumber);
-            if (saved) {
-                // Load saved progress and go directly to questions
-                const loaded = await TestManager.loadSavedProgress(testNumber);
-                if (loaded) {
-                    // Open question screen in modal
-                    TestManager.showQuestionModal();
-                    return;
-                }
-            }
-            
-            // If no saved progress or loading failed, go to mode selection
+            // Always show mode selection, but check for existing progress
             const questions = QuestionHandler.getTestQuestions(testNumber);
             AppState.setCurrentQuestions(questions);
-            TestManager.showModeSelectionModal();
+            
+            // Check for saved progress to show which modes have been practiced
+            const saved = await ProgressManager.getSavedProgressForTest(testNumber);
+            TestManager.showModeSelectionModal(saved);
         },
         
         // Show mode selection in modal
-        showModeSelectionModal: () => {
+        showModeSelectionModal: (savedProgress = null) => {
             const modal = document.getElementById('test-modal');
             if (!modal) {
                 // Create modal if it doesn't exist
@@ -300,6 +306,30 @@ const TestManager = (function() {
             
             const modalContent = document.getElementById('test-modal-content');
             if (modalContent) {
+                // Check which mode has progress
+                const hasReviewProgress = savedProgress && savedProgress.mode === Config.MODES.REVIEW;
+                const hasTestProgress = savedProgress && savedProgress.mode === Config.MODES.TEST;
+                
+                // Get progress info
+                let reviewProgressInfo = '';
+                let testProgressInfo = '';
+                
+                if (hasReviewProgress && savedProgress.answers) {
+                    const answeredCount = Object.keys(savedProgress.answers).length;
+                    const currentQuestions = AppState.getCurrentQuestions();
+                    const totalQuestions = currentQuestions ? currentQuestions.length : 0;
+                    const progressPercent = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+                    reviewProgressInfo = `<span class="mode-progress-badge">Continue: ${answeredCount}/${totalQuestions} answered (${progressPercent}%)</span>`;
+                }
+                
+                if (hasTestProgress && savedProgress.answers) {
+                    const answeredCount = Object.keys(savedProgress.answers).length;
+                    const currentQuestions = AppState.getCurrentQuestions();
+                    const totalQuestions = currentQuestions ? currentQuestions.length : 0;
+                    const progressPercent = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+                    testProgressInfo = `<span class="mode-progress-badge">Continue: ${answeredCount}/${totalQuestions} answered (${progressPercent}%)</span>`;
+                }
+                
                 modalContent.innerHTML = `
                     <div class="test-modal-header">
                         <h2>Select Mode</h2>
@@ -312,13 +342,15 @@ const TestManager = (function() {
                     </div>
                     <div class="test-modal-body">
                         <div class="mode-buttons">
-                            <button class="mode-btn" onclick="TestManager.selectModeInModal('review')">
-                                <h3>Review Mode</h3>
+                            <button class="mode-btn ${hasReviewProgress ? 'mode-btn-has-progress' : ''}" onclick="TestManager.selectModeInModal('review')">
+                                <h3>Review Mode ${hasReviewProgress ? '✓' : ''}</h3>
                                 <p>Get immediate feedback after each answer with detailed explanations</p>
+                                ${reviewProgressInfo}
                             </button>
-                            <button class="mode-btn" onclick="TestManager.selectModeInModal('test')">
-                                <h3>Test Mode</h3>
+                            <button class="mode-btn ${hasTestProgress ? 'mode-btn-has-progress' : ''}" onclick="TestManager.selectModeInModal('test')">
+                                <h3>Test Mode ${hasTestProgress ? '✓' : ''}</h3>
                                 <p>Timed exam simulation (130 minutes)</p>
+                                ${testProgressInfo}
                             </button>
                         </div>
                     </div>
@@ -330,8 +362,26 @@ const TestManager = (function() {
         },
         
         // Select mode in modal
-        selectModeInModal: (mode) => {
-            TestManager.selectMode(mode);
+        selectModeInModal: async (mode) => {
+            const testNumber = AppState.getCurrentTest();
+            
+            // Check if there's saved progress for this mode
+            const saved = await ProgressManager.getSavedProgressForTest(testNumber);
+            const hasProgressForMode = saved && saved.mode === mode;
+            
+            if (hasProgressForMode) {
+                // Load saved progress for this mode
+                const loaded = await TestManager.loadSavedProgress(testNumber);
+                if (loaded) {
+                    TestManager.closeTestModal();
+                    TestManager.showQuestionModal();
+                    return;
+                }
+            } else {
+                // Start fresh in this mode
+                TestManager.selectMode(mode);
+            }
+            
             TestManager.closeTestModal();
             TestManager.showQuestionModal();
         },
@@ -773,8 +823,18 @@ const TestManager = (function() {
                 console.log('Progress loaded, applying to AppState...', progress);
                 
                 // Apply the loaded progress to AppState
+                // Check if this is a completed test - if so, force review mode
+                const currentQuestions = AppState.getCurrentQuestions();
+                const answeredCount = progress.answers ? Object.keys(progress.answers).length : 0;
+                const isCompleted = currentQuestions && answeredCount === currentQuestions.length;
+                
                 if (progress.mode) {
-                    AppState.setCurrentMode(progress.mode);
+                    // If test is completed, always use review mode (even if saved as test mode)
+                    if (isCompleted && progress.mode === Config.MODES.TEST) {
+                        AppState.setCurrentMode(Config.MODES.REVIEW);
+                    } else {
+                        AppState.setCurrentMode(progress.mode);
+                    }
                 }
                 if (progress.questionIndex !== undefined) {
                     AppState.setCurrentQuestionIndex(progress.questionIndex || 0);
@@ -799,7 +859,7 @@ const TestManager = (function() {
                 AppState.setSavedProgress(progress);
                 
                 // Ensure questions are still loaded (they should be, but double-check)
-                const currentQuestions = AppState.getCurrentQuestions();
+                // Reuse currentQuestions from above (line 791)
                 if (!currentQuestions || currentQuestions.length === 0) {
                     console.error('Questions lost after loading progress, reloading...');
                     if (testNumber) {
@@ -817,6 +877,12 @@ const TestManager = (function() {
                 
                 QuestionHandler.buildQuestionNavbar();
                 QuestionHandler.loadQuestion();
+                
+                // Update stats immediately after loading progress
+                if (typeof UI !== 'undefined' && UI.updateStats) {
+                    UI.updateStats();
+                }
+                
                 Stats.updateDashboard();
                 
                 // Ensure navbar toggle is attached
@@ -824,8 +890,17 @@ const TestManager = (function() {
                     setTimeout(() => window.attachNavbarToggleListener(), 100);
                 }
                 
-                // Restore timer if in test mode - use saved startTime
+                // Add "View Results" button if reviewing completed test
                 const currentMode = AppState.getCurrentMode();
+                if (currentMode === Config.MODES.REVIEW && isCompleted) {
+                    setTimeout(() => {
+                        if (typeof Results !== 'undefined' && Results.addViewResultsButton) {
+                            Results.addViewResultsButton();
+                        }
+                    }, 100);
+                }
+                
+                // Restore timer if in test mode - use saved startTime
                 if (currentMode === Config.MODES.TEST) {
                     const savedStartTime = AppState.getTestStartTime();
                     if (savedStartTime) {
@@ -865,7 +940,36 @@ const TestManager = (function() {
                 Timer.stop();
             }
             
+            // Show results screen
             Results.show();
+            
+            // Add option to review in question screen
+            const resultsScreen = document.getElementById('results-screen');
+            if (resultsScreen) {
+                // Add button after results are shown
+                setTimeout(() => {
+                    const actionButtons = resultsScreen.querySelector('.action-buttons');
+                    if (actionButtons && currentMode === Config.MODES.TEST) {
+                        // Check if button already exists
+                        if (!document.getElementById('review-in-question-screen-btn')) {
+                            const reviewBtn = document.createElement('button');
+                            reviewBtn.id = 'review-in-question-screen-btn';
+                            reviewBtn.className = 'action-btn';
+                            reviewBtn.textContent = 'Review in Question Screen';
+                            reviewBtn.onclick = () => {
+                                // Switch to review mode and show question screen
+                                AppState.setCurrentMode(Config.MODES.REVIEW);
+                                AppState.setCurrentQuestionIndex(0);
+                                Navigation.hideScreen('results-screen');
+                                Navigation.showScreen('question-screen');
+                                QuestionHandler.loadQuestion();
+                                QuestionHandler.buildQuestionNavbar();
+                            };
+                            actionButtons.appendChild(reviewBtn);
+                        }
+                    }
+                }, 100);
+            }
         },
         
         // Next question

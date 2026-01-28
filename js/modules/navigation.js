@@ -2,6 +2,18 @@
 const Navigation = (function() {
     'use strict';
     
+    // Update navbar back button visibility
+    const updateNavbarBackButton = (show) => {
+        const backBtn = document.getElementById('navbar-back-btn');
+        if (backBtn) {
+            if (show) {
+                backBtn.classList.remove('hidden');
+            } else {
+                backBtn.classList.add('hidden');
+            }
+        }
+    };
+    
     return {
         // Show a specific screen
         showScreen: (screenId) => {
@@ -9,6 +21,10 @@ const Navigation = (function() {
             if (screen) {
                 screen.classList.remove('hidden');
             }
+            // Update navbar back button based on screen
+            // Only show navbar back button for question-screen, not results-screen (it has its own back button)
+            const screensWithBackButton = ['question-screen'];
+            updateNavbarBackButton(screensWithBackButton.includes(screenId));
         },
         
         // Hide a specific screen
@@ -24,6 +40,7 @@ const Navigation = (function() {
             document.querySelectorAll('.screen').forEach(screen => {
                 screen.classList.add('hidden');
             });
+            updateNavbarBackButton(false);
         },
         
         // Show main selection screen
@@ -77,6 +94,13 @@ const Navigation = (function() {
                 setTimeout(() => {
                     Insights.displayInsights();
                 }, 200);
+            }
+            
+            // Display submitted tests section
+            if (typeof Results !== 'undefined' && Results.displaySubmittedTests) {
+                setTimeout(() => {
+                    Results.displaySubmittedTests();
+                }, 300);
             }
         },
         
@@ -193,6 +217,13 @@ const Navigation = (function() {
                     setTimeout(() => {
                         Insights.displayInsights();
                     }, 200);
+                }
+                
+                // Display submitted tests section
+                if (typeof Results !== 'undefined' && Results.displaySubmittedTests) {
+                    setTimeout(() => {
+                        Results.displaySubmittedTests();
+                    }, 300);
                 }
             }
             
@@ -618,10 +649,76 @@ window.restartTest = () => {
     }
 };
 
+window.closeQuestionReviewModal = () => {
+    const modal = document.getElementById('question-review-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+};
+
+window.returnToResultsDashboard = () => {
+    Navigation.hideScreen('results-screen');
+    Navigation.showScreen('main-selection');
+    // Refresh dashboard content
+    if (typeof Stats !== 'undefined' && Stats.updateDashboard) {
+        Stats.updateDashboard();
+    }
+    if (typeof TestManager !== 'undefined' && TestManager.loadAllTestsOnDashboard) {
+        setTimeout(() => {
+            TestManager.loadAllTestsOnDashboard();
+        }, 100);
+    }
+    if (typeof ResumeManager !== 'undefined' && ResumeManager.displayContinueSection) {
+        setTimeout(() => {
+            ResumeManager.displayContinueSection();
+        }, 100);
+    }
+    if (typeof Results !== 'undefined' && Results.displaySubmittedTests) {
+        setTimeout(() => {
+            Results.displaySubmittedTests();
+        }, 300);
+    }
+};
+
+// Handle navbar back button click
+window.handleNavbarBack = () => {
+    const resultsScreen = document.getElementById('results-screen');
+    const questionScreen = document.getElementById('question-screen');
+    
+    if (resultsScreen && !resultsScreen.classList.contains('hidden')) {
+        // If on results screen, go back to dashboard
+        window.returnToResultsDashboard();
+    } else if (questionScreen && !questionScreen.classList.contains('hidden')) {
+        // If on question screen, check if we can go to results or dashboard
+        const currentMode = AppState.getCurrentMode();
+        const isCompleted = AppState.isTestCompleted && AppState.isTestCompleted();
+        
+        if (isCompleted && currentMode === Config.MODES.REVIEW) {
+            // If reviewing a completed test, go to results screen
+            if (typeof Results !== 'undefined' && Results.show) {
+                Results.show();
+            }
+        } else {
+            // Otherwise, go back to dashboard
+            Navigation.returnToDashboard();
+        }
+    }
+};
+
 window.reviewAnswers = () => {
     const reviewContainer = document.getElementById('review-questions');
-    if (reviewContainer) {
-        reviewContainer.scrollIntoView({ behavior: 'smooth' });
+    const reviewToggle = document.getElementById('review-toggle-btn');
+    
+    if (reviewContainer && reviewToggle) {
+        // Expand the review section if it's collapsed
+        const isExpanded = reviewToggle.getAttribute('aria-expanded') === 'true';
+        if (!isExpanded) {
+            reviewToggle.setAttribute('aria-expanded', 'true');
+            reviewContainer.classList.add('expanded');
+        }
+        // Scroll to the review section
+        reviewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 };
 

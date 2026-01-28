@@ -24,6 +24,7 @@ const Config = {
         USERS_LIST: 'saa-c03-users',
         USER_PREFIX: 'saa-c03-user-',
         PROGRESS_PREFIX: 'saa-c03-progress-',
-        CURRENT_PROGRESS_PREFIX: 'saa-c03-current-progress-'
+        CURRENT_PROGRESS_PREFIX: 'saa-c03-current-progress-',
+        SUBMITTED_TESTS_PREFIX: 'saa-c03-submitted-tests-'
     }
 };

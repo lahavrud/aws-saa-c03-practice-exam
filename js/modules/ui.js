@@ -95,10 +95,13 @@ const UI = (function() {
                     domainAccuracyPercent.setAttribute('aria-label', `Accuracy: ${accuracy} percent`);
                 }
             } else {
-                // Show test mode stats (Answered, Remaining, Marked)
+                // Show test mode stats (Answered, Remaining, Correct, Incorrect, Accuracy, Marked)
                 const statItem1 = document.getElementById('stat-item-1');
                 const statItem2 = document.getElementById('stat-item-2');
                 const statItem3 = document.getElementById('stat-item-3');
+                const statItemCorrect = document.getElementById('stat-item-correct');
+                const statItemIncorrect = document.getElementById('stat-item-incorrect');
+                const statItemAccuracy = document.getElementById('stat-item-accuracy');
                 const domainCorrect = document.getElementById('domain-stat-correct');
                 const domainIncorrect = document.getElementById('domain-stat-incorrect');
                 const domainAccuracy = document.getElementById('domain-stat-accuracy');
@@ -107,6 +110,9 @@ const UI = (function() {
                 if (statItem1) statItem1.style.display = '';
                 if (statItem2) statItem2.style.display = '';
                 if (statItem3) statItem3.style.display = '';
+                if (statItemCorrect) statItemCorrect.style.display = '';
+                if (statItemIncorrect) statItemIncorrect.style.display = '';
+                if (statItemAccuracy) statItemAccuracy.style.display = '';
                 
                 // Hide domain mode stats
                 if (domainCorrect) domainCorrect.style.display = 'none';
@@ -117,6 +123,9 @@ const UI = (function() {
                 const answeredEl = document.getElementById('answered-count');
                 const remainingEl = document.getElementById('remaining-count');
                 const markedEl = document.getElementById('marked-count');
+                const correctEl = document.getElementById('correct-count');
+                const incorrectEl = document.getElementById('incorrect-count');
+                const accuracyEl = document.getElementById('accuracy-percent');
                 const markedQuestions = AppState.getMarkedQuestions();
                 
                 if (answeredEl) {
@@ -127,6 +136,27 @@ const UI = (function() {
                     const remaining = currentQuestions.length - answered;
                     remainingEl.textContent = remaining;
                     remainingEl.setAttribute('aria-label', `${remaining} questions remaining`);
+                }
+                if (correctEl) {
+                    correctEl.textContent = correct;
+                    correctEl.setAttribute('aria-label', `${correct} correct answers`);
+                }
+                if (incorrectEl) {
+                    incorrectEl.textContent = incorrect;
+                    incorrectEl.setAttribute('aria-label', `${incorrect} incorrect answers`);
+                }
+                if (accuracyEl) {
+                    accuracyEl.textContent = `${accuracy}%`;
+                    accuracyEl.setAttribute('aria-label', `Accuracy: ${accuracy} percent`);
+                    // Add color class based on accuracy
+                    accuracyEl.className = '';
+                    if (accuracy >= 80) {
+                        accuracyEl.classList.add('accuracy-high');
+                    } else if (accuracy >= 60) {
+                        accuracyEl.classList.add('accuracy-medium');
+                    } else if (accuracy > 0) {
+                        accuracyEl.classList.add('accuracy-low');
+                    }
                 }
                 if (markedEl) {
                     markedEl.textContent = markedQuestions.size;

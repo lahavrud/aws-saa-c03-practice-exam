@@ -14,10 +14,45 @@
                     <div class="hero-circle hero-circle-2"></div>
                 </div>
             </div>
-            <!-- Insights Section -->
-            <div id="insights-container" class="insights-section">
-                <h2>Performance Insights</h2>
-                <div class="insights-loading">Loading insights...</div>
+            <!-- Continue Section -->
+            <div id="continue-section" class="continue-section" style="display: none;">
+                <!-- Will be populated by ResumeManager -->
+            </div>
+            
+            <!-- Insights Section (Collapsible) -->
+            <div id="insights-container" class="insights-section" role="region" aria-label="Performance Insights">
+                <div class="insights-header">
+                    <h2>Performance Insights</h2>
+                    <button class="insights-toggle" id="insights-toggle" aria-expanded="true" aria-label="Toggle insights">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                <div class="insights-content" id="insights-content">
+                    <div class="insights-loading" role="status" aria-live="polite">
+                        <div class="skeleton-loader"></div>
+                        <div class="skeleton-loader"></div>
+                        <div class="skeleton-loader"></div>
+                        <p>Loading insights...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- All Tests Section -->
+            <div class="all-tests-section">
+                <h2>All Tests</h2>
+                <div id="all-tests-container" class="all-tests-container">
+                    <!-- Tests will be loaded here by TestManager -->
+                </div>
+            </div>
+            
+            <!-- Submitted Tests Section -->
+            <div id="submitted-tests-section" class="submitted-tests-section" style="display: none;">
+                <h2>Submitted Tests</h2>
+                <div id="submitted-tests-container" class="submitted-tests-container">
+                    <!-- Submitted tests will be loaded here -->
+                </div>
             </div>
             
             <h2>Choose Your Practice Mode</h2>

@@ -266,17 +266,22 @@ const ResumeManager = (function() {
             
             continueContainer.style.display = 'block';
             
+            // Check if test is completed (100% progress and it's a test, not domain)
+            const isTestCompleted = details.test && details.progressPercent === 100;
+            
             const modeLabel = details.mode === Config.MODES.TEST ? 'Test Mode' : 'Review Mode';
-            const modeIcon = details.mode === Config.MODES.TEST ? '⏱️' : '📖';
+            const modeIcon = isTestCompleted ? '📝' : (details.mode === Config.MODES.TEST ? '⏱️' : '📖');
+            const cardTitle = isTestCompleted ? 'Review Test' : 'Continue Practice';
+            const buttonText = isTestCompleted ? 'Review' : 'Continue';
             
             continueContainer.innerHTML = `
                 <div class="continue-card">
                     <div class="continue-header">
                         <div class="continue-icon">${modeIcon}</div>
                         <div class="continue-info">
-                            <h3>Continue Practice</h3>
+                            <h3>${cardTitle}</h3>
                             <p class="continue-name">${details.displayName}</p>
-                            <p class="continue-mode">${modeLabel}</p>
+                            <p class="continue-mode">${isTestCompleted ? 'Completed Test' : modeLabel}</p>
                         </div>
                     </div>
                     <div class="continue-progress">
@@ -284,14 +289,14 @@ const ResumeManager = (function() {
                             <div class="continue-progress-fill" style="width: ${details.progressPercent}%"></div>
                         </div>
                         <div class="continue-progress-text">
-                            <span>Question ${details.currentQuestion} of ${details.totalQuestions}</span>
+                            <span>${isTestCompleted ? `All ${details.totalQuestions} questions completed` : `Question ${details.currentQuestion} of ${details.totalQuestions}`}</span>
                             <span class="continue-percentage">${details.progressPercent}%</span>
                         </div>
                     </div>
                     <div class="continue-footer">
                         <span class="continue-last-accessed">Last accessed: ${details.lastAccessed}</span>
-                        <button class="continue-btn" data-action="resume">
-                            Continue
+                        <button class="continue-btn" data-action="${isTestCompleted ? 'review' : 'resume'}">
+                            ${buttonText}
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="9 18 15 12 9 6"></polyline>
                             </svg>
@@ -300,30 +305,66 @@ const ResumeManager = (function() {
                 </div>
             `;
             
-            // Attach event listener to continue button (works better on mobile than onclick)
-            const continueBtn = continueContainer.querySelector('.continue-btn[data-action="resume"]');
-            if (continueBtn) {
+            // Attach event listener to continue/review button
+            const actionBtn = continueContainer.querySelector('.continue-btn');
+            if (actionBtn) {
                 // Remove any existing listeners by cloning
-                const newBtn = continueBtn.cloneNode(true);
-                continueBtn.parentNode.replaceChild(newBtn, continueBtn);
+                const newBtn = actionBtn.cloneNode(true);
+                actionBtn.parentNode.replaceChild(newBtn, actionBtn);
+                
+                const handleAction = async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (isTestCompleted) {
+                        // Review completed test - switch to review mode
+                        if (details.test && details.source) {
+                            // Load test in review mode (force review mode even if saved as test mode)
+                            AppState.setCurrentTest(details.test);
+                            AppState.setSelectedSource(details.source);
+                            AppState.setCurrentMode(Config.MODES.REVIEW);
+                            
+                            // Load test questions
+                            const testQuestions = QuestionHandler.getTestQuestions(details.test);
+                            if (testQuestions && testQuestions.length > 0) {
+                                AppState.setCurrentQuestions(testQuestions);
+                                
+                                // Load saved progress to get answers, but force review mode
+                                const progress = await ProgressManager.loadSavedProgress(details.test);
+                                if (progress) {
+                                    // Force review mode for completed tests
+                                    AppState.setCurrentMode(Config.MODES.REVIEW);
+                                    
+                                    // Apply answers and other progress data
+                                    if (progress.answers) {
+                                        AppState.setUserAnswers(progress.answers);
+                                    }
+                                    if (progress.marked) {
+                                        AppState.setMarkedQuestions(new Set(progress.marked));
+                                    }
+                                    
+                                    AppState.setCurrentQuestionIndex(0);
+                                    Navigation.hideScreen('main-selection');
+                                    Navigation.showScreen('question-screen');
+                                    QuestionHandler.loadQuestion();
+                                    QuestionHandler.buildQuestionNavbar();
+                                    
+                                    // Add "View Results" button to question screen header
+                                    Results.addViewResultsButton();
+                                }
+                            }
+                        }
+                    } else {
+                        // Resume practice
+                        if (typeof ResumeManager !== 'undefined' && ResumeManager.resumeInModal) {
+                            await ResumeManager.resumeInModal();
+                        }
+                    }
+                };
                 
                 // Add event listener for both click and touch events
-                newBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (typeof ResumeManager !== 'undefined' && ResumeManager.resumeInModal) {
-                        await ResumeManager.resumeInModal();
-                    }
-                });
-                
-                // Also handle touchstart for better mobile support
-                newBtn.addEventListener('touchstart', async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (typeof ResumeManager !== 'undefined' && ResumeManager.resumeInModal) {
-                        await ResumeManager.resumeInModal();
-                    }
-                });
+                newBtn.addEventListener('click', handleAction);
+                newBtn.addEventListener('touchstart', handleAction);
             }
         }
     };

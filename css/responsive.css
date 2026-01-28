@@ -57,6 +57,19 @@
 
     .navbar-container {
         padding: 12px 15px;
+        gap: 15px;
+    }
+
+    .navbar-back-btn {
+        padding: 8px;
+        min-width: 40px;
+        min-height: 40px;
+        margin-right: 8px;
+    }
+
+    .navbar-back-btn svg {
+        width: 18px;
+        height: 18px;
     }
 
     .navbar-brand-name {
@@ -341,6 +354,42 @@
         left: 10px;
         padding: 8px 16px;
         font-size: 0.9em;
+    }
+    
+    /* Results Screen Header - Mobile */
+    .results-screen-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .results-screen-header h2 {
+        width: 100%;
+        font-size: 1.4em;
+    }
+    
+    .results-back-btn {
+        padding: 10px 14px;
+        font-size: 0.9em;
+        width: auto;
+    }
+    
+    .back-btn-text {
+        display: inline-block;
+    }
+    
+    /* On very small screens, hide text, show only icon */
+    @media (max-width: 360px) {
+        .results-back-btn {
+            padding: 10px;
+            min-width: 44px;
+            justify-content: center;
+        }
+        
+        .back-btn-text {
+            display: none;
+        }
     }
     
     .question-grid {

@@ -274,6 +274,26 @@ const QuestionHandler = (function() {
                 submitBtn.textContent = 'Check Answer';
                 nextBtn.classList.add('hidden');
                 submitBtn.classList.remove('hidden');
+                
+                // If reviewing a completed test (all questions answered), auto-show explanation
+                const allQuestions = AppState.getCurrentQuestions();
+                const allAnswers = AppState.getUserAnswers();
+                const totalQuestions = allQuestions ? allQuestions.length : 0;
+                const answeredCount = allAnswers ? Object.keys(allAnswers).length : 0;
+                const isCompletedTest = totalQuestions > 0 && answeredCount === totalQuestions;
+                
+                // Auto-show explanation if reviewing completed test and question has an answer
+                if (isCompletedTest && hasAnswer && selectedAnswers.length > 0 && explanationDiv) {
+                    // Small delay to ensure DOM is ready, then show explanation
+                    setTimeout(() => {
+                        if (explanationDiv.classList.contains('hidden')) {
+                            QuestionHandler.showAnswerFeedback(question, selectedAnswers);
+                            // Hide submit button and show next button after showing explanation
+                            if (submitBtn) submitBtn.classList.add('hidden');
+                            if (nextBtn) nextBtn.classList.remove('hidden');
+                        }
+                    }, 100);
+                }
             } else {
                 // Test mode
                 submitBtn.textContent = currentQuestionIndex === currentQuestions.length - 1 ? 'Submit Test' : 'Next Question';
@@ -293,6 +313,11 @@ const QuestionHandler = (function() {
             
             // Update question navbar
             QuestionHandler.updateQuestionNavbar();
+            
+            // Add "View Results" button if reviewing completed test
+            if (typeof Results !== 'undefined' && Results.addViewResultsButton) {
+                Results.addViewResultsButton();
+            }
             
             // Scroll question into view and center it (especially useful when entering a test)
             setTimeout(() => {
