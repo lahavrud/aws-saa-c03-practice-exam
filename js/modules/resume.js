@@ -3,25 +3,9 @@ const ResumeManager = (function() {
     'use strict';
     
     return {
-        // Get last progress point
-        getLastProgressPoint: () => {
-            const currentUserEmail = AppState.getCurrentUserEmail();
-            if (!currentUserEmail) return null;
-            
-            const userKey = currentUserEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
-            const lastProgressKey = localStorage.getItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`);
-            
-            if (!lastProgressKey) return null;
-            
-            const saved = localStorage.getItem(lastProgressKey);
-            if (!saved) return null;
-            
-            try {
-                return JSON.parse(saved);
-            } catch (error) {
-                console.error('Error parsing last progress:', error);
-                return null;
-            }
+        // Get last progress point (delegates to ProgressManager for Firestore sync)
+        getLastProgressPoint: async () => {
+            return await ProgressManager.getLastProgressPoint();
         },
         
         // Calculate progress percentage for a test or domain
@@ -75,22 +59,24 @@ const ResumeManager = (function() {
                 totalQuestions = testQuestions.length;
                 
                 // Get display number for test
-                const organized = TestManager.organizeTestsBySource();
                 let displayNumber = currentTest;
-                
-                if (source === Config.TEST_SOURCES.STEPHANE) {
-                    const stephaneTests = organized.stephane || [];
-                    const testInfo = stephaneTests.find(t => t.number === currentTest);
-                    if (testInfo) {
-                        displayNumber = stephaneTests.indexOf(testInfo) + 1;
-                    }
-                } else if (source === Config.TEST_SOURCES.DOJO) {
-                    displayNumber = 1; // Dojo only has test 8
-                } else if (source === Config.TEST_SOURCES.SERGEY) {
-                    const sergeyTests = organized.sergey || [];
-                    const testInfo = sergeyTests.find(t => t.number === currentTest);
-                    if (testInfo) {
-                        displayNumber = sergeyTests.indexOf(testInfo) + 1;
+                if (typeof TestManager !== 'undefined' && TestManager.organizeTestsBySource) {
+                    const organized = TestManager.organizeTestsBySource();
+                    
+                    if (source === Config.TEST_SOURCES.STEPHANE) {
+                        const stephaneTests = organized.stephane || [];
+                        const testInfo = stephaneTests.find(t => t.number === currentTest);
+                        if (testInfo) {
+                            displayNumber = stephaneTests.indexOf(testInfo) + 1;
+                        }
+                    } else if (source === Config.TEST_SOURCES.DOJO) {
+                        displayNumber = 1; // Dojo only has test 8
+                    } else if (source === Config.TEST_SOURCES.SERGEY) {
+                        const sergeyTests = organized.sergey || [];
+                        const testInfo = sergeyTests.find(t => t.number === currentTest);
+                        if (testInfo) {
+                            displayNumber = sergeyTests.indexOf(testInfo) + 1;
+                        }
                     }
                 }
                 
@@ -147,8 +133,8 @@ const ResumeManager = (function() {
         },
         
         // Resume last progress in modal/overlay
-        resumeInModal: () => {
-            const progress = ResumeManager.getLastProgressPoint();
+        resumeInModal: async () => {
+            const progress = await ResumeManager.getLastProgressPoint();
             if (!progress) {
                 console.warn('No progress to resume');
                 return false;
@@ -191,8 +177,8 @@ const ResumeManager = (function() {
         },
         
         // Resume last progress (legacy - direct resume)
-        resume: () => {
-            const progress = ResumeManager.getLastProgressPoint();
+        resume: async () => {
+            const progress = await ResumeManager.getLastProgressPoint();
             if (!progress) {
                 console.warn('No progress to resume');
                 return false;
@@ -216,7 +202,7 @@ const ResumeManager = (function() {
                 AppState.setCurrentQuestions(testQuestions);
                 
                 // Load saved progress
-                const loaded = TestManager.loadSavedProgress(currentTest);
+                const loaded = await TestManager.loadSavedProgress(currentTest);
                 if (loaded) {
                     return true;
                 } else {
@@ -240,7 +226,7 @@ const ResumeManager = (function() {
                 AppState.setCurrentQuestions(domainQuestions);
                 
                 // Load saved progress
-                const loaded = TestManager.loadSavedProgress(null);
+                const loaded = await TestManager.loadSavedProgress(null);
                 if (loaded) {
                     return true;
                 } else {
@@ -258,11 +244,11 @@ const ResumeManager = (function() {
         },
         
         // Display continue section on dashboard
-        displayContinueSection: () => {
+        displayContinueSection: async () => {
             const continueContainer = document.getElementById('continue-section');
             if (!continueContainer) return;
             
-            const progress = ResumeManager.getLastProgressPoint();
+            const progress = await ResumeManager.getLastProgressPoint();
             if (!progress) {
                 continueContainer.style.display = 'none';
                 return;

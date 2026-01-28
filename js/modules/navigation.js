@@ -27,9 +27,29 @@ const Navigation = (function() {
         },
         
         // Show main selection screen
-        showMainScreen: () => {
+        showMainScreen: async () => {
             Navigation.hideAllScreens();
             Navigation.showScreen('main-selection');
+            
+            // Sync all progress from Firestore first (for cross-device sync)
+            if (typeof ProgressManager !== 'undefined' && ProgressManager.syncAllProgressFromFirestore) {
+                try {
+                    console.log('Syncing progress from Firestore before showing dashboard...');
+                    await ProgressManager.syncAllProgressFromFirestore();
+                } catch (error) {
+                    console.error('Error syncing progress:', error);
+                }
+            }
+            
+            // Update stats after syncing (so they reflect synced data)
+            if (typeof Stats !== 'undefined') {
+                if (Stats.recalculateUserStats) {
+                    Stats.recalculateUserStats(false);
+                }
+                if (Stats.updateDashboard) {
+                    Stats.updateDashboard();
+                }
+            }
             
             // Load all tests on dashboard
             if (typeof TestManager !== 'undefined' && TestManager.loadAllTestsOnDashboard) {
@@ -43,6 +63,13 @@ const Navigation = (function() {
                 setTimeout(() => {
                     ResumeManager.displayContinueSection();
                 }, 100);
+            }
+            
+            // Update insights after syncing (so they reflect synced data)
+            if (typeof Insights !== 'undefined' && Insights.displayInsights) {
+                setTimeout(() => {
+                    Insights.displayInsights();
+                }, 200);
             }
         },
         
@@ -101,7 +128,7 @@ const Navigation = (function() {
         },
         
         // Return to dashboard
-        returnToDashboard: (preserveState = false) => {
+        returnToDashboard: async (preserveState = false) => {
             Navigation.hideScreen('question-screen');
             Navigation.hideScreen('results-screen');
             Navigation.hideScreen('mode-selection');
@@ -114,6 +141,16 @@ const Navigation = (function() {
             const currentUserName = AppState.getCurrentUserName();
             
             if (currentUser && currentUserName) {
+                // Sync progress from Firestore before showing dashboard
+                if (typeof ProgressManager !== 'undefined' && ProgressManager.syncAllProgressFromFirestore) {
+                    try {
+                        console.log('Syncing progress from Firestore before returning to dashboard...');
+                        await ProgressManager.syncAllProgressFromFirestore();
+                    } catch (error) {
+                        console.error('Error syncing progress:', error);
+                    }
+                }
+                
                 Navigation.showScreen('main-selection');
                 if (typeof Stats !== 'undefined') {
                     Stats.recalculateUserStats(false);
@@ -198,18 +235,20 @@ const Navigation = (function() {
             // Restore to last saved progress
             const currentTest = AppState.getCurrentTest();
             if (currentTest) {
-                const saved = ProgressManager.getSavedProgressForTest(currentTest);
-                if (saved) {
-                    ProgressManager.loadSavedProgress(currentTest);
-                    if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
-                        Stats.recalculateUserStats(false);
+                ProgressManager.getSavedProgressForTest(currentTest).then(saved => {
+                    if (saved) {
+                        ProgressManager.loadSavedProgress(currentTest).then(() => {
+                            if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
+                                Stats.recalculateUserStats(false);
+                            }
+                        });
+                    } else {
+                        AppState.resetTestState();
+                        if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
+                            Stats.recalculateUserStats(false);
+                        }
                     }
-                } else {
-                    AppState.resetTestState();
-                    if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
-                        Stats.recalculateUserStats(false);
-                    }
-                }
+                });
             } else {
                 AppState.resetTestState();
                 if (typeof Stats !== 'undefined' && Stats.recalculateUserStats) {
@@ -800,16 +839,24 @@ function initMobileBottomNav() {
     }
     
     if (mobileNextBtn) {
-        // Handle both submit and next button states
+        // Mobile next button always goes to next question (not check)
         const updateMobileNextBtn = () => {
-            const submitBtn = document.getElementById('submit-btn');
             const nextBtn = document.getElementById('next-btn');
-            if (submitBtn && !submitBtn.classList.contains('hidden')) {
-                mobileNextBtn.onclick = () => submitBtn.click();
-                mobileNextBtn.querySelector('span').textContent = 'Check';
-            } else if (nextBtn && !nextBtn.classList.contains('hidden')) {
-                mobileNextBtn.onclick = () => nextBtn.click();
-                mobileNextBtn.querySelector('span').textContent = 'Next';
+            if (nextBtn) {
+                // If next button is visible, use it
+                if (!nextBtn.classList.contains('hidden')) {
+                    mobileNextBtn.onclick = () => nextBtn.click();
+                    mobileNextBtn.querySelector('span').textContent = 'Next';
+                } else {
+                    // If next button is hidden, still allow going to next (will show submit button)
+                    mobileNextBtn.onclick = () => {
+                        // Try to click next, if not available, do nothing
+                        if (nextBtn && typeof TestManager !== 'undefined' && TestManager.nextQuestion) {
+                            TestManager.nextQuestion();
+                        }
+                    };
+                    mobileNextBtn.querySelector('span').textContent = 'Next';
+                }
             }
         };
         

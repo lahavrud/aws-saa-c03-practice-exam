@@ -51,15 +51,19 @@ header h1 {
 }
 
 .timer {
-    position: absolute;
+    position: fixed;
     top: 20px;
     right: 20px;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 10px 20px;
-    border-radius: 20px;
+    background: rgba(35, 47, 62, 0.95);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
     font-size: 1.2em;
     font-weight: bold;
-    z-index: 10;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
 }
 
 .timer.warning {
@@ -86,16 +90,21 @@ header h1 {
     border-width: 0;
 }
 
-/* Make timer sticky on mobile in test mode */
+/* Make timer floating pill on mobile */
 @media (max-width: 768px) {
     .timer {
-        position: sticky;
-        top: 0;
-        right: auto;
-        margin: 10px auto;
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        left: auto;
+        margin: 0;
         display: block;
-        width: fit-content;
-        z-index: 100;
+        width: auto;
+        min-width: 80px;
+        padding: 10px 18px;
+        font-size: 1em;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
 }
 

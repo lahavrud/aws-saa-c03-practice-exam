@@ -134,9 +134,23 @@ const TestManager = (function() {
                         return;
                     }
                     
-                    const progressStatus = ProgressManager.getTestProgressStatus(actualTestNumber);
-                    const testCard = TestManager.createTestCard(actualTestNumber, displayNumber, questionCount, key, progressStatus);
-                    content.appendChild(testCard);
+                    // Load progress status asynchronously
+                    ProgressManager.getTestProgressStatus(actualTestNumber).then(progressStatus => {
+                        const testCard = TestManager.createTestCard(actualTestNumber, displayNumber, questionCount, key, progressStatus);
+                        content.appendChild(testCard);
+                    }).catch(error => {
+                        console.error('Error loading progress status:', error);
+                        // Fallback to not-started status
+                        const progressStatus = {
+                            status: 'not-started',
+                            progressPercent: 0,
+                            answeredCount: 0,
+                            totalQuestions: questionCount,
+                            lastAccessed: null
+                        };
+                        const testCard = TestManager.createTestCard(actualTestNumber, displayNumber, questionCount, key, progressStatus);
+                        content.appendChild(testCard);
+                    });
                 });
                 
                 sourceSection.appendChild(header);
@@ -247,15 +261,15 @@ const TestManager = (function() {
         },
         
         // Resume a test (opens in modal)
-        resumeTest: (testNumber, source, displayNumber) => {
+        resumeTest: async (testNumber, source, displayNumber) => {
             AppState.setCurrentTest(testNumber);
             AppState.setSelectedSource(source);
             AppState.setCurrentTestDisplayNumber(displayNumber);
             
-            const saved = ProgressManager.getSavedProgressForTest(testNumber);
+            const saved = await ProgressManager.getSavedProgressForTest(testNumber);
             if (saved) {
                 // Load saved progress and go directly to questions
-                const loaded = TestManager.loadSavedProgress(testNumber);
+                const loaded = await TestManager.loadSavedProgress(testNumber);
                 if (loaded) {
                     // Open question screen in modal
                     TestManager.showQuestionModal();
@@ -455,56 +469,80 @@ const TestManager = (function() {
                     return;
                 }
                 
-                const savedProgress = ProgressManager.getSavedProgressForTest(actualTestNumber);
+                // Load progress asynchronously
+                ProgressManager.getSavedProgressForTest(actualTestNumber).then(savedProgress => {
+                    const testBtn = document.createElement('div');
+                    testBtn.className = 'test-btn-wrapper';
                 
-                const testBtn = document.createElement('div');
-                testBtn.className = 'test-btn-wrapper';
-                
-                const buttonContent = document.createElement('button');
-                buttonContent.className = 'test-btn';
-                buttonContent.type = 'button'; // Prevent form submission
-                buttonContent.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    AppState.setCurrentTestDisplayNumber(displayNumber);
-                    if (savedProgress) {
-                        if (confirm(`You have saved progress for this test (${savedProgress.mode} mode). Resume?`)) {
-                            TestManager.loadSavedProgress(actualTestNumber);
+                    const buttonContent = document.createElement('button');
+                    buttonContent.className = 'test-btn';
+                    buttonContent.type = 'button'; // Prevent form submission
+                    buttonContent.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        AppState.setCurrentTestDisplayNumber(displayNumber);
+                        if (savedProgress) {
+                            if (confirm(`You have saved progress for this test (${savedProgress.mode} mode). Resume?`)) {
+                                TestManager.loadSavedProgress(actualTestNumber);
+                            } else {
+                                TestManager.selectTest(actualTestNumber);
+                            }
                         } else {
                             TestManager.selectTest(actualTestNumber);
                         }
-                    } else {
-                        TestManager.selectTest(actualTestNumber);
+                    });
+                    
+                    buttonContent.innerHTML = `
+                        <div class="test-btn-header">
+                            <h3>Test ${displayNumber}</h3>
+                            <span class="test-count">${questionCount} Questions</span>
+                        </div>
+                        <p>Comprehensive practice exam covering all domains</p>
+                        ${savedProgress ? `<div class="test-progress-indicator">📌 Saved progress (${savedProgress.mode} mode, Q${savedProgress.questionIndex + 1}/${questionCount})</div>` : ''}
+                    `;
+                    
+                    testBtn.appendChild(buttonContent);
+                    
+                    // Add restart button if progress exists
+                    if (savedProgress) {
+                        const restartBtn = document.createElement('button');
+                        restartBtn.className = 'restart-test-btn';
+                        restartBtn.textContent = '🔄 Restart';
+                        restartBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            if (confirm(`Are you sure you want to restart Test ${displayNumber}? Your saved progress will be lost.`)) {
+                                ProgressManager.clearSavedProgressForTest(actualTestNumber);
+                                TestManager.loadAvailableTests();
+                            }
+                        };
+                        testBtn.appendChild(restartBtn);
                     }
-                });
-                
-                buttonContent.innerHTML = `
-                    <div class="test-btn-header">
-                        <h3>Test ${displayNumber}</h3>
-                        <span class="test-count">${questionCount} Questions</span>
-                    </div>
-                    <p>Comprehensive practice exam covering all domains</p>
-                    ${savedProgress ? `<div class="test-progress-indicator">📌 Saved progress (${savedProgress.mode} mode, Q${savedProgress.questionIndex + 1}/${questionCount})</div>` : ''}
-                `;
-                
-                testBtn.appendChild(buttonContent);
-                
-                // Add restart button if progress exists
-                if (savedProgress) {
-                    const restartBtn = document.createElement('button');
-                    restartBtn.className = 'restart-test-btn';
-                    restartBtn.textContent = '🔄 Restart';
-                    restartBtn.onclick = (e) => {
+                    
+                    testButtonsContainer.appendChild(testBtn);
+                }).catch(error => {
+                    console.error('Error loading progress for test:', actualTestNumber, error);
+                    // Continue without progress
+                    const testBtn = document.createElement('div');
+                    testBtn.className = 'test-btn-wrapper';
+                    const buttonContent = document.createElement('button');
+                    buttonContent.className = 'test-btn';
+                    buttonContent.type = 'button';
+                    buttonContent.addEventListener('click', (e) => {
+                        e.preventDefault();
                         e.stopPropagation();
-                        if (confirm(`Are you sure you want to restart Test ${displayNumber}? Your saved progress will be lost.`)) {
-                            ProgressManager.clearSavedProgressForTest(actualTestNumber);
-                            TestManager.loadAvailableTests();
-                        }
-                    };
-                    testBtn.appendChild(restartBtn);
-                }
-                
-                testButtonsContainer.appendChild(testBtn);
+                        AppState.setCurrentTestDisplayNumber(displayNumber);
+                        TestManager.selectTest(actualTestNumber);
+                    });
+                    buttonContent.innerHTML = `
+                        <div class="test-btn-header">
+                            <h3>Test ${displayNumber}</h3>
+                            <span class="test-count">${questionCount} Questions</span>
+                        </div>
+                        <p>Comprehensive practice exam covering all domains</p>
+                    `;
+                    testBtn.appendChild(buttonContent);
+                    testButtonsContainer.appendChild(testBtn);
+                });
             });
             
             // Update stats on main screen
@@ -546,18 +584,24 @@ const TestManager = (function() {
             
             const currentTest = AppState.getCurrentTest();
             
-            // Check for saved progress
+            // Check for saved progress (async, but don't block - user can continue)
             if (currentTest) {
-                const saved = ProgressManager.getSavedProgressForTest(currentTest);
-                if (saved && saved.mode === mode) {
-                    const displayNum = AppState.getCurrentTestDisplayNumber() || currentTest;
-                    if (confirm(`You have saved progress for Test ${displayNum} (${saved.mode} mode, Q${saved.questionIndex + 1}). Would you like to resume?`)) {
-                        TestManager.loadSavedProgress(currentTest);
-                        return;
-                    } else {
-                        ProgressManager.clearSavedProgressForTest(currentTest);
+                ProgressManager.getSavedProgressForTest(currentTest).then(saved => {
+                    if (saved && saved.mode === mode) {
+                        const displayNum = AppState.getCurrentTestDisplayNumber() || currentTest;
+                        if (confirm(`You have saved progress for Test ${displayNum} (${saved.mode} mode, Q${saved.questionIndex + 1}). Would you like to resume?`)) {
+                            TestManager.loadSavedProgress(currentTest).then(() => {
+                                // Progress loaded successfully
+                            });
+                            return;
+                        } else {
+                            ProgressManager.clearSavedProgressForTest(currentTest);
+                        }
                     }
-                }
+                }).catch(error => {
+                    console.error('Error checking saved progress:', error);
+                    // Continue without saved progress
+                });
             }
             
             if (mode === Config.MODES.TEST) {
@@ -627,7 +671,7 @@ const TestManager = (function() {
             AppState.setCurrentTest(null);
             
             // Try to load saved progress for this domain BEFORE resetting answers
-            const progressLoaded = TestManager.loadSavedProgress(null);
+            const progressLoaded = await TestManager.loadSavedProgress(null);
             
             if (progressLoaded) {
                 // Progress was loaded and screen/question already shown by loadSavedProgress
@@ -689,8 +733,8 @@ const TestManager = (function() {
             }, 200);
         },
         
-        // Load saved progress
-        loadSavedProgress: (testNumber) => {
+        // Load saved progress (async - loads from Firestore first)
+        loadSavedProgress: async (testNumber) => {
             // Load questions first before loading progress
             const selectedDomain = AppState.getSelectedDomain();
             
@@ -717,7 +761,7 @@ const TestManager = (function() {
             }
             
             // Now load the saved progress (answers, marked questions, etc.)
-            const progressLoaded = ProgressManager.loadSavedProgress(testNumber);
+            const progressLoaded = await ProgressManager.loadSavedProgress(testNumber);
             if (progressLoaded) {
                 console.log('ProgressManager.loadSavedProgress returned true');
                 // Ensure questions are still loaded (they should be, but double-check)
@@ -783,6 +827,10 @@ const TestManager = (function() {
         
         // Next question
         nextQuestion: () => {
+            // Save progress before moving to next question
+            if (typeof ProgressManager !== 'undefined' && ProgressManager.saveProgress) {
+                ProgressManager.saveProgress();
+            }
             const currentQuestionIndex = AppState.getCurrentQuestionIndex();
             const currentQuestions = AppState.getCurrentQuestions();
             
@@ -833,6 +881,11 @@ const TestManager = (function() {
                 // Hide submit button and show next button
                 if (submitBtn) submitBtn.classList.add('hidden');
                 if (nextBtn) nextBtn.classList.remove('hidden');
+                
+                // Save progress immediately after answering
+                if (typeof ProgressManager !== 'undefined' && ProgressManager.saveProgress) {
+                    ProgressManager.saveProgress();
+                }
             } else {
                 // Test mode: check if this is the last question
                 if (currentQuestionIndex === currentQuestions.length - 1) {

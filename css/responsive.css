@@ -213,11 +213,12 @@
     }
 
     .timer {
-        position: static;
-        margin-top: 10px;
-        display: inline-block;
-        font-size: 1em;
-        padding: 8px 15px;
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        font-size: 0.95em;
+        padding: 10px 18px;
+        z-index: 1000;
     }
 
     .test-buttons, .mode-buttons {
@@ -297,25 +298,33 @@
     }
 
     .navigation {
-        flex-direction: column;
+        flex-direction: row;
         gap: 10px;
+        flex-wrap: wrap;
     }
     
     .nav-center {
         width: 100%;
-        justify-content: stretch;
-        flex-direction: column;
+        display: flex;
+        gap: 10px;
+        flex-direction: row;
+        order: 1;
     }
     
     .nav-btn {
-        width: 100%;
+        flex: 1;
         min-height: 44px;
         padding: 12px;
         min-width: auto;
     }
     
     .nav-center .nav-btn {
-        width: 100%;
+        flex: 1;
+    }
+    
+    /* Show Check Answer button on mobile in navigation */
+    #submit-btn {
+        display: block !important;
     }
     
     .question-navbar {
@@ -603,8 +612,12 @@
     }
 
     .timer {
-        font-size: 0.9em;
-        padding: 6px 12px;
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        font-size: 0.85em;
+        padding: 8px 16px;
+        z-index: 1000;
     }
 
     .question-grid {

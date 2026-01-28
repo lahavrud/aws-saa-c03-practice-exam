@@ -484,14 +484,23 @@ function saveProgressToFirestore(progress, progressKey, userName = null) {
 }
 
 // Optimized: Load progress with caching
-async function loadProgressFromFirestore(progressKey) {
+async function loadProgressFromFirestore(progressKey, userEmail = null) {
     if (!isFirebaseAvailable()) return null;
+    
+    // Get user email if not provided
+    if (!userEmail) {
+        userEmail = auth.currentUser?.email || window.currentUserEmail;
+    }
     
     // Return cached if recent (within 1 minute)
     if (localCache.progress.has(progressKey)) {
         const cached = localCache.progress.get(progressKey);
         if (Date.now() - cached.timestamp < 60000) {
-            return cached.data;
+            const cachedData = cached.data;
+            // Verify cached data belongs to current user
+            if (cachedData && (!userEmail || cachedData.userEmail === userEmail)) {
+                return cachedData;
+            }
         }
     }
     
@@ -499,15 +508,21 @@ async function loadProgressFromFirestore(progressKey) {
         const doc = await db.collection('progress').doc(progressKey).get();
         if (doc.exists) {
             const data = doc.data();
+            // Verify the progress belongs to the current user
+            if (userEmail && data.userEmail && data.userEmail !== userEmail) {
+                console.warn('Progress document belongs to different user:', data.userEmail, 'vs', userEmail);
+                return null;
+            }
             // Cache it
             localCache.progress.set(progressKey, {
                 data: data,
                 timestamp: Date.now()
             });
+            // Only log successful loads, not every attempt
             return data;
         }
     } catch (error) {
-        console.error('Error loading progress:', error);
+        console.error('Error loading progress from Firestore:', error);
     }
     
     return null;
@@ -901,6 +916,9 @@ function isFirebaseAvailable() {
 // Make functions globally accessible
 window.isFirebaseInitialized = isFirebaseInitialized;
 window.isFirebaseAvailable = isFirebaseAvailable;
+window.loadProgressFromFirestore = loadProgressFromFirestore;
+window.saveProgressToFirestore = saveProgressToFirestore;
+window.db = db; // Expose db for direct queries if needed
 
 // Make functions globally accessible
 window.signInWithGoogle = signInWithGoogle;

@@ -59,12 +59,15 @@ const ProgressManager = (function() {
                     }
                     
                     // Save to Firestore if available
-                    if (typeof saveProgressToFirestore === 'function' && typeof isFirebaseAvailable === 'function' && isFirebaseAvailable()) {
+                    if (typeof window.saveProgressToFirestore === 'function' && typeof window.isFirebaseAvailable === 'function' && window.isFirebaseAvailable()) {
                         try {
-                            saveProgressToFirestore(progress, progressKey, currentUserEmail);
+                            console.log('Saving progress to Firestore:', progressKey, 'for user:', currentUserEmail);
+                            window.saveProgressToFirestore(progress, progressKey, currentUserEmail);
                         } catch (firestoreError) {
                             console.error('Error saving to Firestore:', firestoreError);
                         }
+                    } else {
+                        console.warn('Firestore functions not available. saveProgressToFirestore:', typeof window.saveProgressToFirestore, 'isFirebaseAvailable:', typeof window.isFirebaseAvailable);
                     }
                     
                     return true;
@@ -100,12 +103,15 @@ const ProgressManager = (function() {
                     }
                     
                     // Save to Firestore if available
-                    if (typeof saveProgressToFirestore === 'function' && typeof isFirebaseAvailable === 'function' && isFirebaseAvailable()) {
+                    if (typeof window.saveProgressToFirestore === 'function' && typeof window.isFirebaseAvailable === 'function' && window.isFirebaseAvailable()) {
                         try {
-                            saveProgressToFirestore(progress, progressKey, currentUserEmail);
+                            console.log('Saving domain progress to Firestore:', progressKey, 'for user:', currentUserEmail);
+                            window.saveProgressToFirestore(progress, progressKey, currentUserEmail);
                         } catch (firestoreError) {
                             console.error('Error saving to Firestore:', firestoreError);
                         }
+                    } else {
+                        console.warn('Firestore functions not available for domain progress save.');
                     }
                     
                     return true;
@@ -127,15 +133,35 @@ const ProgressManager = (function() {
             }
         },
         
-        // Get saved progress for a specific test
-        getSavedProgressForTest: (testNumber) => {
+        // Get saved progress for a specific test (loads from Firestore first, then localStorage)
+        getSavedProgressForTest: async (testNumber) => {
             const currentUserEmail = AppState.getCurrentUserEmail();
             if (!currentUserEmail) return null;
             
             const userKey = currentUserEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
             const progressKey = `${Config.STORAGE_KEYS.PROGRESS_PREFIX}${userKey}-test${testNumber}`;
-            const saved = localStorage.getItem(progressKey);
             
+            // Try Firestore first (for cross-device sync)
+            if (typeof window.loadProgressFromFirestore === 'function' && typeof window.isFirebaseAvailable === 'function' && window.isFirebaseAvailable()) {
+                try {
+                    const firestoreProgress = await window.loadProgressFromFirestore(progressKey, currentUserEmail);
+                    if (firestoreProgress) {
+                        // Sync to localStorage for offline access
+                        try {
+                            localStorage.setItem(progressKey, JSON.stringify(firestoreProgress));
+                        } catch (storageError) {
+                            console.warn('Could not sync Firestore progress to localStorage:', storageError);
+                        }
+                        console.log('✓ Progress synced from Firestore:', progressKey);
+                        return firestoreProgress;
+                    }
+                } catch (firestoreError) {
+                    console.warn('Error loading from Firestore, falling back to localStorage:', firestoreError);
+                }
+            }
+            
+            // Fallback to localStorage
+            const saved = localStorage.getItem(progressKey);
             if (!saved) return null;
             
             try {
@@ -146,8 +172,8 @@ const ProgressManager = (function() {
             }
         },
         
-        // Load saved progress
-        loadSavedProgress: (testNumber) => {
+        // Load saved progress (loads from Firestore first, then localStorage)
+        loadSavedProgress: async (testNumber) => {
             const currentUserEmail = AppState.getCurrentUserEmail();
             if (!currentUserEmail) {
                 console.log('loadSavedProgress: No user email');
@@ -177,16 +203,52 @@ const ProgressManager = (function() {
                 return false;
             }
             
-            const saved = localStorage.getItem(progressKey);
-            if (!saved) {
-                console.log('No saved progress found for key:', progressKey);
+            let progress = null;
+            
+            // Try Firestore first (for cross-device sync)
+            if (typeof window.loadProgressFromFirestore === 'function' && typeof window.isFirebaseAvailable === 'function' && window.isFirebaseAvailable()) {
+                try {
+                    const firestoreProgress = await window.loadProgressFromFirestore(progressKey, currentUserEmail);
+                    if (firestoreProgress) {
+                        progress = firestoreProgress;
+                        // Sync to localStorage for offline access
+                        try {
+                            localStorage.setItem(progressKey, JSON.stringify(firestoreProgress));
+                        } catch (storageError) {
+                            console.warn('Could not sync Firestore progress to localStorage:', storageError);
+                        }
+                        console.log('Progress loaded from Firestore:', progressKey);
+                    }
+                } catch (firestoreError) {
+                    console.warn('Error loading from Firestore, falling back to localStorage:', firestoreError);
+                }
+            }
+            
+            // Fallback to localStorage if Firestore didn't have it
+            if (!progress) {
+                const saved = localStorage.getItem(progressKey);
+                if (!saved) {
+                    console.log('No saved progress found for key:', progressKey);
+                    return false;
+                }
+                
+                console.log('Found saved progress in localStorage, parsing...');
+                
+                try {
+                    progress = JSON.parse(saved);
+                } catch (error) {
+                    console.error('Error parsing saved progress:', error);
+                    return false;
+                }
+            }
+            
+            if (!progress) {
                 return false;
             }
             
-            console.log('Found saved progress, parsing...');
+            console.log('Found saved progress, loading...');
             
             try {
-                const progress = JSON.parse(saved);
                 
                 AppState.setCurrentTest(progress.test);
                 AppState.setCurrentMode(progress.mode);
@@ -318,16 +380,82 @@ const ProgressManager = (function() {
             return Math.round((answeredCount / totalQuestions) * 100);
         },
         
-        // Get last progress point
-        getLastProgressPoint: () => {
+        // Get last progress point (loads from Firestore first, then localStorage)
+        getLastProgressPoint: async () => {
             const currentUserEmail = AppState.getCurrentUserEmail();
             if (!currentUserEmail) return null;
             
             const userKey = currentUserEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
-            const lastProgressKey = localStorage.getItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`);
+            let lastProgressKey = localStorage.getItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`);
+            
+            // If no key in localStorage, try to find most recent progress from Firestore
+            if (!lastProgressKey && typeof window.isFirebaseAvailable === 'function' && window.isFirebaseAvailable()) {
+                try {
+                    // Query Firestore for most recent progress for this user
+                    // Access db through window
+                    const db = window.db;
+                    if (db && db.collection) {
+                        const userEmail = currentUserEmail;
+                        console.log('Querying Firestore for most recent progress for user:', userEmail);
+                        const progressQuery = await db.collection('progress')
+                            .where('userEmail', '==', userEmail)
+                            .orderBy('timestamp', 'desc')
+                            .limit(1)
+                            .get();
+                        
+                        if (!progressQuery.empty) {
+                            const mostRecentDoc = progressQuery.docs[0];
+                            const progressData = mostRecentDoc.data();
+                            lastProgressKey = mostRecentDoc.id;
+                            
+                            // Verify the data belongs to the current user
+                            if (progressData.userEmail === userEmail) {
+                                // Sync to localStorage
+                                try {
+                                    localStorage.setItem(lastProgressKey, JSON.stringify(progressData));
+                                    localStorage.setItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`, lastProgressKey);
+                                } catch (storageError) {
+                                    console.warn('Could not sync Firestore progress to localStorage:', storageError);
+                                }
+                                
+                                console.log('Most recent progress loaded from Firestore:', lastProgressKey);
+                                return progressData;
+                            } else {
+                                console.warn('Progress document belongs to different user');
+                            }
+                        } else {
+                            console.log('No progress found in Firestore for user:', userEmail);
+                        }
+                    } else {
+                        console.warn('Firestore db not available for querying');
+                    }
+                } catch (firestoreError) {
+                    console.warn('Error querying Firestore for last progress, falling back to localStorage:', firestoreError);
+                }
+            }
             
             if (!lastProgressKey) return null;
             
+            // Try Firestore first
+            if (typeof window.loadProgressFromFirestore === 'function' && typeof window.isFirebaseAvailable === 'function' && window.isFirebaseAvailable()) {
+                try {
+                    const firestoreProgress = await window.loadProgressFromFirestore(lastProgressKey, currentUserEmail);
+                    if (firestoreProgress) {
+                        // Sync to localStorage for offline access
+                        try {
+                            localStorage.setItem(lastProgressKey, JSON.stringify(firestoreProgress));
+                        } catch (storageError) {
+                            console.warn('Could not sync Firestore progress to localStorage:', storageError);
+                        }
+                        console.log('✓ Last progress synced from Firestore:', lastProgressKey);
+                        return firestoreProgress;
+                    }
+                } catch (firestoreError) {
+                    console.warn('Error loading from Firestore, falling back to localStorage:', firestoreError);
+                }
+            }
+            
+            // Fallback to localStorage
             const saved = localStorage.getItem(lastProgressKey);
             if (!saved) return null;
             
@@ -339,9 +467,94 @@ const ProgressManager = (function() {
             }
         },
         
-        // Get progress status for a test
-        getTestProgressStatus: (testNumber) => {
-            const progress = ProgressManager.getSavedProgressForTest(testNumber);
+        // Sync all progress from Firestore to localStorage
+        syncAllProgressFromFirestore: async () => {
+            const currentUserEmail = AppState.getCurrentUserEmail();
+            if (!currentUserEmail) {
+                console.log('Cannot sync: No user email');
+                return false;
+            }
+            
+            if (typeof window.isFirebaseAvailable !== 'function' || !window.isFirebaseAvailable()) {
+                console.log('Firebase not available for sync');
+                return false;
+            }
+            
+            const userKey = currentUserEmail.toLowerCase().replace(/[^a-z0-9@.-]/g, '-');
+            const userEmail = currentUserEmail;
+            
+            try {
+                console.log('Syncing all progress from Firestore for user:', userEmail);
+                const db = window.db;
+                if (!db || !db.collection) {
+                    console.warn('Firestore db not available');
+                    return false;
+                }
+                
+                // Query all progress documents for this user
+                const progressQuery = await db.collection('progress')
+                    .where('userEmail', '==', userEmail)
+                    .get();
+                
+                if (progressQuery.empty) {
+                    console.log('No progress found in Firestore for user:', userEmail);
+                    return false;
+                }
+                
+                let syncedCount = 0;
+                progressQuery.forEach(doc => {
+                    const progressData = doc.data();
+                    const progressKey = doc.id;
+                    
+                    // Verify it belongs to current user
+                    if (progressData.userEmail === userEmail) {
+                        try {
+                            // Sync to localStorage
+                            localStorage.setItem(progressKey, JSON.stringify(progressData));
+                            
+                            // Update current progress reference if this is the most recent
+                            if (progressData.timestamp) {
+                                const currentProgressKey = localStorage.getItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`);
+                                if (!currentProgressKey) {
+                                    localStorage.setItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`, progressKey);
+                                } else {
+                                    // Check if this is more recent
+                                    const currentProgress = localStorage.getItem(currentProgressKey);
+                                    if (currentProgress) {
+                                        try {
+                                            const currentData = JSON.parse(currentProgress);
+                                            if (progressData.timestamp > (currentData.timestamp || '')) {
+                                                localStorage.setItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`, progressKey);
+                                            }
+                                        } catch (e) {
+                                            // If current progress can't be parsed, use this one
+                                            localStorage.setItem(`${Config.STORAGE_KEYS.CURRENT_PROGRESS_PREFIX}${userKey}`, progressKey);
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            syncedCount++;
+                            console.log('Synced progress:', progressKey);
+                        } catch (storageError) {
+                            console.error('Error syncing progress to localStorage:', progressKey, storageError);
+                        }
+                    }
+                });
+                
+                if (syncedCount > 0) {
+                    console.log(`✓ Synced ${syncedCount} progress document(s) from Firestore`);
+                }
+                return syncedCount > 0;
+            } catch (error) {
+                console.error('Error syncing progress from Firestore:', error);
+                return false;
+            }
+        },
+        
+        // Get progress status for a test (async - loads from Firestore first)
+        getTestProgressStatus: async (testNumber) => {
+            const progress = await ProgressManager.getSavedProgressForTest(testNumber);
             if (!progress) {
                 return {
                     status: 'not-started',
