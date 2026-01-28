@@ -289,28 +289,15 @@ const Insights = (function() {
             
             let html = '<div class="insights-content">';
             
-            // Overall summary
-            html += `
-                <div class="insights-summary">
-                    <h3>Overall Performance</h3>
-                    <div class="summary-stats">
-                        <div class="summary-stat">
-                            <span class="stat-label">Total Answered</span>
-                            <span class="stat-value">${insights.totalAnswered}</span>
-                        </div>
-                        <div class="summary-stat">
-                            <span class="stat-label">Overall Accuracy</span>
-                            <span class="stat-value">${insights.overallAccuracy}%</span>
-                        </div>
-                        <div class="summary-stat">
-                            <span class="stat-label">Correct Answers</span>
-                            <span class="stat-value">${insights.totalCorrect}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
+            // Calculate additional metrics
+            const totalIncorrect = insights.totalAnswered - insights.totalCorrect;
+            const domainsWithData = Object.keys(insights.domainStats).filter(domain => 
+                insights.domainStats[domain].answered > 0
+            );
+            const strongestDomain = insights.strongestDomain;
+            const strongestAccuracy = strongestDomain ? insights.domainStats[strongestDomain].accuracy : 0;
             
-            // Quick stats summary
+            // Compact stats grid - more informative
             html += '<div class="insights-quick-stats">';
             html += `
                 <div class="quick-stat-card">
@@ -325,6 +312,7 @@ const Insights = (function() {
                     <div class="quick-stat-info">
                         <div class="quick-stat-label">Questions Answered</div>
                         <div class="quick-stat-value">${insights.totalAnswered}</div>
+                        <div class="quick-stat-detail">${insights.totalCorrect} correct, ${totalIncorrect} incorrect</div>
                     </div>
                 </div>
                 <div class="quick-stat-card">
@@ -332,10 +320,48 @@ const Insights = (function() {
                     <div class="quick-stat-info">
                         <div class="quick-stat-label">Overall Accuracy</div>
                         <div class="quick-stat-value">${insights.overallAccuracy}%</div>
+                        ${strongestDomain ? `<div class="quick-stat-detail">Best: ${strongestDomain.split(' ').pop()} (${strongestAccuracy}%)</div>` : ''}
                     </div>
                 </div>
             `;
             html += '</div>';
+            
+            // Domain performance summary (compact)
+            if (domainsWithData.length > 0) {
+                html += '<div class="insights-domain-summary">';
+                html += '<h4>Domain Performance</h4>';
+                html += '<div class="domain-performance-list">';
+                
+                // Sort domains by accuracy (best to worst)
+                const sortedDomains = domainsWithData.sort((a, b) => {
+                    return insights.domainStats[b].accuracy - insights.domainStats[a].accuracy;
+                });
+                
+                // Show top 2 and bottom 1 (or all if 3 or fewer)
+                const domainsToShow = sortedDomains.length <= 3 
+                    ? sortedDomains 
+                    : [sortedDomains[0], sortedDomains[1], sortedDomains[sortedDomains.length - 1]];
+                
+                domainsToShow.forEach(domain => {
+                    const stats = insights.domainStats[domain];
+                    const domainShort = domain.replace('Design ', '').replace(' Architectures', '');
+                    const isBest = domain === strongestDomain;
+                    const isWorst = domain === insights.weakestDomain;
+                    
+                    html += `
+                        <div class="domain-performance-item ${isBest ? 'best' : ''} ${isWorst ? 'worst' : ''}">
+                            <div class="domain-name">${domainShort}</div>
+                            <div class="domain-stats">
+                                <span class="domain-accuracy">${stats.accuracy}%</span>
+                                <span class="domain-count">(${stats.answered} answered)</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                html += '</div>';
+            }
             
             // Study recommendations
             if (insights.weakestDomain) {

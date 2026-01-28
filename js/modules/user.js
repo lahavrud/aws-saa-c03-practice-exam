@@ -156,7 +156,7 @@ const UserManager = (function() {
         },
         
         // Perform the actual reset (called after confirmation)
-        performReset: () => {
+        performReset: async () => {
             const currentUser = AppState.getCurrentUser();
             const currentUserEmail = AppState.getCurrentUserEmail();
             
@@ -176,12 +176,32 @@ const UserManager = (function() {
                 }
             };
             
-            AppState.setCurrentUser(resetUser);
-            UserManager.saveUser();
-            Stats.updateDashboard();
-            UI.closeUserSettings();
+            // Delete from Firestore first (if available)
+            if (typeof window.deleteAllProgressFromFirestore === 'function' && 
+                typeof window.isFirebaseAvailable === 'function' && 
+                window.isFirebaseAvailable()) {
+                try {
+                    console.log('Deleting all progress from Firestore...');
+                    await window.deleteAllProgressFromFirestore(currentUserEmail);
+                } catch (error) {
+                    console.error('Error deleting progress from Firestore:', error);
+                    // Continue with localStorage deletion even if Firestore fails
+                }
+            }
             
-            // Clear all saved progress for current user
+            if (typeof window.deleteUserDataFromFirestore === 'function' && 
+                typeof window.isFirebaseAvailable === 'function' && 
+                window.isFirebaseAvailable()) {
+                try {
+                    console.log('Resetting user data in Firestore...');
+                    await window.deleteUserDataFromFirestore(currentUserEmail);
+                } catch (error) {
+                    console.error('Error resetting user data in Firestore:', error);
+                    // Continue with localStorage reset even if Firestore fails
+                }
+            }
+            
+            // Clear all saved progress for current user from localStorage
             const userKey = UserManager.getUserKeyFromEmail(currentUserEmail);
             const keysToRemove = [];
             for (let i = 0; i < localStorage.length; i++) {
@@ -196,6 +216,12 @@ const UserManager = (function() {
             }
             keysToRemove.forEach(key => localStorage.removeItem(key));
             
+            // Update user data
+            AppState.setCurrentUser(resetUser);
+            UserManager.saveUser(); // This will save the reset user data to Firestore
+            Stats.updateDashboard();
+            UI.closeUserSettings();
+            
             // Reset current state
             AppState.resetTestState();
             
@@ -209,6 +235,22 @@ const UserManager = (function() {
             // Reload test buttons if on test selection screen
             if (AppState.getSelectedSource()) {
                 TestManager.loadAvailableTests();
+            }
+            
+            // Reload dashboard if on main screen
+            if (typeof Navigation !== 'undefined' && Navigation.showMainScreen) {
+                // Refresh the dashboard to show updated state
+                setTimeout(() => {
+                    if (typeof ResumeManager !== 'undefined' && ResumeManager.loadDashboardContent) {
+                        ResumeManager.loadDashboardContent();
+                    }
+                    if (typeof TestManager !== 'undefined' && TestManager.loadAllTestsOnDashboard) {
+                        TestManager.loadAllTestsOnDashboard();
+                    }
+                    if (typeof Insights !== 'undefined' && Insights.displayInsights) {
+                        Insights.displayInsights();
+                    }
+                }, 500);
             }
         },
         

@@ -286,7 +286,7 @@ const ResumeManager = (function() {
                     </div>
                     <div class="continue-footer">
                         <span class="continue-last-accessed">Last accessed: ${details.lastAccessed}</span>
-                        <button class="continue-btn" onclick="ResumeManager.resumeInModal()">
+                        <button class="continue-btn" data-action="resume">
                             Continue
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -295,6 +295,32 @@ const ResumeManager = (function() {
                     </div>
                 </div>
             `;
+            
+            // Attach event listener to continue button (works better on mobile than onclick)
+            const continueBtn = continueContainer.querySelector('.continue-btn[data-action="resume"]');
+            if (continueBtn) {
+                // Remove any existing listeners by cloning
+                const newBtn = continueBtn.cloneNode(true);
+                continueBtn.parentNode.replaceChild(newBtn, continueBtn);
+                
+                // Add event listener for both click and touch events
+                newBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (typeof ResumeManager !== 'undefined' && ResumeManager.resumeInModal) {
+                        await ResumeManager.resumeInModal();
+                    }
+                });
+                
+                // Also handle touchstart for better mobile support
+                newBtn.addEventListener('touchstart', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (typeof ResumeManager !== 'undefined' && ResumeManager.resumeInModal) {
+                        await ResumeManager.resumeInModal();
+                    }
+                });
+            }
         }
     };
 })();

@@ -290,13 +290,33 @@ if (typeof UserManager !== 'undefined') {
 }
 
 // Reset confirmation functions
-window.confirmResetProgress = () => {
+window.confirmResetProgress = async () => {
     const input = document.getElementById('reset-confirm-input');
+    const confirmBtn = document.getElementById('reset-confirm-btn');
+    
     if (input && input.value === 'DELETE') {
-        if (typeof UserManager !== 'undefined' && UserManager.performReset) {
-            UserManager.performReset();
+        // Disable button during reset
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Deleting...';
         }
+        
+        // Close dialog first
         window.closeResetConfirmation();
+        
+        // Perform reset (now async)
+        if (typeof UserManager !== 'undefined' && UserManager.performReset) {
+            try {
+                await UserManager.performReset();
+            } catch (error) {
+                console.error('Error during reset:', error);
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Error resetting data. Please try again.', 'error');
+                } else {
+                    alert('Error resetting data. Please try again.');
+                }
+            }
+        }
     }
 };
 

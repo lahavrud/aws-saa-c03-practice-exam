@@ -293,6 +293,18 @@ const QuestionHandler = (function() {
             
             // Update question navbar
             QuestionHandler.updateQuestionNavbar();
+            
+            // Scroll question into view and center it (especially useful when entering a test)
+            setTimeout(() => {
+                const questionTextEl = document.getElementById('question-text');
+                if (questionTextEl) {
+                    questionTextEl.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'nearest'
+                    });
+                }
+            }, 100); // Small delay to ensure DOM is ready
         },
         
         // Update option selection
