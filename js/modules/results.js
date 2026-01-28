@@ -48,6 +48,7 @@ const Results = (function() {
             
             const total = currentQuestions.length;
             const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+            const isPassing = accuracy >= 72;
             
             // Update results display (using correct element IDs from HTML)
             const totalScoreEl = document.getElementById('total-score');
@@ -55,10 +56,35 @@ const Results = (function() {
             const incorrectEl = document.getElementById('incorrect-count');
             const unansweredEl = document.getElementById('unanswered-count');
             
-            if (totalScoreEl) totalScoreEl.textContent = `${accuracy}%`;
-            if (correctEl) correctEl.textContent = correct;
-            if (incorrectEl) incorrectEl.textContent = incorrect;
+            if (totalScoreEl) {
+                totalScoreEl.textContent = `${accuracy}%`;
+                // Add passing/failing class
+                totalScoreEl.classList.remove('passing', 'failing');
+                if (isPassing) {
+                    totalScoreEl.classList.add('passing');
+                } else {
+                    totalScoreEl.classList.add('failing');
+                }
+            }
+            if (correctEl) {
+                correctEl.textContent = correct;
+                correctEl.classList.add('correct-stat');
+            }
+            if (incorrectEl) {
+                incorrectEl.textContent = incorrect;
+                incorrectEl.classList.add('incorrect-stat');
+            }
             if (unansweredEl) unansweredEl.textContent = unanswered;
+            
+            // Animate circular progress
+            const progressCircle = document.querySelector('.score-circle-progress');
+            if (progressCircle) {
+                const circumference = 2 * Math.PI * 90; // radius = 90
+                const offset = circumference - (accuracy / 100) * circumference;
+                const circleColor = isPassing ? '#4caf50' : '#f44336';
+                progressCircle.style.stroke = circleColor;
+                progressCircle.style.strokeDashoffset = offset;
+            }
             
             // Build results breakdown
             Results.buildBreakdown(currentQuestions, userAnswers);
@@ -112,9 +138,17 @@ const Results = (function() {
                 
                 const domainDiv = document.createElement('div');
                 domainDiv.className = 'domain-item';
+                const scorePercent = parseFloat(domainScore);
+                const isPassing = scorePercent >= 72;
+                
                 domainDiv.innerHTML = `
-                    <span class="domain-name">${domain}</span>
-                    <span class="domain-score">${domainScore}% (${stats.correct}/${stats.total})</span>
+                    <div class="domain-breakdown-content">
+                        <span class="domain-name">${domain}</span>
+                        <div class="domain-breakdown-bar">
+                            <div class="domain-breakdown-progress" style="width: ${scorePercent}%; background: ${isPassing ? '#4caf50' : '#f44336'};"></div>
+                        </div>
+                    </div>
+                    <span class="domain-score ${isPassing ? 'passing' : 'failing'}">${domainScore}% (${stats.correct}/${stats.total})</span>
                 `;
                 
                 breakdownContainer.appendChild(domainDiv);

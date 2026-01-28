@@ -221,11 +221,26 @@ const Insights = (function() {
             const insightsContainer = document.getElementById('insights-container');
             if (!insightsContainer) return;
             
-            const insights = Insights.calculateInsights();
-            if (!insights) {
-                insightsContainer.innerHTML = '<p class="insights-empty">Complete some questions to see insights!</p>';
-                return;
-            }
+            // Show loading state
+            insightsContainer.innerHTML = '<div class="insights-loading"><div class="skeleton-loader"></div><div class="skeleton-loader"></div><div class="skeleton-loader"></div></div>';
+            
+            // Simulate loading delay for better UX
+            setTimeout(() => {
+                const insights = Insights.calculateInsights();
+                if (!insights) {
+                    insightsContainer.innerHTML = `
+                        <div class="insights-empty">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 16px; opacity: 0.3;">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                            </svg>
+                            <p>Complete some questions to see insights!</p>
+                            <p style="font-size: 0.9em; margin-top: 8px; opacity: 0.7;">Start practicing to track your performance across domains</p>
+                        </div>
+                    `;
+                    return;
+                }
             
             // Calculate overall accuracy
             insights.overallAccuracy = insights.totalAnswered > 0
@@ -268,6 +283,7 @@ const Insights = (function() {
             domains.forEach(domain => {
                 const stats = insights.domainStats[domain];
                 const progressPercent = stats.total > 0 ? Math.round((stats.answered / stats.total) * 100) : 0;
+                const needsPractice = stats.answered > 0 && stats.accuracy < 70;
                 
                 html += `
                     <div class="domain-insight-card">
@@ -283,6 +299,9 @@ const Insights = (function() {
                             <span>Correct: ${stats.correct}</span>
                             <span>Incorrect: ${stats.incorrect}</span>
                         </div>
+                        <button class="practice-domain-btn" onclick="selectDomainForReview('${domain}')" ${stats.answered === 0 ? '' : needsPractice ? 'style="background: #ff9800; color: white;"' : ''}>
+                            ${stats.answered === 0 ? 'Start Practicing' : needsPractice ? 'Practice More' : 'Review Domain'}
+                        </button>
                     </div>
                 `;
             });
@@ -315,6 +334,7 @@ const Insights = (function() {
             
             html += '</div>';
             insightsContainer.innerHTML = html;
+            }, 300); // Small delay for better perceived performance
         }
     };
 })();

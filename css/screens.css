@@ -698,6 +698,32 @@
     font-style: italic;
 }
 
+.insights-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.skeleton-loader {
+    background: linear-gradient(90deg, #E8EBED 25%, #F5F5F5 50%, #E8EBED 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    height: 60px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
 .insights-content {
     display: flex;
     flex-direction: column;
@@ -768,6 +794,26 @@
 .domain-insight-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(35, 47, 62, 0.15);
+}
+
+.practice-domain-btn {
+    margin-top: 12px;
+    width: 100%;
+    padding: 10px 16px;
+    background: #FF9900;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.practice-domain-btn:hover {
+    background: #232F3E;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(35, 47, 62, 0.2);
 }
 
 .domain-header {

@@ -2,17 +2,23 @@
             <h2>Test Results</h2>
             <div class="score-summary">
                 <div class="score-circle">
-                    <div class="score-value" id="total-score">0%</div>
-                    <div class="score-label">Overall Score</div>
+                    <svg class="score-circle-svg" width="200" height="200">
+                        <circle class="score-circle-bg" cx="100" cy="100" r="90" fill="none" stroke="#E8EBED" stroke-width="12"></circle>
+                        <circle class="score-circle-progress" cx="100" cy="100" r="90" fill="none" stroke="#FF9900" stroke-width="12" stroke-linecap="round" transform="rotate(-90 100 100)" stroke-dasharray="565.48" stroke-dashoffset="565.48"></circle>
+                    </svg>
+                    <div class="score-circle-content">
+                        <div class="score-value" id="total-score">0%</div>
+                        <div class="score-label">Overall Score</div>
+                    </div>
                 </div>
                 <div class="score-details">
                     <div class="score-stat">
                         <span class="stat-label">Correct:</span>
-                        <span class="stat-value" id="correct-count">0</span>
+                        <span class="stat-value correct-stat" id="correct-count">0</span>
                     </div>
                     <div class="score-stat">
                         <span class="stat-label">Incorrect:</span>
-                        <span class="stat-value" id="incorrect-count">0</span>
+                        <span class="stat-value incorrect-stat" id="incorrect-count">0</span>
                     </div>
                     <div class="score-stat">
                         <span class="stat-label">Unanswered:</span>

@@ -250,13 +250,25 @@
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: white;
     backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.hero-section-compact .user-settings-btn svg {
+    width: 20px;
+    height: 20px;
 }
 
 .hero-section-compact .user-settings-btn:hover {
     background: rgba(255, 255, 255, 0.3);
     border-color: rgba(255, 255, 255, 0.5);
     color: white;
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.05);
 }
 
 /* Dashboard */
